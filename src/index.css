@@ -1,0 +1,42 @@
+@import '@fontsource/sn-pro/300.css';
+@import '@fontsource/sn-pro/400.css';
+@import '@fontsource/sn-pro/500.css';
+@import '@fontsource/sn-pro/600.css';
+@import '@fontsource/sn-pro/700.css';
+@import '@fontsource/sn-pro/800.css';
+@import '@fontsource/sn-pro/900.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-fondo font-sn text-cafe antialiased; }
+  button { @apply font-sn; }
+}
+
+@layer utilities {
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+@keyframes oveja-entra {
+  0%   { opacity: 0; translate: 0 14px; }
+  70%  { opacity: 1; translate: 0 -3px; }
+  100% { opacity: 1; translate: 0 0; }
+}
+@keyframes oveja-flota {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -5px; }
+}
+img[src*="oveja"]:not(.oveja-quieta),
+.oveja-grupo  {
+  animation: oveja-entra 0.7s cubic-bezier(0.22, 1, 0.36, 1) both, oveja-flota 3.6s ease-in-out 0.7s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  img[src*="oveja"], .oveja-grupo { animation: none !important; }
+}
+
+:root { --alto-vista: 100svh; --header: 0px; }
+@media (min-width: 1024px) { :root { --alto-vista: calc(100dvh - 113px); --header: 113px; } }
