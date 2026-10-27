@@ -81,7 +81,6 @@ function MiRebano() {
   );
 }
 
-
 function Lista({ children }: { children: ReactNode }) {
   return <div className="flex flex-col overflow-hidden rounded-2xl bg-n0 lg:rounded-[24px]">{children}</div>;
 }
@@ -124,7 +123,6 @@ function useAccion<R>(fn: () => Promise<R>, simulado: R) {
   };
   return { ejecutar, enviando, error };
 }
-
 
 function PaginaMovimientos({ page, ultima, onMas }: { page: number; ultima: boolean; onMas: () => void }) {
   const r = useMovimientosLanas(page);
@@ -207,7 +205,6 @@ function MisLanas() {
   );
 }
 
-
 function CardCupon({ c }: { c: Cupon }) {
   const [copiado, setCopiado] = useState(false);
   return (
@@ -226,7 +223,9 @@ function CardCupon({ c }: { c: Cupon }) {
           </ButtonCompacto>
         </div>
       )}
+      {c.qr && <img src={c.qr} alt={`Código QR de ${c.titulo}`} className="size-36 self-center rounded-xl bg-n0 p-2" />}
       {c.instrucciones && <p className="text-xs leading-[17px] text-n60">{c.instrucciones}</p>}
+      {c.enlace && <a href={c.enlace} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 self-start text-sm font-bold text-cafe underline">Ir al comercio <Icon name="flecha" size={14} /></a>}
       <p className="text-xs font-semibold text-n60">{[c.fecha && `Obtenido el ${c.fecha}`, c.vence && `vence el ${c.vence}`].filter(Boolean).join(' · ')}</p>
     </div>
   );
@@ -251,7 +250,6 @@ function MisCupones() {
   );
 }
 
-
 function HistorialRecompensas() {
   const r = useRecompensas();
   if (!r.data.length) return <Estado cargando={r.cargando} error={r.error} recargar={r.recargar} vacio="Aún no tienes recompensas. Completa misiones y abre tu cofre para ganarlas." />;
@@ -271,7 +269,6 @@ function HistorialRecompensas() {
     </Lista>
   );
 }
-
 
 function GruposParticipacion({ grupos }: { grupos: GrupoParticipacion[] }) {
   return (
@@ -317,7 +314,6 @@ function MisParticipaciones() {
     </div>
   );
 }
-
 
 const campo = 'h-12 w-full rounded-xl border border-n10 bg-n0 px-4 text-[15px] font-semibold text-cafe outline-none focus:border-cafe disabled:bg-n5 disabled:text-n40';
 

@@ -1,18 +1,21 @@
 const img = (f: string) => `${import.meta.env.BASE_URL}img/${f}`;
 
-export type Premio = { id: string; categoria: string; nombre: string; fechaSorteo: string; enDias: string; foto: string; fondo: 'amarillo' | 'rosa' | 'azul' | 'verde'; descripcion?: string; specs?: string[] };
+export type Premio = { id: string; categoria: string; nombre: string; fechaSorteo: string; enDias: string; foto: string; fondo: 'amarillo' | 'rosa' | 'azul' | 'verde'; descripcion?: string; specs?: string[];  fecha?: Date };
 export type Ganador = { id: string; nombre: string; premio: string; premioCorto?: string; usuario: string; chances: number; fechaSorteo: string; foto: string };
-export type Beneficio = { id: string; titulo: string; comercio: string; uso: string; etiqueta: string; categoria: string; foto?: string; logo?: string };
+export type Beneficio = { id: string; titulo: string; comercio: string; uso: string; etiqueta: string; categoria: string; foto?: string; logo?: string;  marca?: string };
 export type Canje = { id: string; costo: number; titulo: string; detalle: string };
 export type Marca = { nombre: string; logo: string };
 export type Pregunta = { pregunta: string; respuesta: string };
 
-export type Slide = { id: number; etiqueta: string; titulo: string[]; bajada: string; foto: string; tipo: 'personas' | 'premio'; fondo: string; cta: string; to: string };
+export type Slide = { id: number; etiqueta: string; titulo: string[]; bajada: string; precio?: string; foto: string; tipo: 'personas' | 'premio'; fondo: string; cta: string; to: string; premioMes?: boolean };
 export const slides: Slide[] = [
-  { id: 1, etiqueta: 'SORTEOS EN VIVO CADA MIÉRCOLES', titulo: ['VIVE', 'GANANDO'], bajada: 'Descubre beneficios, recompensas y nuevas oportunidades para disfrutar más de cada día.',
-    foto: img('hero-personas.webp'), tipo: 'personas', fondo: '#45E586', cta: 'Suscríbete', to: '/planes' },
-  { id: 2, etiqueta: 'PREMIO MAYOR DEL ME-E-ES', titulo: ['GANA UNA', 'KIA NIRO EV'], bajada: 'Camioneta 100% eléctrica. Sorteo mié 30 set · 4:00 p. m. · en vivo.',
-    foto: img('premio-kia.webp'), tipo: 'premio', fondo: '#FFD400', cta: 'Quiero participar', to: '/planes' },
+  { id: 1, etiqueta: 'SORTEOS EN VIVO CADA MIÉRCOLES', titulo: ['VIVE', 'GANANDO'],
+    bajada: 'Con tu suscripción participas en sorteos, aprovechas descuentos y accedes a Cofre y Flash cada miércoles. Completa misiones y gana Lanas para canjear recompensas.',
+    precio: 'Desde S/7.50 al mes', foto: img('hero-personas.webp'), tipo: 'personas', fondo: '#45E586', cta: 'Elegir mi plan', to: '/planes' },
+  { id: 2, etiqueta: 'PREMIO GRANDE DEL MES', titulo: ['GANA UNA', 'KIA NIRO EV'], bajada: 'Camioneta 100 % eléctrica, 0 km, con SOAT y placa.',
+    foto: img('premio-kia.webp'), tipo: 'premio', fondo: '#FFD400', cta: 'Elige tu plan y participa', to: '/planes?premio=kia', premioMes: true },
+  { id: 3, etiqueta: 'CADA MIÉRCOLES', titulo: ['COFRE', 'Y FLASH'], bajada: 'Elige un premio o Lanas en el Cofre y aprovecha el Beneficio Flash de la semana. ¡Cupos limitados!',
+    foto: img('3d/cofre-3d.webp'), tipo: 'premio', fondo: '#FF88F7', cta: 'Elegir mi plan', to: '/planes' },
 ];
 
 export const propuestaValor = [
@@ -39,6 +42,13 @@ export const premiosDelMes: Premio[] = [
   { id: 'p5', categoria: 'DEPORTE', nombre: 'Bicicleta todo terreno', fechaSorteo: 'Sorteo mié 7 oct', enDias: 'En 6 días', foto: img('premio-bici.webp'), fondo: 'amarillo' },
   { id: 'p6', categoria: 'MOVILIDAD', nombre: 'Scooter eléctrico', fechaSorteo: 'Sorteo mié 7 oct', enDias: 'En 6 días', foto: img('premio-scooter.webp'), fondo: 'rosa' },
 ];
+
+export const premioMes = {
+  id: 'kia', categoria: 'MOVILIDAD', nombre: 'Camioneta KIA Niro EV', foto: img('premio-kia.webp'),
+  descripcion: 'SUV 100 % eléctrica, 0 km, con SOAT y placa incluidos.',
+  specs: ['Autonomía de hasta 460 km', 'Color sujeto a disponibilidad', 'Se entrega en Lima'],
+  terminos: ['El premio se entrega a nombre del ganador, que debe ser mayor de edad y presentar su DNI.', 'Incluye SOAT y placa. No incluye seguro vehicular ni gastos de mantenimiento.', 'El ganador tiene 30 días para reclamar el premio desde la publicación de resultados.', 'Se entrega en Lima. La imagen es referencial.'],
+};
 
 export const premioDestacado = {
   nombre: 'Camioneta KIA Niro EV',
@@ -69,14 +79,14 @@ export const historicoGanadores = [
 ];
 
 export const beneficios: Beneficio[] = [
-  { id: 'b1', titulo: 'Packs de fitness', comercio: 'Andes Gym', uso: 'Código', etiqueta: '60%', categoria: 'Fitness', foto: img('beneficio-1.webp') },
-  { id: 'b2', titulo: 'Entradas de cine', comercio: 'Cinépolis · mar y mié', uso: 'QR', etiqueta: '2x1', categoria: 'Entretenimiento', foto: img('beneficio-2.webp') },
-  { id: 'b3', titulo: 'Delivery de farmacia', comercio: 'Pedidos sobre S/ 50', uso: 'DNI', etiqueta: '65%', categoria: 'Salud', foto: img('beneficio-3.webp') },
-  { id: 'b4', titulo: 'Menú ejecutivo', comercio: 'Franklin', uso: 'Código', etiqueta: '30%', categoria: 'Comida', foto: img('beneficio-4.webp') },
-  { id: 'b5', titulo: 'Consulta dermatológica', comercio: 'Dermohelp', uso: 'DNI', etiqueta: '65%', categoria: 'Salud', logo: img('marcas/dermohelp.png') },
-  { id: 'b6', titulo: 'Corte y barba', comercio: 'Barba Negra', uso: 'Código', etiqueta: '40%', categoria: 'Belleza', logo: img('marcas/barba-negra.png') },
-  { id: 'b7', titulo: 'Combo hamburguesa', comercio: 'Hollyfood', uso: 'Código', etiqueta: '25%', categoria: 'Comida', logo: img('marcas/hollyfood.png') },
-  { id: 'b8', titulo: 'Depilación láser', comercio: 'Aquamed', uso: 'DNI', etiqueta: '50%', categoria: 'Belleza', logo: img('marcas/aquamed.png') },
+  { id: 'b1', titulo: 'Packs de fitness', comercio: 'Andes Gym', uso: 'Código · Lima', etiqueta: '60%', categoria: 'Fitness', foto: img('beneficio-1.webp') },
+  { id: 'b2', titulo: 'Entradas de cine', comercio: 'Cinemark', marca: 'cinemark', uso: 'QR · todo el Perú', etiqueta: '2x1', categoria: 'Entretenimiento', foto: img('beneficio-2.webp') },
+  { id: 'b3', titulo: 'Consulta dermatológica', comercio: 'Dermohelp', marca: 'dermohelp', uso: 'DNI · Lima', etiqueta: '65%', categoria: 'Salud', foto: img('beneficio-3.webp') },
+  { id: 'b4', titulo: 'Menú ejecutivo', comercio: 'Franklin', marca: 'franklin', uso: 'Código · Lima', etiqueta: '30%', categoria: 'Comida', foto: img('beneficio-4.webp') },
+  { id: 'b5', titulo: 'Tratamiento facial', comercio: 'Aquamed', marca: 'aquamed', uso: 'DNI · Lima', etiqueta: '65%', categoria: 'Salud', logo: img('marcas/dermohelp.png') },
+  { id: 'b6', titulo: 'Corte y barba', comercio: 'Barba Negra', marca: 'barba-negra', uso: 'Código · Lima', etiqueta: '40%', categoria: 'Belleza', logo: img('marcas/barba-negra.png') },
+  { id: 'b7', titulo: 'Combo hamburguesa', comercio: 'Hollyfood', marca: 'hollyfood', uso: 'Código · Lima', etiqueta: '25%', categoria: 'Comida', logo: img('marcas/hollyfood.png') },
+  { id: 'b8', titulo: 'Combustible', comercio: 'Repsol', marca: 'repsol', uso: 'App · todo el Perú', etiqueta: '50%', categoria: 'Belleza', logo: img('marcas/aquamed.png') },
 ];
 
 export const categoriasBeneficios = ['Todos', 'Salud', 'Belleza', 'Fitness', 'Comida', 'Entretenimiento'];
@@ -93,20 +103,19 @@ export const marcas: Marca[] = [
 ].map((m) => ({ nombre: m.replace('-', ' '), logo: img(`marcas/${m}.png`) }));
 
 export const pasos = [
-  { titulo: 'Elige tu plan', texto: 'LANITA, LANOTA o LANAZA: 1, 3 o 5 chances en cada sorteo regular.', img: img('paso-1.webp') },
-  { titulo: 'Suscríbete', texto: 'Paga con tarjeta o Yape en un par de minutos y entra al rebaño.', img: img('paso-2.webp') },
-  { titulo: 'Usa tus beneficios', texto: 'Descuentos a diario, un cofre sorpresa y un **Beneficio Flash** cada miércoles. Y **ganas Lanas**.', img: img('paso-4.webp') },
-  { titulo: 'Participa y gana', texto: 'Sorteos en vivo cada miércoles y sorteos VIP. Revisa si ganaste en Ganadores.', img: img('paso-3.webp') },
+  { titulo: 'Elige tu plan', texto: 'LANITA, LANOTA o LANAZA: 1, 3 o 5 chances por sorteo regular.', img: img('paso-1.webp') },
+  { titulo: 'Activa tu plan', texto: 'Paga con tarjeta, o con Yape en los planes semestral y anual. Tu plan se activa al confirmarse el pago.', img: img('paso-2.webp') },
+  { titulo: 'Usa tus beneficios', texto: 'Descuentos a diario y, cada miércoles, el **Cofre** y el **Beneficio Flash**: eliges un premio o Lanas, según disponibilidad.', img: img('paso-4.webp') },
+  { titulo: 'Participa y gana', texto: 'Sorteos en vivo cada miércoles y sorteos VIP si cumples las misiones del mes. Revisa los resultados en Ganadores.', img: img('paso-3.webp') },
 ];
 
 export const preguntas: Pregunta[] = [
-  { pregunta: '¿Es solo para Lima o para todo el Perú?', respuesta: 'Puedes suscribirte desde cualquier parte del Perú. Los sorteos se transmiten en vivo por nuestras redes y, si ganas, coordinamos contigo la entrega del premio.' },
-  { pregunta: '¿Cómo se realiza el sorteo?', respuesta: 'Cada miércoles sorteamos en vivo entre todas las chances registradas hasta el cierre de listas (miércoles 11:59 a. m.). Publicamos el resultado y el método de selección.' },
-  { pregunta: '¿Cómo consigo Lanas?', respuesta: 'Las ganas con misiones, referidos, el cofre semanal y algunos Beneficios Flash. Las Lanas no se compran y vencen 3 meses después de recibirlas. Las usas para sumar chances (1 Lana = 1 chance) o canjear beneficios.' },
-  { pregunta: '¿Qué pasa si cancelo mi suscripción?', respuesta: 'Sigues participando hasta el fin del periodo que pagaste. Puedes cancelar desde Mi cuenta › Mi plan y pagos.' },
+  { pregunta: '¿Puedo participar desde cualquier parte del Perú?', respuesta: 'Sí. Puedes suscribirte y participar en los sorteos desde todo el Perú. Cada beneficio indica las provincias o canales donde puedes usarlo.' },
+  { pregunta: '¿Cuándo y cómo se realizan los sorteos?', respuesta: 'Cada miércoles transmitimos los sorteos en vivo por nuestras redes. La lista de participantes cierra ese día a las 11:59 a. m. Después publicamos los resultados en Ganadores.' },
+  { pregunta: '¿Qué son las Lanas?', respuesta: 'Son la moneda de recompensas de AKITÁ. Las ganas con misiones y promociones; no se compran. Con un plan activo, puedes canjearlas por chances o beneficios. Consulta tu saldo y fecha de vencimiento en tu billetera.' },
+  { pregunta: '¿Qué son los sorteos VIP?', respuesta: 'Son sorteos adicionales para suscriptores. Necesitas un plan activo y completar las misiones VIP del mes para participar, sin costo adicional.' },
+  { pregunta: '¿Qué pasa si cancelo mi suscripción?', respuesta: 'Puedes cancelar la renovación desde Mi cuenta → Mi plan y pagos. Conservarás los beneficios hasta que termine el periodo pagado. Cuando venza, necesitarás reactivar tu plan para volver a acceder a ellos.' },
   { pregunta: '¿Cómo recibo mi premio?', respuesta: 'Te contactamos por los datos de tu cuenta para coordinar la entrega. Revisa las bases de cada sorteo.' },
-  { pregunta: '¿Puedo participar si vivo en el extranjero?', respuesta: 'Por ahora AKITÁ está disponible para residentes en el Perú.' },
-  { pregunta: '¿Cuándo se realizan los sorteos? ¿Lo transmiten en vivo?', respuesta: 'Todos los miércoles, en vivo por nuestras redes. La transmisión queda grabada.' },
   { pregunta: '¿Qué sucede si necesito ayuda de cualquier tipo?', respuesta: 'Escríbenos a contacto@akita.pe y te respondemos lo antes posible.' },
 ];
 
@@ -119,17 +128,19 @@ export const redes = [
 
 export function premiosDeFecha(m: MesSorteo, dia: number, hoy = new Date()): Premio[] {
   const fecha = new Date(m.anio, m.indice, dia, 16);
-  const dias = Math.ceil((fecha.getTime() - hoy.getTime()) / 86400000);
-  const enDias = dias < 0 ? 'Ya se sorteó' : dias === 0 ? 'Hoy' : dias === 1 ? 'Mañana' : `En ${dias} días`;
-  const k = (m.indice * 7 + dia) % premiosDelMes.length;
-  const lista = [...premiosDelMes.slice(k), ...premiosDelMes.slice(0, k)].slice(0, 5);
-  return lista.map((p) => ({ ...p, id: `${p.id}-${m.corto}${dia}`, fechaSorteo: `Sorteo mié ${dia} ${m.corto}`, enDias }));
+  const cierre = new Date(m.anio, m.indice, dia, 11, 59);
+  const dias = Math.round((new Date(m.anio, m.indice, dia).getTime() - new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime()) / 86400000);
+  const enDias = fecha < hoy ? 'Ya se sorteó' : cierre < hoy ? 'Participación cerrada' : dias === 0 ? 'Hoy' : dias === 1 ? 'Mañana' : `En ${dias} días`;
+  const semanales = premiosDelMes.filter((p) => p.id !== 'p1');
+  const k = (m.indice * 7 + dia) % semanales.length;
+  const lista = [...semanales.slice(k), ...semanales.slice(0, k)];
+  return lista.map((p) => ({ ...p, id: `${p.id}-${m.corto}${dia}`, fechaSorteo: `Sorteo mié ${dia} ${m.corto}`, enDias, fecha }));
 }
 
-export function proximaFecha(hoy = new Date()): { m: number; dia: number } {
-  for (let i = 0; i < mesesSorteos.length; i++) {
-    const m = mesesSorteos[i];
-    for (const d of m.fechas) if (new Date(m.anio, m.indice, d, 23, 59) >= hoy) return { m: i, dia: d };
+export function proximaFecha(hoy = new Date(), meses = mesesSorteos): { m: number; dia: number } {
+  for (let i = 0; i < meses.length; i++) {
+    const m = meses[i];
+    for (const d of m.fechas) if (new Date(m.anio, m.indice, d, 11, 59) >= hoy) return { m: i, dia: d };
   }
-  return { m: 0, dia: mesesSorteos[0].fechas[0] };
+  return { m: 0, dia: meses[0].fechas[0] };
 }

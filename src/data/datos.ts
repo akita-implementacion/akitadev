@@ -1,4 +1,5 @@
 import { config } from '../api/config';
+import { ApiError } from '../api/client';
 import { beneficiosApi, cofreApi, geoApi, lanasApi, misionesApi, publicoApi, recompensasApi, sorteosApi, suscripcionApi, usuarioApi } from '../api/servicios';
 import type * as T from '../api/tipos';
 import * as A from './adaptadores';
@@ -109,14 +110,15 @@ export function useMarcasAliadas() {
     M.marcasAliadas.map((m) => ({ nombre: m.nombre, logo: m.logo as string | undefined })), []).data;
 }
 
-
 export function useMovimientosLanas(page = 1) {
   return useRecurso(`lanas:movimientos:${page}`, () => lanasApi.movimientos(page).then(A.aMovimientos),
     { items: page === 1 ? M.movimientosLanas : [], hayMas: false }, { items: [], hayMas: false }, conSesion());
 }
 
 export function useMisCupones() {
-  return useRecurso('lanas:cupones', () => lanasApi.misCanjes().then(A.aCupones), M.cuponesUsuario.map((c) => ({ comercio: '', logo: undefined as string | undefined, ...c })), [], conSesion());
+  const pedir = () => lanasApi.misCupones().catch((e) => { if (e instanceof ApiError && e.status === 404) return lanasApi.misCanjes(); throw e; }).then(A.aCupones);
+  return useRecurso('lanas:cupones', pedir,
+    M.cuponesUsuario.map((c) => ({ comercio: '', logo: undefined as string | undefined, enlace: undefined as string | undefined, qr: undefined as string | undefined, origen: '', ...c })), [], conSesion());
 }
 
 export function useRecompensas() {

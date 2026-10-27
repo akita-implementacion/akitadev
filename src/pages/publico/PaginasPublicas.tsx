@@ -19,8 +19,12 @@ import { useDetallePublico } from '../../components/sorteos/DetallePremio';
 import { TERMINOS_VEHICULO } from '../../data/mock';
 import {
   Boton, CanjesConLanas, CardCta as CardCtaRef, FiltroCategorias, MarcasAliadas as MarcasRef, PasosComoFunciona as PasosRef, PreguntasFrecuentes,
-  PremiosDelMesDatos, SeccionGanadores, TarjetaBeneficio,
+  SeccionGanadores, TarjetaBeneficio, Carrusel, CierreSuscripcion, GanadoresCompactos, SelectorFechas, TarjetaPremio,
+  useFechasSorteo as useFechasRef,
 } from '../../ref/secciones';
+import { CERRADO, NOTA_CERRADO, rutaPlanesConPremio, textoCierre, useDetallePremio, usePremioMes } from '../../ref/premio';
+import { usePerfil } from '../../ref/demo';
+import { FuenteSorteosApi, useFuenteSorteos } from '../../ref/sitio';
 import { canjesEjemplo, pasos as pasosRef, type Beneficio as BeneficioRef } from '../../ref/publico';
 import { preguntasFaq } from '../../components/publico/Secciones';
 
@@ -39,53 +43,88 @@ const aBeneficioRef = (b: { id?: string; titulo: string; comercio: string; uso: 
 });
 
 export function PremiosPublico() {
-  const fechasSorteo = useFechasSorteo();
-  const proximosSorteos = useProximosSorteos();
-  const d = useSorteoDestacado();
+  return <FuenteSorteosApi><Premios /></FuenteSorteosApi>;
+}
+
+function Premios() {
+  const mes = usePremioMes();
+  const { participa, eligeTuPlan } = usePerfil();
+  const detalle = useDetallePremio(mes.p, mes.cerrado);
+  const f = useFechasRef();
+  const { meses } = useFuenteSorteos();
+  const [calendario, setCalendario] = useState(false);
+  const mesSel = meses[f.m];
   const { fecha, ganadores } = useUltimosGanadores();
-  const extra = d as { descripcion?: string; terminosUrl?: string };
-  const detalle = useDetallePublico({ premio: d.premio, fecha: d.fecha.replace(/^Sorteo /, ''), foto: d.foto, descripcion: extra.descripcion, terminosUrl: extra.terminosUrl,
-    terminos: /moto|camioneta|auto/i.test(d.premio) ? TERMINOS_VEHICULO : undefined });
-  const fotoDestacado = !d.foto || d.foto.includes('premio-kia') ? 'img/premio-destacado.webp' : d.foto;
+  const fechaTxt = fecha ? `${DIAS[fecha.getDay()].toLowerCase()} ${fecha.getDate()} ${MESES[fecha.getMonth()].toLowerCase()}` : '';
   return (
     <>
-      <Hero publico color="#FF88F7" titulo={"Premios de este me\u2060-\u2060e\u2060-\u2060es"} bajada="Cada miércoles sorteamos premios en vivo. Suscríbete para participar." imagen="img/oveja-01.webp" />
-      <div className="mx-auto max-w-[1366px] px-6 pb-6 pt-6 lg:px-16 lg:pb-[clamp(16px,3dvh,32px)] lg:pt-[clamp(14px,2.6dvh,28px)]">
-        {!config.usarMock && <BannerApi secciones={['RAFFLES_MAIN']} className="mb-6" />}
-        {d.premio && (
-          <section className="relative">
-            <div className="flex flex-col overflow-hidden rounded-[24px] bg-hero-brand lg:h-[clamp(220px,calc(var(--alto-vista)-360px),290px)] lg:flex-row">
-              <div className="relative h-[200px] bg-amarillo lg:h-auto lg:w-[clamp(360px,32vw,453px)]">
-                <img src={asset(fotoDestacado)} alt={d.premio} className="size-full object-cover" />
-              </div>
-              <div className="flex flex-1 flex-col items-start justify-center gap-2 p-6 lg:gap-[clamp(4px,1dvh,10px)] lg:px-8 lg:py-5 lg:pr-[260px]">
-                <span className="rounded-md bg-amarillo px-3 py-[5px] text-xs font-bold text-cafe">PREMIO DESTACADO</span>
-                <h2 className="text-[28px] font-black leading-tight text-n0 lg:text-[clamp(26px,4.4dvh,36px)]">{d.premio}</h2>
-                <p className="text-sm font-medium text-n0/80">{d.fecha} · en vivo</p>
-                <p className="text-[15px] font-bold text-n0">Participa desde 1 chance con cualquier plan</p>
-                <Link to="/planes" className="mt-1 inline-flex h-12 items-center whitespace-nowrap rounded-pill bg-amarillo px-8 text-[15px] font-bold text-cafe lg:h-[clamp(44px,7dvh,56px)]">Suscríbete para participar</Link>
-                <p className="text-xs text-n0/80">En vivo por nuestras redes · queda grabado · <button onClick={detalle.abrir} className="font-bold text-amarillo underline">Ver detalle y términos</button></p>
-                {detalle.modal}
-              </div>
-            </div>
-            <img src={asset('img/oveja-09.webp')} alt="" className="absolute bottom-0 right-10 z-10 hidden h-[clamp(150px,calc(var(--alto-vista)-470px),200px)] lg:block" />
-          </section>
-        )}
-      </div>
+      <section className="relative overflow-hidden bg-rosa">
+        <Nube className="-bottom-[86px] -left-[40px] w-[150px] text-fondo lg:-bottom-[150px] lg:w-[260px]" />
+        <Nube className="-bottom-[100px] -right-[40px] w-[190px] text-fondo lg:-bottom-[170px] lg:right-[8%] lg:w-[300px]" />
+        <div className="relative mx-auto flex max-w-[1366px] items-center justify-between gap-3 px-6 pb-9 pt-5 lg:px-16 lg:pb-14 lg:pt-10">
+          <div className="relative z-10 flex flex-col gap-2">
+            <h1 className="text-[30px] font-black uppercase leading-[0.95] text-cafe lg:text-[56px]">
+              <span className="block">Premios de</span>
+              <span className="block whitespace-nowrap">{'este me⁠-⁠e⁠-⁠es'}</span>
+            </h1>
+            <p className="max-w-[230px] text-[15px] leading-5 text-cafe/90 lg:max-w-none lg:text-lg">Activa tu plan y participa cada miércoles.</p>
+          </div>
+          <img src={asset('img/oveja-01.webp')} alt="" className="relative z-10 h-[112px] w-auto shrink-0 drop-shadow-[0_12px_10px_rgba(33,20,2,0.25)] lg:h-[210px]" />
+        </div>
+      </section>
 
-      <div className="mx-auto flex max-w-[1366px] flex-col gap-10 px-6 py-10 lg:gap-14 lg:px-16 lg:py-14">
-        <PremiosDelMesDatos fechas={fechasSorteo} premios={proximosSorteos} titulo="Próximos sorteos" bajada="" color enBanda={false} />
-
-        <section className="flex flex-col items-start gap-2 rounded-2xl bg-n0 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <p className="text-[15px] font-bold leading-5 text-cafe"><span className="mr-2 text-[12px] font-black tracking-[0.6px] text-morado">SORTEOS VIP</span>Además de los sorteos regulares, hay sorteos VIP para quienes cumplen las misiones del mes.</p>
-          <Link to="/como-funciona" state={{ ancla: 'vip' }} className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-bold text-cafe underline underline-offset-2">Conoce los sorteos VIP <Icon name="flecha" size={16} /></Link>
+      <div className="mx-auto flex max-w-[1366px] flex-col gap-8 px-6 pb-6 pt-1 lg:gap-12 lg:px-16 lg:pb-12">
+        <section className="-mt-5 overflow-hidden rounded-[24px] bg-cafe shadow-card lg:-mt-8 lg:flex">
+          <div className="relative h-[190px] overflow-hidden bg-amarillo lg:h-auto lg:min-h-[300px] lg:w-[48%]">
+            <Nube className="-right-12 bottom-[-80px] w-[220px] text-n0/50" />
+            {mes.p.foto && <img src={mes.p.foto} alt={mes.p.nombre} className="absolute inset-0 z-10 m-auto max-h-[94%] max-w-[94%] object-contain" />}
+          </div>
+          <div className="flex flex-1 flex-col items-start gap-1.5 p-5 lg:justify-center lg:gap-2.5 lg:px-10 lg:py-8">
+            <span className="rounded-pill bg-amarillo px-3 py-1 text-[11px] font-bold tracking-[0.6px] text-cafe">PREMIO GRANDE DEL MES</span>
+            <h2 className="text-[24px] font-black leading-tight text-n0 lg:text-[36px]">{mes.p.nombre}</h2>
+            <p className="text-[15px] font-semibold text-n0">Sorteo: {mes.sorteo} · en vivo</p>
+            {mes.cerrado
+              ? <p className="text-[14px] text-n0/85"><b className="text-rosa">{CERRADO}.</b> {NOTA_CERRADO}</p>
+              : <p className="text-[14px] text-n0/85">{textoCierre(mes.fecha)}</p>}
+            <Link to={mes.cerrado ? '/planes' : rutaPlanesConPremio(mes.p)} className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-amarillo px-6 text-[15px] font-bold text-cafe lg:h-14 lg:w-auto lg:px-9 lg:text-base">
+              {mes.cerrado ? eligeTuPlan : participa}<Icon name="flecha" size={18} />
+            </Link>
+            <button onClick={detalle.abrir} className="self-center py-1.5 text-[14px] font-bold text-n0 underline underline-offset-2 lg:self-start">Ver detalle y términos</button>
+            {detalle.modal}
+          </div>
         </section>
 
-        {ganadores.length > 0 && <SeccionGanadores {...ganadoresRef(fecha, ganadores)} />}
-      </div>
+        {!config.usarMock && <BannerApi secciones={['RAFFLES_MAIN']} />}
 
-      <div className="mx-auto max-w-[1366px] px-6 pb-8 pt-2 lg:px-16 lg:pb-[clamp(20px,4dvh,48px)]">
-        <CardCtaRef titulo="¿Quieres estar en el próximo sorteo?" bajada="Elige tu plan y participa cada miércoles." boton="Ver planes" imagen={asset('img/oveja-cta-2.webp')} />
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="text-[24px] font-extrabold leading-tight text-cafe lg:text-[32px]">Próximos sorteos</h2>
+              {mesSel && <p className="text-[14px] text-n60">Sorteo del mié {f.dia} {mesSel.corto}</p>}
+            </div>
+            <button onClick={() => setCalendario((v) => !v)} aria-expanded={calendario} className="inline-flex items-center gap-1 whitespace-nowrap pb-0.5 text-[14px] font-bold text-cafe underline underline-offset-2">
+              {calendario ? 'Ocultar fechas' : 'Ver otras fechas'}<Icon name={calendario ? 'chevron-abajo' : 'flecha'} size={16} className={cx(calendario && 'rotate-180')} />
+            </button>
+          </div>
+          {calendario && <SelectorFechas m={f.m} dia={f.dia} onMes={f.onMes} onDia={f.onDia} />}
+          <Carrusel anchoClase="w-[74vw] max-w-[300px] lg:w-[calc((100%-60px)/4)] lg:max-w-none" gap={16}>{f.premios.map((p) => <TarjetaPremio key={p.id} p={p} color />)}</Carrusel>
+        </section>
+
+        <section className="relative flex items-center gap-2 overflow-hidden rounded-[24px] bg-[radial-gradient(110%_120%_at_85%_40%,#3D2A08_0%,#211402_65%)] py-4 pl-5 pr-2 text-n0 lg:px-10 lg:py-7">
+          <div className="relative z-10 flex min-w-0 flex-1 flex-col items-start gap-1.5 lg:gap-2.5">
+            <span className="rounded-pill bg-amarillo px-3 py-1 text-[11px] font-bold tracking-[0.6px] text-cafe">SORTEOS VIP</span>
+            <p className="text-[22px] font-black leading-tight lg:text-[32px]">Hay más por ganar</p>
+            <p className="text-[13px] leading-[18px] text-n0/85 lg:max-w-[560px] lg:text-[15px] lg:leading-[22px]">Activa tu plan, completa las misiones VIP del mes y participa sin costo adicional.</p>
+            <Link to="/como-funciona" state={{ ancla: 'vip' }} className="mt-1 inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-pill border-[1.5px] border-amarillo px-4 text-[13px] font-bold text-amarillo lg:h-11 lg:text-sm">Conoce los sorteos VIP <Icon name="flecha" size={16} /></Link>
+          </div>
+          <img src={asset('img/oveja-vip.webp')} alt="" className="h-[124px] w-auto shrink-0 object-contain lg:h-[190px]" />
+        </section>
+
+        {ganadores.length > 0 && (
+          <GanadoresCompactos fecha={fechaTxt}
+            ganadores={ganadores.slice(0, 8).map((g, i) => ({ id: `${g.usuario}-${i}`, nombre: g.nombre, premio: g.premio, usuario: g.usuario, chances: g.chances, fechaSorteo: fechaTxt, foto: g.foto ? asset(g.foto) : '' }))} />
+        )}
+        <CierreSuscripcion />
       </div>
     </>
   );

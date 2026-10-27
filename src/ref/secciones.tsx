@@ -5,11 +5,14 @@ import { IconoMarca, IconoRed } from './MarcaIconos';
 import { Nube } from '../components/ui/Brand';
 import { Badge, ChipFiltro, MonedaLana, cx } from '../components/ui/primitives';
 import { Carrusel, useDesplazarSolo } from '../components/ui/Carrusel';
-import { PERIODOS, PLANES, ahorro, soles, type Periodo, type Plan } from './planes';
+import { BENEFICIOS_COMUNES, PERIODOS, PLANES, ahorro, chancesTexto, reglaRenovacion, soles, type Periodo, type Plan } from './planes';
 import type { Beneficio, Canje, Ganador, Marca, Premio, Pregunta, Slide } from './publico';
-import { mesesSorteos, premiosDeFecha, proximaFecha, redes } from './publico';
+import { proximaFecha, redes } from './publico';
+import { useFuenteSorteos } from './sitio';
 import { useDetallePublico, type DetallePremio } from '../components/sorteos/DetallePremio';
-import { useSesion } from '../data/sesion';
+import { CERRADO, rutaPlanesConPremio, textoCierre, useDetallePremio, usePremioMes, type PremioDetalle } from './premio';
+import { usePerfil } from './demo';
+import { LogoMarca, type MarcaId } from './LogoMarca';
 
 export { Carrusel };
 
@@ -62,10 +65,16 @@ function ImagenSlide({ s }: { s: Slide }) {
   );
 }
 
-export function SliderHero({ slides }: { slides: Slide[] }) {
+export function SliderHero({ slides: base }: { slides: Slide[] }) {
   const [i, setI] = useState(0);
   const [pausa, setPausa] = useState(false);
   const toque = useRef<number | null>(null);
+  const mes = usePremioMes();
+  const { elegirMiPlan, participa } = usePerfil();
+  const slides = base.map((sl) => sl.premioMes
+    ? { ...sl, bajada: `${sl.bajada} Sorteo: ${mes.sorteo}.`, nota: mes.cerrado ? CERRADO : textoCierre(mes.fecha),
+      cta: mes.cerrado ? elegirMiPlan : participa, to: mes.cerrado ? '/planes' : rutaPlanesConPremio(mes.p) }
+    : { ...sl, nota: undefined, cta: sl.cta === 'Elegir mi plan' ? elegirMiPlan : sl.cta });
   useEffect(() => {
     if (pausa || slides.length < 2) return;
     const t = window.setTimeout(() => setI((x) => (x + 1) % slides.length), 5000);
@@ -73,7 +82,7 @@ export function SliderHero({ slides }: { slides: Slide[] }) {
   }, [pausa, slides.length, i]);
   const s = slides[i];
   return (
-    <section className="vista relative h-[calc(100svh-172px)] min-h-[440px] scroll-mt-[92px] overflow-hidden transition-colors duration-700 lg:h-[calc(var(--alto-vista)-92px)] lg:min-h-[440px] lg:scroll-mt-0"
+    <section className="vista relative h-[clamp(480px,calc(100svh-300px),556px)] scroll-mt-[92px] overflow-hidden transition-colors duration-700 lg:h-[calc(var(--alto-vista)-92px)] lg:min-h-[440px] lg:scroll-mt-0"
       style={{ background: s.fondo }} aria-roledescription="carrusel"
       onTouchStart={(e) => { toque.current = e.touches[0].clientX; setPausa(true); }}
       onTouchEnd={(e) => {
@@ -85,17 +94,19 @@ export function SliderHero({ slides }: { slides: Slide[] }) {
         const amarillo = sl.fondo.toUpperCase() === '#FFD400';
         return (
           <div key={sl.id} aria-hidden={k !== i} className={cx('absolute inset-0 transition-opacity duration-700', k === i ? 'opacity-100' : 'pointer-events-none opacity-0')}>
-            <div className="mx-auto flex h-full max-w-[1366px] flex-col px-6 pb-9 pt-3 lg:flex-row lg:items-center lg:gap-10 lg:px-[100px] lg:pb-[76px] lg:pt-6">
-              <div className="min-h-0 flex-1 lg:order-2 lg:h-full lg:flex-[1.15]"><ImagenSlide s={sl} /></div>
-              <div className="relative z-10 flex shrink-0 flex-col items-start gap-2.5 pt-2 lg:order-1 lg:w-[520px] lg:gap-4 lg:pt-0">
+            <div className="mx-auto flex h-full max-w-[1366px] flex-col px-6 pb-8 pt-4 lg:flex-row lg:items-center lg:gap-10 lg:px-[100px] lg:pb-[76px] lg:pt-6">
+              <div className="relative z-10 flex shrink-0 flex-col items-start gap-2 lg:order-1 lg:w-[520px] lg:gap-4">
                 <span className="flex items-center gap-1 rounded-pill bg-cafe px-3 py-1 text-[11px] font-bold tracking-[0.8px] text-amarillo"><span aria-hidden>★</span>{sl.etiqueta}</span>
-                <h1 className="text-[clamp(34px,10.5vw,46px)] font-black leading-[0.95] text-cafe lg:text-[clamp(48px,9dvh,84px)]">{sl.titulo.map((l) => <span key={l} className="block">{l}</span>)}</h1>
-                <p className="text-[15px] leading-[21px] text-cafe lg:max-w-[480px] lg:text-[clamp(16px,2.6dvh,20px)] lg:leading-[1.4]">{sl.bajada}</p>
+                <h1 className="text-[clamp(34px,10vw,44px)] font-black leading-[0.95] text-cafe lg:text-[clamp(48px,9dvh,84px)]">{sl.titulo.map((l) => <span key={l} className="block">{l}</span>)}</h1>
+                <p className="text-[14px] leading-[19px] text-cafe lg:max-w-[480px] lg:text-[clamp(16px,2.6dvh,20px)] lg:leading-[1.4]">{sl.bajada}</p>
+                {sl.nota && <p className="text-[13px] font-bold leading-[18px] text-cafe lg:text-base">{sl.nota}</p>}
+                {sl.precio && <p className="text-[17px] font-extrabold leading-tight text-cafe lg:text-[22px]">{sl.precio}</p>}
                 <Link to={sl.to} tabIndex={k === i ? 0 : -1}
-                  className={cx('mt-1 inline-flex h-[52px] items-center whitespace-nowrap rounded-pill px-8 text-[17px] font-bold lg:h-[58px] lg:px-9 lg:text-xl', amarillo ? 'bg-cafe text-n0' : 'bg-amarillo text-cafe')}>
+                  className={cx('mt-0.5 inline-flex h-[50px] items-center whitespace-nowrap rounded-pill px-7 text-[16px] font-bold lg:h-[58px] lg:px-9 lg:text-xl', amarillo ? 'bg-cafe text-n0' : 'bg-amarillo text-cafe')}>
                   {sl.cta}
                 </Link>
               </div>
+              <div className="min-h-0 flex-1 pt-2 lg:order-2 lg:h-full lg:flex-[1.15] lg:pt-0"><ImagenSlide s={sl} /></div>
             </div>
           </div>
         );
@@ -125,7 +136,7 @@ export function PropuestaValor({ items }: { items: { icono: 'estrella' | 'regalo
     </div>
   );
   return (
-    <section className="vista-m relative z-10 bg-fondo px-6 pt-4 lg:-mt-12 lg:bg-transparent lg:px-16 lg:pb-6 lg:pt-0">
+    <section className="relative z-10 hidden bg-fondo lg:-mt-12 lg:block lg:bg-transparent lg:px-16 lg:pb-6 lg:pt-0">
       <div className="mx-auto hidden max-w-[1238px] grid-cols-4 gap-8 rounded-[24px] bg-n0 px-8 py-[clamp(16px,2.6dvh,24px)] shadow-[0_16px_40px_rgba(33,20,3,0.18)] lg:grid">
         {items.map((v) => sello(v))}
       </div>
@@ -145,14 +156,21 @@ export const detalleDePremio = (p: Premio): DetallePremio => ({
   specs: p.specs ?? ['Participan todos los suscriptores con plan vigente', 'Te contactamos si ganas'],
 });
 
-export function TarjetaPremio({ p, color, grande }: { p: Premio; color?: boolean; grande?: boolean }) {
-  const d = useDetallePublico(detalleDePremio(p));
+export const premioADetalle = (p: Premio): PremioDetalle => {
+  const d = detalleDePremio(p);
+  return { id: p.id, nombre: p.nombre, foto: p.foto, descripcion: d.descripcion ?? '', specs: d.specs ?? [], terminos: d.terminos, fecha: p.fecha ?? new Date(), etiqueta: p.categoria };
+};
+
+export function TarjetaPremio({ p, color, grande, destacado, cerradoForzado }: { p: Premio; color?: boolean; grande?: boolean; destacado?: boolean; cerradoForzado?: boolean }) {
   const pasado = p.enDias === 'Ya se sorteó';
-  const etiqueta = <span className={cx('rounded-pill px-2.5 py-1 text-xs font-bold', pasado ? 'bg-n10 text-n60' : 'bg-amarillo text-cafe')}>{p.enDias}</span>;
+  const cerrado = !!cerradoForzado || pasado || p.enDias === 'Participación cerrada';
+  const d = useDetallePremio({ ...premioADetalle(p), etiqueta: destacado ? 'PREMIO GRANDE DEL MES' : p.categoria }, cerrado);
+  const textoEtiqueta = destacado ? 'Premio grande del mes' : cerradoForzado ? 'Participación cerrada' : p.enDias;
+  const etiqueta = <span className={cx('whitespace-nowrap rounded-pill px-2.5 py-1 text-xs font-bold', pasado || (cerrado && !destacado) ? 'bg-n10 text-n60' : destacado ? 'bg-cafe text-amarillo' : 'bg-amarillo text-cafe')}>{textoEtiqueta}</span>;
   if (grande) {
     return (
-      <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-n0 shadow-card lg:flex-row">
-        <div className="relative h-[clamp(150px,30svh,270px)] overflow-hidden lg:order-2 lg:flex lg:h-auto lg:w-[54%] lg:flex-col lg:items-center lg:justify-center lg:gap-1.5 lg:bg-transparent lg:py-[3px] lg:pr-[3px]">
+      <article className={cx('flex h-full flex-col overflow-hidden rounded-2xl bg-n0 shadow-card lg:flex-row', destacado && 'ring-2 ring-inset ring-cafe')}>
+        <div className="relative h-[clamp(140px,24svh,250px)] overflow-hidden lg:order-2 lg:flex lg:h-auto lg:w-[54%] lg:flex-col lg:items-center lg:justify-center lg:gap-1.5 lg:bg-transparent lg:py-[3px] lg:pr-[3px]">
           <div className="relative size-full lg:h-[clamp(84px,calc(var(--alto-vista)*0.135),190px)] lg:w-full">
             <img src={p.foto} alt={p.nombre} className={cx('absolute inset-0 z-10 m-auto max-h-full max-w-full object-contain p-2 lg:p-[3px]', pasado && 'opacity-60 grayscale')} loading="lazy" draggable={false} />
           </div>
@@ -176,7 +194,7 @@ export function TarjetaPremio({ p, color, grande }: { p: Premio; color?: boolean
     <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-n0 shadow-card">
       <div className={cx('relative h-[150px] overflow-hidden lg:h-[clamp(120px,calc(var(--alto-vista)*0.22),190px)]', color ? fondoFoto[p.fondo] : 'bg-fondo')}>
         {color && <><Nube className="-left-[26px] bottom-[-46px] w-[100px] text-fondo" /><Nube className="-right-[30px] bottom-[-58px] w-[124px] text-fondo" /></>}
-        <img src={p.foto} alt={p.nombre} className={cx('absolute bottom-[4%] right-[5%] z-10 h-[96%] w-auto max-w-[80%] object-contain object-bottom drop-shadow-[0_8px_10px_rgba(33,20,3,0.18)]', pasado && 'opacity-60 grayscale')} loading="lazy" draggable={false} />
+        <img src={p.foto} alt={p.nombre} className={cx('absolute bottom-[4%] right-[5%] z-10 h-[96%] w-auto max-w-[80%] object-contain object-bottom drop-shadow-[0_8px_10px_rgba(33,20,3,0.18)]', (pasado || cerrado) && 'opacity-60 grayscale')} loading="lazy" draggable={false} />
         <span className="absolute left-2.5 top-2.5 z-20">{etiqueta}</span>
       </div>
       <div className="flex flex-1 items-center justify-between gap-3 px-4 py-3">
@@ -193,6 +211,7 @@ export function TarjetaPremio({ p, color, grande }: { p: Premio; color?: boolean
 }
 
 export function SelectorFechas({ m, dia, onMes, onDia, claro }: { m: number; dia: number; onMes: (m: number) => void; onDia: (d: number) => void; claro?: boolean }) {
+  const { meses: mesesSorteos } = useFuenteSorteos();
   const mes = mesesSorteos[m];
   const hoy = new Date();
   return (
@@ -220,50 +239,68 @@ export function SelectorFechas({ m, dia, onMes, onDia, claro }: { m: number; dia
 }
 
 export function useFechasSorteo() {
-  const ini = useMemo(() => proximaFecha(), []);
-  const [m, setM] = useState(ini.m);
-  const [dia, setDia] = useState(ini.dia);
+  const { meses: mesesSorteos, premiosDe: premiosDeFecha } = useFuenteSorteos();
+  const ini = proximaFecha(undefined, mesesSorteos);
+  const [mSel, setM] = useState<number>();
+  const [diaSel, setDia] = useState<number>();
+  const m = mSel !== undefined && mSel < mesesSorteos.length ? mSel : ini.m;
+  const dia = diaSel !== undefined && mesesSorteos[m].fechas.includes(diaSel) ? diaSel : ini.dia;
   const onMes = (nm: number) => {
     setM(nm);
     const mes = mesesSorteos[nm]; const hoy = new Date();
     setDia(mes.fechas.find((f) => new Date(mes.anio, mes.indice, f, 23, 59) >= hoy) ?? mes.fechas[0]);
   };
-  const premios = useMemo(() => premiosDeFecha(mesesSorteos[m], dia), [m, dia]);
+  const premios = premiosDeFecha(mesesSorteos[m], dia);
   return { m, dia, onMes, onDia: setDia, premios };
 }
 
+export function usePremioMesComoTarjeta() {
+  const mes = usePremioMes();
+  const tarjeta: Premio = { id: 'mes-kia', categoria: 'MOVILIDAD', nombre: mes.p.nombre, foto: mes.p.foto!, fondo: 'amarillo',
+    fechaSorteo: `Sorteo ${mes.sorteo}`, enDias: mes.cerrado ? 'Participación cerrada' : 'Premio grande del mes', fecha: mes.fecha,
+    descripcion: mes.p.descripcion, specs: mes.p.specs };
+  return { mes, tarjeta };
+}
+
 export function PremiosDelMes() {
-  const f = useFechasSorteo();
+  const { mes, tarjeta } = usePremioMesComoTarjeta();
+  const { meses: mesesSorteos, premiosDe: premiosDeFecha } = useFuenteSorteos();
+  const prox = proximaFecha(undefined, mesesSorteos);
+  const semanales = premiosDeFecha(mesesSorteos[prox.m], prox.dia);
   return (
-    <section className="vista-m relative mt-4 overflow-hidden bg-rosa px-6 pb-12 pt-8 lg:mt-0 lg:px-16 lg:py-[clamp(20px,3.4dvh,40px)]">
+    <section className="vista-m relative mt-2 overflow-hidden bg-rosa px-6 pb-10 pt-7 lg:mt-0 lg:px-16 lg:py-[clamp(20px,3.4dvh,40px)]">
       <Nube className="-left-[72px] bottom-[-80px] w-[240px] text-fondo" />
       <Nube className="-right-[90px] bottom-[-120px] w-[360px] text-fondo" />
       <div className="relative mx-auto flex w-full max-w-[1238px] flex-col gap-4 lg:gap-[clamp(6px,1.2dvh,16px)]">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
-          <div className="flex flex-col gap-1 lg:pb-1">
-            <h2 className="text-[26px] font-black uppercase leading-[1.05] text-cafe lg:text-[clamp(22px,3.8dvh,34px)]">{"Premios de este me\u2060-\u2060e\u2060-\u2060es"}</h2>
-            <p className="text-[14px] leading-5 text-cafe/80 lg:text-[15px]">Cada miércoles sorteamos premios en vivo. Elige la fecha y mira qué puedes ganar.</p>
+        <div className="flex items-end justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-[26px] font-black uppercase leading-[1.05] text-cafe lg:text-[clamp(22px,3.8dvh,34px)]">Premios que puedes ganar</h2>
+            <p className="text-[14px] leading-5 text-cafe/80 lg:text-[15px]">El premio grande del mes y los del próximo sorteo. En vivo cada miércoles.</p>
           </div>
-          <SelectorFechas m={f.m} dia={f.dia} onMes={f.onMes} onDia={f.onDia} />
+          <Link to="/premios" className="hidden shrink-0 items-center gap-1 whitespace-nowrap text-[15px] font-bold text-cafe underline underline-offset-2 lg:inline-flex">Ver todos los premios <Icon name="flecha" size={16} /></Link>
         </div>
         <Carrusel anchoClase="w-[78vw] max-w-[330px] lg:w-[calc((100%-40px)/3)] lg:max-w-none" gap={20} tonoPuntos="cafe">
-          {f.premios.map((p) => <TarjetaPremio key={p.id} p={p} grande />)}
+          {[<TarjetaPremio key={tarjeta.id} p={tarjeta} grande destacado cerradoForzado={mes.cerrado} />,
+            ...semanales.map((p) => <TarjetaPremio key={p.id} p={p} grande />)]}
         </Carrusel>
+        <Link to="/premios" className="inline-flex items-center gap-1 self-start whitespace-nowrap text-[15px] font-bold text-cafe underline underline-offset-2 lg:hidden">Ver todos los premios <Icon name="flecha" size={16} /></Link>
       </div>
     </section>
   );
 }
 
-export function CondicionesPago({ className }: { className?: string }) {
+export function CondicionesPago({ periodo, className }: { periodo: Periodo; className?: string }) {
   const [info, setInfo] = useState(false);
   return (
     <span className={cx('relative inline-flex flex-col', className)}>
-      <button onClick={() => setInfo((v) => !v)} aria-expanded={info} className="flex items-center gap-1.5 text-[13px] font-semibold text-cafe underline underline-offset-2 lg:text-sm">
-        <Icon name="info" size={16} /> Condiciones de pago y renovación
-      </button>
+      <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] font-semibold text-cafe lg:text-sm">
+        <Icon name="info" size={16} />{reglaRenovacion(periodo)} ·
+        <button onClick={() => setInfo((v) => !v)} aria-expanded={info} className="underline underline-offset-2">Ver condiciones</button>
+      </span>
       {info && (
         <span className="z-20 mt-1 block max-w-[420px] rounded-xl bg-n0 p-3 text-[13px] leading-5 text-cafe shadow-card lg:absolute lg:left-0 lg:top-full lg:w-[400px]">
-          Mensual: cobro automático con tarjeta. Semestral y anual: pagas con tarjeta o Yape y decides si se renueva solo. Ahorras hasta {Math.max(...PLANES.map((p) => ahorro(p, 'anual')))} % según el plan.
+          <b>Mensual:</b> cobro automático cada mes con tarjeta. Puedes cancelar la renovación desde Mi cuenta.<br />
+          <b>Semestral y anual:</b> pagas el periodo completo. Con tarjeta eliges si se renueva al vencer; con Yape es un pago único, sin renovación automática.
         </span>
       )}
     </span>
@@ -281,14 +318,17 @@ export function SelectorPeriodo({ periodo, onChange, compacto, sinCondiciones, i
           </button>
         ))}
       </div>
-      {!sinCondiciones && <CondicionesPago className={cx('self-start', !izquierda && 'lg:self-end')} />}
+      {!sinCondiciones && <CondicionesPago periodo={periodo} className={cx('self-start', !izquierda && 'lg:self-end')} />}
     </div>
   );
 }
 
-export function TarjetaPlan({ plan, periodo, compacta }: { plan: Plan; periodo: Periodo; compacta?: boolean }) {
+export function rutaElegir(plan: Plan, periodo: Periodo, extra = '') {
+  return `/suscribirse/cuenta?plan=${plan.id}&periodo=${periodo}${extra}`;
+}
+
+export function TarjetaPlan({ plan, periodo, compacta, apretada, extra = '' }: { plan: Plan; periodo: Periodo; compacta?: boolean; apretada?: boolean; extra?: string }) {
   const navigate = useNavigate();
-  const { actualizar } = useSesion();
   const per = PERIODOS.find((p) => p.id === periodo)!;
   const pct = ahorro(plan, periodo);
   const osc = plan.oscuro;
@@ -297,7 +337,7 @@ export function TarjetaPlan({ plan, periodo, compacta }: { plan: Plan; periodo: 
     <article className={cx('relative flex h-full flex-col rounded-[24px]', compacta ? 'gap-3 p-6 lg:p-7' : 'gap-3.5 p-6 lg:p-8',
       osc ? 'bg-hero-brand text-n0' : 'bg-n0 text-cafe', plan.id === 'lanota' && !osc && 'ring-2 ring-inset ring-cafe')}>
       {compacta && (
-        <Link to="/planes#comparar" className={cx('absolute right-5 top-5 inline-flex items-center gap-1 text-[13px] font-semibold underline underline-offset-2 lg:right-[clamp(16px,2.2dvh,24px)] lg:top-[clamp(14px,2.2dvh,24px)] lg:text-sm', osc ? 'text-n0' : 'text-cafe')}>
+        <Link to={`/planes?plan=${plan.id}&periodo=${periodo}#comparar`} className={cx('absolute right-5 top-5 inline-flex items-center gap-1 text-[13px] font-semibold underline underline-offset-2 lg:right-[clamp(16px,2.2dvh,24px)] lg:top-[clamp(14px,2.2dvh,24px)] lg:text-sm', osc ? 'text-n0' : 'text-cafe')}>
           Comparar <Icon name="flecha" size={14} />
         </Link>
       )}
@@ -318,10 +358,17 @@ export function TarjetaPlan({ plan, periodo, compacta }: { plan: Plan; periodo: 
         );
         const lista = (
           <ul className={cx('flex flex-col', compacta ? 'gap-1.5 lg:gap-0.5' : 'gap-2.5')}>
-            {[`${plan.chances} ${plan.chances === 1 ? 'chance' : 'chances'} por sorteo regular`, 'Beneficios del catálogo', 'Misiones, cofre y Lanas'].map((t) => (
-              <li key={t} className={cx('flex items-center gap-2 font-medium', compacta ? 'text-sm lg:text-[clamp(12.5px,1.9dvh,14px)]' : 'text-[15px]')}><Icon name="check" size={compacta ? 16 : 18} />{t}</li>
+            {[chancesTexto(plan.chances), ...BENEFICIOS_COMUNES].map((t) => (
+              <li key={t} className={cx('flex items-start gap-2 font-medium', compacta ? 'text-sm lg:text-[clamp(12.5px,1.9dvh,14px)]' : 'text-[15px]')}><Icon name="check" size={compacta ? 16 : 18} className="mt-0.5 shrink-0" />{t}</li>
             ))}
           </ul>
+        );
+        if (apretada) return (
+          <>
+            <div className="flex items-start gap-2"><div className="min-w-0 flex-1">{cabecera}</div>
+              <img src={`${base}${plan.imagen}`} alt="" className="mt-6 size-[76px] shrink-0 object-contain" loading="lazy" draggable={false} /></div>
+            {lista}
+          </>
         );
         return compacta ? (
           <div className="flex items-stretch gap-1">
@@ -339,7 +386,7 @@ export function TarjetaPlan({ plan, periodo, compacta }: { plan: Plan; periodo: 
         );
       })()}
       <div className="flex-1" />
-      <button onClick={() => { actualizar({ plan: plan.nombre as 'LANITA' | 'LANOTA' | 'LANAZA', periodo }); navigate('/suscribirse/cuenta'); }}
+      <button onClick={() => navigate(rutaElegir(plan, periodo, extra))}
         className={cx('inline-flex w-full items-center justify-center gap-2.5 whitespace-nowrap rounded-pill text-[15px] font-bold text-cafe', compacta ? 'h-12 lg:h-[clamp(38px,5.8dvh,46px)] lg:text-sm' : 'h-14', botonColor)}>
         Elegir {plan.nombre} <Icon name="flecha" size={20} />
       </button>
@@ -347,19 +394,48 @@ export function TarjetaPlan({ plan, periodo, compacta }: { plan: Plan; periodo: 
   );
 }
 
-export function BandaPlanes({ titulo = 'Elige el plan que va contigo', conComparar = true }: { titulo?: string; conComparar?: boolean }) {
+function FilaPlan({ plan, periodo }: { plan: Plan; periodo: Periodo }) {
+  const navigate = useNavigate();
+  const per = PERIODOS.find((p) => p.id === periodo)!;
+  const pct = ahorro(plan, periodo);
+  const tono = plan.color === 'verde' ? 'verde' : plan.color === 'rosa' ? 'rosa' : 'amarillo';
+  return (
+    <div className={cx('flex items-center gap-3 rounded-[20px] bg-n0 p-3.5 pl-4', plan.id === 'lanota' && 'ring-2 ring-inset ring-cafe')}>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-[18px] font-extrabold leading-none text-cafe">{plan.nombre}</span>
+          <Badge tone={tono} small>{plan.etiqueta}</Badge>
+        </div>
+        <p className="flex flex-wrap items-baseline gap-x-1.5 text-cafe">
+          <span className="whitespace-nowrap text-[20px] font-black leading-none">{soles(plan.precios[periodo])}</span>
+          <span className="whitespace-nowrap text-[13px] text-n60">{per.sufijo}</span>
+          {pct > 0 && <span className="whitespace-nowrap rounded-md bg-verde px-1.5 py-0.5 text-[11px] font-bold">Ahorras {pct} %</span>}
+        </p>
+        <p className="text-[13px] font-semibold text-cafe">{chancesTexto(plan.chances)}</p>
+      </div>
+      <button onClick={() => navigate(rutaElegir(plan, periodo))} className={cx('inline-flex h-11 shrink-0 items-center gap-1 whitespace-nowrap rounded-pill px-4 text-[14px] font-bold text-cafe', { verde: 'bg-verde', amarillo: 'bg-amarillo', rosa: 'bg-rosa' }[plan.color])}>
+        Elegir<Icon name="flecha" size={16} />
+      </button>
+    </div>
+  );
+}
+
+export function BandaPlanes({ titulo = 'Elige tu plan' }: { titulo?: string; conComparar?: boolean }) {
   const [periodo, setPeriodo] = useState<Periodo>('mensual');
   return (
-    <section className="vista-m relative overflow-hidden bg-amarillo px-6 pb-14 pt-8 lg:flex lg:flex-1 lg:flex-col lg:justify-center lg:px-16 lg:py-[clamp(20px,3.4dvh,40px)]">
-      <Nube className="-left-16 bottom-[-120px] w-[220px] text-fondo" />
-      <Nube className="-right-24 bottom-[-160px] w-[300px] text-fondo" />
-      <div className="relative mx-auto flex w-full max-w-[1238px] flex-col gap-4 lg:gap-[clamp(6px,1.2dvh,18px)]">
+    <section className="vista-m relative overflow-hidden bg-amarillo px-6 pb-8 pt-7 lg:flex lg:flex-1 lg:flex-col lg:justify-center lg:px-16 lg:py-[clamp(20px,3.4dvh,40px)]">
+      <Nube className="-left-16 bottom-[-120px] hidden w-[220px] text-fondo lg:block" />
+      <Nube className="-right-24 bottom-[-160px] hidden w-[300px] text-fondo lg:block" />
+      <div className="relative mx-auto flex w-full max-w-[1238px] flex-col gap-3 lg:gap-[clamp(6px,1.2dvh,18px)]">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4 lg:gap-6">
-            <img src={img('oveja-planes-titulo.webp')} alt="" className="hidden w-[96px] shrink-0 sm:block lg:w-[clamp(84px,14dvh,150px)]" />
-            <div>
-              <h2 className="text-[24px] font-black uppercase leading-[1.05] text-cafe lg:max-w-[620px] lg:text-[clamp(26px,5dvh,44px)]">{titulo}</h2>
-              <p className="mt-1 text-[14px] text-n60 lg:text-[clamp(14px,2.2dvh,17px)]">Más chances, más beneficios, más premios.</p>
+            <img src={img('oveja-planes-titulo.webp')} alt="" className="hidden w-[96px] shrink-0 lg:block lg:w-[clamp(84px,14dvh,150px)]" />
+            <div className="flex w-full items-end justify-between gap-3 lg:block">
+              <div>
+                <h2 className="text-[24px] font-black uppercase leading-[1.05] text-cafe lg:max-w-[620px] lg:text-[clamp(26px,5dvh,44px)]">{titulo}</h2>
+                <p className="mt-1 hidden text-[14px] text-n60 lg:block lg:text-[clamp(14px,2.2dvh,17px)]">Todos incluyen sorteos, beneficios y recompensas.</p>
+              </div>
+              <Link to={`/planes?periodo=${periodo}#comparar`} className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap pb-0.5 text-[14px] font-bold text-cafe underline underline-offset-2 lg:hidden">Comparar planes <Icon name="flecha" size={14} /></Link>
             </div>
           </div>
           <SelectorPeriodo periodo={periodo} onChange={setPeriodo} compacto />
@@ -367,12 +443,12 @@ export function BandaPlanes({ titulo = 'Elige el plan que va contigo', conCompar
         <div className="hidden grid-cols-3 gap-6 lg:grid">
           {PLANES.map((p) => <TarjetaPlan key={p.id} plan={p} periodo={periodo} compacta />)}
         </div>
-        <div className="lg:hidden">
-          <Carrusel anchoClase="w-[82vw] max-w-[340px]" gap={12} tonoPuntos="cafe">
-            {PLANES.map((p) => <TarjetaPlan key={p.id} plan={p} periodo={periodo} compacta />)}
-          </Carrusel>
+        <div className="flex flex-col gap-2 lg:hidden">
+          {PLANES.map((p) => <FilaPlan key={p.id} plan={p} periodo={periodo} />)}
         </div>
-        {conComparar && <div className="flex justify-center lg:hidden"><Boton to="/planes#comparar" tono="cafe" chico icono>Comparar planes</Boton></div>}
+        <p className="flex items-start gap-2 rounded-2xl bg-n0/60 px-3.5 py-2.5 text-[13px] leading-[18px] text-cafe lg:hidden">
+          <Icon name="check" size={16} className="mt-0.5 shrink-0" /><span><b>Todos incluyen:</b> {BENEFICIOS_COMUNES.join(' · ')}.</span>
+        </p>
       </div>
     </section>
   );
@@ -415,20 +491,52 @@ export function PasosComoFunciona({ pasos, conBoton = true, titulo = '¿Cómo fu
   );
 }
 
+export function PasosPlegables({ pasos }: { pasos: { titulo: string; texto: string }[] }) {
+  const [abierto, setAbierto] = useState<number | null>(null);
+  return (
+    <section className="flex flex-col gap-3 lg:gap-[clamp(10px,2dvh,20px)]">
+      <div className="flex items-end justify-between gap-3">
+        <h2 className="text-[24px] font-black uppercase leading-[1.05] text-cafe lg:text-[clamp(26px,4.6dvh,34px)]">¿Cómo funciona AKITÁ?</h2>
+        <Link to="/como-funciona" className="hidden shrink-0 items-center gap-1 whitespace-nowrap text-[15px] font-bold text-cafe underline underline-offset-2 lg:inline-flex">Conoce más de AKITÁ <Icon name="flecha" size={16} /></Link>
+      </div>
+      <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-2 lg:gap-3">
+        {pasos.map((p, i) => {
+          const on = abierto === i;
+          return (
+            <div key={p.titulo} className="rounded-2xl bg-n0">
+              <button onClick={() => setAbierto(on ? null : i)} aria-expanded={on} className="flex min-h-[52px] w-full items-center gap-3 px-3.5 text-left">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-pill bg-amarillo text-[16px] font-black text-cafe">{i + 1}</span>
+                <span className="flex-1 text-[16px] font-bold text-cafe">{p.titulo}</span>
+                <Icon name="chevron-abajo" size={20} className={cx('shrink-0 text-cafe transition-transform', on && 'rotate-180')} />
+              </button>
+              {on && <p className="px-3.5 pb-3.5 pl-[58px] text-[14px] leading-5 text-n60">{conNegritas(p.texto)}</p>}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function TarjetaBeneficio({ b, compacta, apilada }: { b: Beneficio; compacta?: boolean; apilada?: boolean }) {
+  const boton = usePerfil().elegirMiPlan;
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-n0">
       <div className={cx('relative overflow-hidden', compacta ? 'h-[clamp(76px,11svh,150px)] lg:h-[clamp(96px,calc(var(--alto-vista)*0.2),180px)]' : apilada ? 'h-[118px] sm:h-[160px] lg:h-[clamp(128px,calc(var(--alto-vista)*0.22),180px)]' : 'h-[180px]')}>
         {b.foto ? <img src={b.foto} alt={b.titulo} className="size-full object-cover" loading="lazy" draggable={false} />
           : <div className="flex size-full items-center justify-center bg-rosa-claro p-6"><img src={b.logo} alt={b.comercio} className="max-h-[60%] max-w-[70%] object-contain" loading="lazy" draggable={false} /></div>}
         <span className="absolute left-2 top-2 rounded-md bg-verde px-[7px] py-[3px] text-xs font-black text-cafe">{b.etiqueta}</span>
+        {b.foto && (b.marca
+          ? <LogoMarca marca={b.marca as MarcaId} tamano="sm" className="absolute bottom-2 right-2" />
+          : b.logo ? <span className="absolute bottom-2 right-2 inline-flex h-8 w-[72px] items-center justify-center rounded-xl bg-n0 p-1 shadow-[0_1px_4px_rgba(33,20,2,0.12)]"><img src={b.logo} alt={b.comercio} className="max-h-full max-w-full object-contain" loading="lazy" draggable={false} /></span>
+          : <span className="absolute bottom-2 right-2 inline-flex h-8 items-center rounded-xl bg-n0 px-2.5 text-[11px] font-black text-cafe shadow-[0_1px_4px_rgba(33,20,2,0.12)]">{b.comercio}</span>)}
       </div>
-      <div className={cx('flex flex-1 items-center justify-between gap-3', compacta ? 'px-4 py-3' : apilada ? 'p-3 max-lg:flex-col max-lg:items-stretch max-lg:gap-2 lg:p-4' : 'p-4')}>
+      <div className={cx('flex flex-1 items-center justify-between gap-3', compacta ? 'px-4 py-3 max-lg:flex-col max-lg:items-stretch max-lg:gap-2.5' : apilada ? 'p-3 max-lg:flex-col max-lg:items-stretch max-lg:gap-2 lg:p-4' : 'p-4')}>
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="text-[15px] font-bold leading-[18px] text-cafe">{b.titulo}</p>
           <p className="text-xs text-n60">{b.comercio} · {b.uso}</p>
         </div>
-        <Link to="/planes" className={cx('inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-pill bg-cafe px-4 text-sm font-bold text-n0', apilada ? 'h-9 lg:h-10' : 'h-10')}>Ver planes</Link>
+        <Link to="/planes" className={cx('inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-pill bg-cafe px-4 text-sm font-bold text-n0', apilada ? 'h-9 lg:h-10' : 'h-10')}>{boton}</Link>
       </div>
     </article>
   );
@@ -436,7 +544,7 @@ export function TarjetaBeneficio({ b, compacta, apilada }: { b: Beneficio; compa
 
 export function BeneficiosADiario({ beneficios }: { beneficios: Beneficio[] }) {
   return (
-    <section className="flex flex-col gap-3 lg:gap-[clamp(10px,2dvh,18px)]">
+    <section className="flex flex-col gap-3 lg:gap-[clamp(10px,2dvh,18px)] [&_.carrusel-puntos]:mb-0">
       <TituloSeccion titulo="Beneficios a diario" bajada="Descuentos en restaurantes, salud, belleza y más, ganes o no el sorteo."
         accion={<Boton to="/beneficios" tono="outline" chico icono>Ver todos los beneficios</Boton>} />
       <Carrusel anchoClase="w-[74vw] max-w-[300px] lg:w-[calc((100%-60px)/4)] lg:max-w-none" gap={20}>
@@ -493,7 +601,6 @@ export function CanjesConLanas({ canjes }: { canjes: Canje[] }) {
   );
 }
 
-
 export function TarjetaGanador({ g, compacta }: { g: Ganador; compacta?: boolean }) {
   return (
     <article className="flex h-full flex-col rounded-[20px] bg-cafe p-2.5">
@@ -532,6 +639,29 @@ export function SeccionGanadores({ ganadores, fecha, detalle, compacta }: { gana
       <Carrusel anchoClase="w-[62vw] max-w-[260px] lg:w-[calc((100%-60px)/4)] lg:max-w-none" gap={20} tonoPuntos="cafe">
         {ganadores.map((g) => <TarjetaGanador key={g.id} g={g} compacta={compacta} />)}
       </Carrusel>
+    </section>
+  );
+}
+
+export function GanadoresCompactos({ ganadores, fecha }: { ganadores: Ganador[]; fecha: string }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-col gap-0.5">
+        <h2 className="text-[24px] font-black leading-[1.1] text-cafe lg:text-[clamp(24px,4.4dvh,32px)]">Ganadores del último sorteo</h2>
+        <p className="text-[14px] text-n60">Sorteo del {fecha.toLowerCase()} · nombres protegidos</p>
+      </div>
+      <Carrusel anchoClase="w-[76vw] max-w-[300px] lg:w-[calc((100%-60px)/4)] lg:max-w-none" gap={12} tonoPuntos="cafe">
+        {ganadores.map((g) => (
+          <article key={g.id} className="flex h-full items-center gap-3 rounded-[18px] bg-cafe p-2.5">
+            <img src={g.foto} alt="" className="size-20 shrink-0 rounded-[12px] object-cover object-top" loading="lazy" draggable={false} />
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5 pr-1">
+              <p className="text-[15px] font-black leading-5 text-amarillo [overflow-wrap:anywhere]">{g.nombre}</p>
+              <p className="line-clamp-2 text-[14px] font-bold leading-[18px] text-n0" title={g.premio}>{g.premio}</p>
+            </div>
+          </article>
+        ))}
+      </Carrusel>
+      <Link to="/ganadores" className="inline-flex items-center gap-1 self-start whitespace-nowrap text-[15px] font-bold text-cafe underline underline-offset-2">Ver todos los ganadores <Icon name="flecha" size={16} /></Link>
     </section>
   );
 }
@@ -585,6 +715,35 @@ export function CardCta({ titulo, bajada, boton, to = '/planes', imagen = img('o
   );
 }
 
+export function CtaCompacto() {
+  const { elegirMiPlan } = usePerfil();
+  return (
+    <section className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5 rounded-[22px] bg-yellow-cta px-4 py-4 sm:px-8 lg:py-6">
+      <div className="flex min-w-0 flex-col gap-0.5 text-cafe">
+        <p className="text-[18px] font-extrabold leading-[22px] lg:text-[28px] lg:leading-tight">Empieza a vivir ganando</p>
+        <p className="text-[14px] leading-5 lg:text-base">Desde S/7.50 al mes</p>
+      </div>
+      <Boton to="/planes" tono="cafe" chico className="shrink-0 px-4 lg:h-12 lg:px-7 lg:text-[15px]">{elegirMiPlan}</Boton>
+    </section>
+  );
+}
+
+export function CierreSuscripcion() {
+  const { eligeTuPlan } = usePerfil();
+  return (
+    <section className="relative flex items-center gap-3 overflow-hidden rounded-[24px] bg-yellow-cta p-4 sm:gap-6 sm:px-8 sm:py-5">
+      <img src={img('oveja-cta.webp')} alt="" className="h-[96px] w-auto shrink-0 object-contain sm:h-[120px]" />
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-8">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-cafe">
+          <p className="text-[19px] font-extrabold leading-[23px] lg:text-[28px] lg:leading-tight">Empieza a vivir ganando</p>
+          <p className="text-[14px] leading-5 lg:text-base">Planes desde S/7.50 al mes</p>
+        </div>
+        <Boton to="/planes" tono="cafe" chico icono className="self-start sm:h-12 sm:self-center sm:px-7 sm:text-[15px]">{eligeTuPlan}</Boton>
+      </div>
+    </section>
+  );
+}
+
 export function BandaSigueme() {
   return (
     <section className="relative overflow-hidden bg-azul">
@@ -612,75 +771,5 @@ export function Vista({ children, className, id }: { children: ReactNode; classN
     <div id={id} className={cx('vista mx-auto flex w-full max-w-[1366px] flex-col gap-10 px-6 py-10 lg:gap-14 lg:px-16 lg:py-14', className)}>
       {children}
     </div>
-  );
-}
-
-const MESES_TXT = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-const isoLima = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
-const FONDOS: Premio['fondo'][] = ['amarillo', 'rosa', 'azul', 'verde'];
-export type PremioDatos = { id?: string; categoria: string; premio: string; fecha: string; enDias: string; foto?: string; fechaIso?: string; descripcion?: string; specs?: string[] };
-export function PremiosDelMesDatos({ fechas: todas, premios, titulo = 'Premios de este me⁠-⁠e⁠-⁠es',
-  bajada = 'Cada miércoles sorteamos premios en vivo. Elige la fecha y mira qué puedes ganar.', color, enBanda = true }: {
-  fechas: Date[]; premios: PremioDatos[]; titulo?: string; bajada?: string; color?: boolean; enBanda?: boolean }) {
-  const hoy = isoLima(new Date());
-  const fechas = todas.filter((d) => isoLima(d) >= hoy);
-  const meses = [...new Set(fechas.map((d) => d.getFullYear() * 12 + d.getMonth()))].sort((a, b) => a - b);
-  const [mesSel, setMes] = useState<number>();
-  const mes = mesSel !== undefined && meses.includes(mesSel) ? mesSel : meses[0];
-  const delMes = fechas.filter((d) => d.getFullYear() * 12 + d.getMonth() === mes);
-  const [diaSel, setDia] = useState<number>();
-  const dia = delMes.find((d) => d.getDate() === diaSel) ?? delMes[0];
-  const lista = dia && premios.some((p) => p.fechaIso) ? premios.filter((p) => p.fechaIso === isoLima(dia)) : premios;
-  const i = mes === undefined ? -1 : meses.indexOf(mes);
-  const tarjetas = lista.map((p, k): Premio => ({ id: p.id ?? `${p.premio}-${k}`, categoria: p.categoria, nombre: p.premio, fechaSorteo: p.fecha, enDias: p.enDias,
-    foto: p.foto ? (/^(https?:|\/|data:)/.test(p.foto) ? p.foto : `${base}${p.foto}`) : '', fondo: FONDOS[k % FONDOS.length], descripcion: p.descripcion, specs: p.specs }));
-  const contenido = (
-    <div className="relative mx-auto flex w-full max-w-[1238px] flex-col gap-4 lg:gap-[clamp(6px,1.2dvh,16px)]">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
-        <div className="flex flex-col gap-1 lg:pb-1">
-          <h2 className={enBanda ? 'text-[26px] font-black uppercase leading-[1.05] text-cafe lg:text-[clamp(22px,3.8dvh,34px)]' : 'text-[26px] font-extrabold text-cafe lg:text-[clamp(24px,4dvh,32px)]'}>{titulo}</h2>
-          {bajada && <p className="text-[14px] leading-5 text-cafe/80 lg:text-[15px]">{bajada}</p>}
-        </div>
-        {mes !== undefined && (
-          <div className="flex w-fit max-w-full flex-col items-stretch gap-2">
-            <div className="flex items-center justify-between gap-2 rounded-pill border border-n10 bg-n0 p-1">
-              <button aria-label="Mes anterior" disabled={i <= 0} onClick={() => { setMes(meses[i - 1]); setDia(undefined); }} className="flex size-7 items-center justify-center rounded-2xl bg-n5 text-base font-bold text-cafe disabled:opacity-30">‹</button>
-              <span className="px-1 text-center text-[14px] font-bold text-cafe">{MESES_TXT[mes % 12]} {Math.floor(mes / 12)}</span>
-              <button aria-label="Mes siguiente" disabled={i >= meses.length - 1} onClick={() => { setMes(meses[i + 1]); setDia(undefined); }} className="flex size-7 items-center justify-center rounded-2xl bg-n5 text-base font-bold text-cafe disabled:opacity-30">›</button>
-            </div>
-            <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
-              {delMes.map((d) => {
-                const activa = !!dia && d.getTime() === dia.getTime();
-                return (
-                  <button key={d.getTime()} onClick={() => setDia(d.getDate())} aria-pressed={activa}
-                    className={cx('flex h-[40px] w-[44px] shrink-0 flex-col items-center justify-center rounded-[12px]', activa ? 'bg-cafe' : 'border border-n10 bg-n0')}>
-                    <span className={cx('text-[9px] font-bold leading-3 tracking-[0.8px]', activa ? 'text-amarillo' : 'text-n60')}>MIÉ</span>
-                    <span className={cx('text-[16px] font-extrabold leading-5', activa ? 'text-n0' : 'text-cafe')}>{d.getDate()}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-      {tarjetas.length ? (
-        color
-          ? <Carrusel anchoClase="w-[74vw] max-w-[300px] lg:w-[calc((100%-60px)/4)] lg:max-w-none" gap={20}>{tarjetas.map((p) => <TarjetaPremio key={p.id} p={p} color />)}</Carrusel>
-          : <Carrusel anchoClase="w-[78vw] max-w-[330px] lg:w-[calc((100%-40px)/3)] lg:max-w-none" gap={20} tonoPuntos="cafe">{tarjetas.map((p) => <TarjetaPremio key={p.id} p={p} grande />)}</Carrusel>
-      ) : (
-        <div className="flex flex-col items-center gap-1 rounded-[20px] border border-dashed border-cafe/20 bg-n0 px-6 py-8 text-center">
-          <p className="text-[15px] font-bold text-cafe">Pronto anunciaremos los premios</p>
-          <p className="text-[13px] text-n60">Vuelve en unos días para ver los próximos sorteos.</p>
-        </div>
-      )}
-    </div>
-  );
-  if (!enBanda) return contenido;
-  return (
-    <section className="relative mt-4 overflow-hidden bg-rosa px-6 pb-12 pt-8 lg:mt-0 lg:px-16 lg:py-[clamp(20px,3.4dvh,40px)]">
-      <Nube className="-left-[72px] bottom-[-80px] w-[240px] text-fondo" />
-      <Nube className="-right-[90px] bottom-[-120px] w-[360px] text-fondo" />
-      {contenido}
-    </section>
   );
 }

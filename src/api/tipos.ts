@@ -51,6 +51,12 @@ export type Canje = {
   discountDeliveryMode?: 'DNI' | string | null; merchant?: { id?: string; tradeName?: string; logoUrl?: string | null } | null;
 };
 
+export type CuponMio = Canje & {
+  sourceType?: 'BENEFIT' | 'MARKETPLACE' | 'CHEST' | 'FLASH_BENEFIT' | string; deliveryMode?: string | null;
+  qrUrl?: string | null; redirectUrl?: string | null; instructions?: string | null;
+  title?: string; benefitName?: string; brand?: { name?: string; logo?: string | null } | null;
+};
+
 export type Sorteo = {
   id: string; name?: string; description?: string; drawDate?: string; date?: string; hour?: string;
   shortDay?: string; dayNumber?: string; imageUrl?: string; isFeatured?: boolean; isLive?: boolean;

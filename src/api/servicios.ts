@@ -2,7 +2,6 @@ import { api, apiArchivo, nuevaClaveIdempotencia } from './client';
 import { tokens, type Tokens } from './tokens';
 import type * as T from './tipos';
 
-
 export const authApi = {
   async login(email: string, password: string) {
     const t = await api<Tokens>('/v1/users/login', { method: 'POST', auth: false, body: { email, password } });
@@ -44,6 +43,8 @@ export const lanasApi = {
   catalogoCanje: () => api<T.CatalogoCanje>('/v1/lana-redemptions/catalog'),
   canjear: (itemId: string) => api<T.Canje>('/v1/lana-redemptions', { method: 'POST', body: { itemId }, idempotencia: true }),
   misCanjes: () => api<{ items?: T.Canje[]; data?: T.Canje[] } | T.Canje[]>('/v1/lana-redemptions/mine'),
+  misCupones: (page = 1, limit = 50) => api<{ items?: T.CuponMio[]; data?: T.CuponMio[] } | T.CuponMio[]>('/v1/coupons/me', { query: { page, limit } }),
+  ahorroCupones: () => api<Record<string, unknown>>('/v1/coupons/me/savings'),
   tasa: () => api<{ lanasPerSol?: number; startsAt?: string }>('/v1/lanas/conversion-rate', { auth: false }),
 };
 

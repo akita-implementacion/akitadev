@@ -41,7 +41,7 @@ export default function Beneficios() {
   return (
     <>
       <HeroCarrusel color="#3EB1FF" titulo={<Tx k="beneficios.hero.titulo" />} bajada={<Tx k="beneficios.hero.bajada" />} pose="beneficios"
-        promos={config.usarMock || config.datosEjemplo ? promosBeneficios : []} banners={config.usarMock ? [] : banners.imagenes} />
+        promos={config.usarMock ? promosBeneficios : []} banners={config.usarMock ? [] : banners.imagenes} />
       <Contenido>
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           <div className={cx(!dosFlash && 'md:col-span-2 lg:col-span-2')}><CardFlash /></div>

@@ -43,6 +43,9 @@ const OcultoCtx = createContext(false);
 
 function HeaderPublicoMobile() {
   const oculto = useContext(OcultoCtx);
+  const { logueado, cerrar } = useSesion();
+  const usuario = useUsuario();
+  const navigate = useNavigate();
   const [abierto, setAbierto] = useState(false);
   const { pathname } = useLocation();
   useEffect(() => { setAbierto(false); }, [pathname]);
@@ -69,7 +72,12 @@ function HeaderPublicoMobile() {
           ))}
           <div className="flex shrink-0 flex-col gap-3 pt-6">
             <Link to="/planes" className="flex h-14 items-center justify-center rounded-pill bg-amarillo text-[15px] font-bold text-cafe"><Tx k="pub.nav.suscribirme" /></Link>
-            <Link to="/ingresar" className="flex h-14 items-center justify-center rounded-pill border-[1.5px] border-cafe text-[15px] font-bold text-cafe"><Tx k="pub.nav.iniciar" /></Link>
+            {logueado ? (
+              <>
+                <Link to="/mi-cuenta" className="flex h-14 items-center justify-center gap-2 rounded-pill border-[1.5px] border-cafe text-[15px] font-bold text-cafe"><Icon name="cuenta" size={18} />{usuario.nombreCorto || 'Mi cuenta'}</Link>
+                <button onClick={async () => { await cerrar(); navigate('/'); }} className="h-12 text-[15px] font-bold text-error">Cerrar sesión</button>
+              </>
+            ) : <Link to="/ingresar" className="flex h-14 items-center justify-center rounded-pill border-[1.5px] border-cafe text-[15px] font-bold text-cafe"><Tx k="pub.nav.iniciar" /></Link>}
           </div>
           <div className="relative mt-auto h-[200px] shrink-0">
             <Nube className="-right-10 bottom-[-60px] w-[240px] text-n0" />
@@ -82,6 +90,7 @@ function HeaderPublicoMobile() {
 }
 
 function HeaderPublicoDesktop() {
+  const { logueado } = useSesion();
   return (
     <header className="fixed inset-x-0 top-0 z-30 hidden lg:block">
       <Preheader alto="h-9" logo={158} />
@@ -97,7 +106,7 @@ function HeaderPublicoDesktop() {
             ))}
           </nav>
           <div className="flex shrink-0 items-center gap-2 xl:gap-3">
-            <Link to="/ingresar" className="flex h-11 items-center whitespace-nowrap rounded-pill border-[1.5px] border-cafe px-4 text-sm font-bold text-cafe xl:px-6"><Tx k="pub.nav.iniciar" /></Link>
+            {logueado ? <MenuUsuario /> : <Link to="/ingresar" className="flex h-11 items-center whitespace-nowrap rounded-pill border-[1.5px] border-cafe px-4 text-sm font-bold text-cafe xl:px-6"><Tx k="pub.nav.iniciar" /></Link>}
             <Link to="/planes" className="flex h-11 items-center gap-2 whitespace-nowrap rounded-pill bg-cafe px-4 text-sm font-bold text-n0 xl:px-6"><Icon name="chispa" size={18} /><Tx k="pub.nav.suscribirme" /></Link>
           </div>
         </div>
@@ -120,7 +129,6 @@ function HeaderMobile() {
         <NavLink to="/" aria-label="Ir a Hoy"><LogoAkita width={80} className="text-cafe" /></NavLink>
         <div className="flex items-center gap-4">
           <NavLink to="/mi-cuenta"><ChipLanas saldo={formatoLanas(billetera.saldo)} /></NavLink>
-          <button aria-label="Notificaciones" className="text-cafe"><Icon name="campana" /></button>
         </div>
       </div>
     </header>
@@ -277,18 +285,18 @@ function Footer() {
 
 export function AppShell() {
   const { pathname } = useLocation();
-  const { logueado } = useSesion();
+  const { logueado, conPlan } = useSesion();
   const oculto = useOcultarAlBajar();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname, logueado]);
   return (
     <OcultoCtx.Provider value={oculto}>
     <div className="min-h-screen bg-fondo">
-      {logueado ? <><HeaderMobile /><HeaderDesktop /></> : <><HeaderPublicoMobile /><HeaderPublicoDesktop /></>}
+      {conPlan ? <><HeaderMobile /><HeaderDesktop /></> : <><HeaderPublicoMobile /><HeaderPublicoDesktop /></>}
       <main className="pb-0 pt-[92px] lg:pt-[113px]">
         <Outlet />
       </main>
       <Footer />
-      {!pathname.startsWith('/suscribirse') && <TabBar tabs={logueado ? TABS : TABS_PUBLICAS} />}
+      {!pathname.startsWith('/suscribirse') && <TabBar tabs={conPlan ? TABS : TABS_PUBLICAS} />}
       {initRevision && <PuenteRevision />}
     </div>
     </OcultoCtx.Provider>

@@ -2,7 +2,6 @@ import type * as T from '../api/tipos';
 import type { Ciclo, Mision, Periodo } from './mock';
 import { conPrueba } from './imagenesPrueba';
 
-
 const TZ = 'America/Lima';
 const fecha = (iso?: string | null, o: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }) => {
   if (!iso) return '';
@@ -310,13 +309,17 @@ export const aMovimientos = (p: T.Paginado<T.MovimientoLana>) => ({
 });
 export type Movimiento = ReturnType<typeof aMovimientos>['items'][number];
 
-export const aCupones = (r: unknown) => lista<T.Canje>(r, 'items', 'data').map((c) => ({
+const ORIGEN_CUPON: Record<string, string> = { BENEFIT: 'Beneficio', MARKETPLACE: 'Canje', CHEST: 'Cofre', FLASH_BENEFIT: 'Beneficio Flash' };
+export const aCupones = (r: unknown) => lista<T.CuponMio>(r, 'items', 'data').map((c) => ({
   id: c.id,
-  titulo: c.itemName ?? c.name ?? (c.rewardType ? origen(c.rewardType) : 'Cupón'),
-  comercio: c.merchant?.tradeName ?? '',
-  logo: conPrueba(c.merchant?.logoUrl, 'logo', c.merchant?.tradeName ?? c.id),
+  titulo: c.title ?? c.benefitName ?? c.itemName ?? c.name ?? (c.rewardType ? origen(c.rewardType) : 'Cupón'),
+  comercio: c.merchant?.tradeName ?? c.brand?.name ?? '',
+  logo: conPrueba(c.merchant?.logoUrl ?? c.brand?.logo, 'logo', c.merchant?.tradeName ?? c.brand?.name ?? c.id),
   codigo: c.code ?? '',
-  instrucciones: c.redemptionInstructions ?? (c.discountDeliveryMode === 'DNI' ? 'Muestra tu DNI en el comercio para usarlo.' : ''),
+  instrucciones: c.instructions ?? c.redemptionInstructions ?? ((c.deliveryMode ?? c.discountDeliveryMode) === 'DNI' ? 'Muestra tu DNI en el comercio para usarlo.' : ''),
+  enlace: c.redirectUrl ?? undefined,
+  qr: c.qrUrl ?? undefined,
+  origen: ORIGEN_CUPON[(c.sourceType ?? '').toUpperCase()] ?? '',
   fecha: fecha(c.redeemedAt ?? c.createdAt),
   vence: fecha(c.expiresAt),
   lanas: c.lanasSpent ?? 0,

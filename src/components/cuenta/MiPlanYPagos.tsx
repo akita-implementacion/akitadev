@@ -208,7 +208,6 @@ function Tarjetas() {
       )) : <p className="text-[13px] text-n60">Aún no tienes tarjetas guardadas.</p>}
       {error && <p role="alert" className="text-xs font-semibold text-error">{error}</p>}
       <AgregarTarjeta />
-      <p className="flex items-center gap-1.5 text-[12px] text-n60"><Icon name="candado" size={14} />No guardamos los datos de tu tarjeta: los procesa la pasarela de pago.</p>
     </section>
   );
 }

@@ -41,7 +41,7 @@ export default function Sorteos() {
   return (
     <>
       <HeroCarrusel color="#FF88F7" titulo={<Tx k="sorteos.hero.titulo" />} bajada={<Tx k="sorteos.hero.bajada" />} pose="sorteos"
-        promos={config.usarMock || config.datosEjemplo ? promosSorteos : []} banners={config.usarMock ? [] : banners.imagenes} />
+        promos={config.usarMock ? promosSorteos : []} banners={config.usarMock ? [] : banners.imagenes} />
       <Contenido>
         <div className="flex w-full gap-1.5 rounded-pill bg-n0 p-1.5 lg:w-fit" role="tablist">
           {pestanas.map(([id, label]) => (

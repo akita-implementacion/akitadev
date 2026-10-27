@@ -1,52 +1,49 @@
 # AKITÁ · Pendientes de backend (27/10/2026)
 
-**Para:** equipo de backend.
-**API revisada:** `https://back-mock-980046560569.us-central1.run.app`, probada el 27/10.
-**Cómo leer la tabla:** cada punto dice qué falta, qué hace hoy el sitio mientras tanto y el endpoint involucrado.
+Actualizado con la respuesta de backend del 27/10 y los ajustes RF del 27/10.
 
----
+## 1. Bloquean pasar a la API publicada
 
-## 1. Bloquean funciones del sitio
-
-| # | Tema | Endpoint | Qué falta | Qué hace hoy el sitio |
-|---|---|---|---|---|
-| 1 | **Planes de suscripción** | `GET /v1/subscription-plans` | Responde `{}`. Debe devolver LANITA, LANOTA y LANAZA por periodo (`MONTHLY`, `SEMESTRAL`, `ANNUAL`) con `id`, precio y `origin`. | Usa su tabla de precios. **Sin el `planId` real no se puede pagar la suscripción.** |
-| 2 | **Historial de ganadores** | `GET /v1/raffles/winners/history` | **404**: la ruta no existe en el mock. Se necesita paginado y con búsqueda por código público. | Ganadores muestra datos de ejemplo. |
-| 3 | **Kushki staging y producción** | — | Faltan los *public merchant id* de esos ambientes. Hoy solo está el de pruebas. | Con el id de pruebas se puede pagar con tarjeta nueva. |
-| 4 | **Imágenes** | Beneficios, marcas, sorteos, ganadores y banners | Las URLs no existen: `cdn.akita.pe/...`, `assets.yoki.pe/...` y `example.com/...`. | Muestra imágenes de prueba (se apagan con `VITE_IMAGENES_PRUEBA=false`). Los banners que no cargan no se muestran. |
-| 5 | **Banner de Beneficios** | `GET /v1/banners/public?section=BENEFITS_MAIN` | **400**: `BENEFITS_MAIN` no está entre los valores permitidos (HU21). | Beneficios muestra los banners de marca de ejemplo. |
-
-## 2. Datos que faltan en respuestas existentes
-
-| # | Tema | Endpoint | Qué falta |
-|---|---|---|---|
-| 6 | **Origen del plan** | `GET /v1/users` → `subscription` | `origin` (`YOKI` \| `AKITA`) y `renewableUntil`. El sitio ya muestra la etiqueta «Plan YOKI» si llega `origin`. |
-| 7 | **Cofre** | `GET /v1/chest/me`, `POST /v1/chest/me/openings` | `cycleStock` (`total`, `delivered`, `remaining`) y `opening.rewardImageUrl`. El sitio ya los lee. |
-| 8 | **Ofertas para subir de plan** | `GET /v1/subscriptions/upgrade-offers` | Ofertas para los planes de Akitá. Hoy llegan `offers: []`, así que «Subir de plan» queda oculto. Lo define negocio. |
-| 9 | **Ganadores del sorteo** | `GET /v1/raffles/winners?date=` | El mock devuelve datos de relleno (`"hour de ejemplo"`, fechas de 2025). Se necesitan datos reales para validar. |
-| 10 | **Corte** | `GET /v1/configurations` | `textCutOffTime` llega como texto de ejemplo. El sitio usa 12:00 (hora de Lima) del día del sorteo. |
-
-## 3. Endpoints nuevos que pide el diseño
-
-| # | Tema | Qué se necesita |
+| Pendiente | Detalle | Quién |
 |---|---|---|
-| 11 | **Notificaciones** | El ícono de campana del encabezado no tiene endpoint (`/v1/notifications` responde 404). Se necesita listar y marcar como leídas. |
-| 12 | **Login con Google y Facebook** | El diseño los muestra en «Inicia sesión». No hay OAuth en la API (decisión D5 del 25/10). Hoy los botones avisan «Muy pronto». Si se mantiene la decisión, se quitan. |
-| 13 | **Mis Cupones (R2)** | `GET /v1/coupons/me` reemplazará a `GET /v1/lana-redemptions/mine`. |
+| **CORS en `api-dev.akita.pe`** | La API no devuelve `Access-Control-Allow-Origin`, así que el navegador bloquea las llamadas. Hay que permitir `http://localhost:5173` y el dominio publicado del front. Mientras tanto, el front sigue apuntando al mock de Cloud Run. | Backend / DevOps |
+| **Planes de Akitá en `api-dev`** | `GET /v1/subscription-plans` responde `{"MONTHLY":[],"SEMESTRAL":[],"ANNUAL":[]}`. Sin los planes, el pago no encuentra el `planId`. | Backend |
+| **Kushki de staging y producción** | Faltan los *public merchant id* de esos ambientes. | Kushki / DevOps |
 
-## 4. Infraestructura
+## 2. Datos que piden los ajustes RF del 27/10
 
-| # | Tema | Qué falta |
-|---|---|---|
-| 14 | **Mock de Cloud Run** | Regenerarlo desde el OpenAPI de `release_1-ccm`: le faltan rutas (punto 2), los planes (punto 1) y datos reales. |
-| 15 | **Límite por IP del Libro de Reclamaciones** | El sitio es estático y no puede enviar `x-client-ip` en `POST /v1/complaints`. Backend debería tomar la IP de la conexión o de un proxy. |
-| 16 | **Refresh token** | Hoy se guarda en `sessionStorage`. Cuando backend emita la cookie httpOnly, se cambia con `VITE_AUTH_REFRESH=cookie`. |
+| Dato | Para qué |
+|---|---|
+| **Listado público de sorteos** | Las páginas públicas (Inicio, Premios). Hoy el front usa `GET /v1/raffles`. |
+| **Marca de premio del mes** en el sorteo | Mostrarlo siempre primero, aunque haya sorteos semanales antes. |
+| **Fecha y `cutOffTime` por sorteo** | «Activa tu plan antes del [fecha], 11:59 a. m.» y el estado «La participación en este sorteo ya cerró». |
+| **Vista previa pública de Cofre y Flash** | Stock por opción (premio o Lanas, beneficio o Lanas), «elegir hasta» y «usar hasta». Sugerencia: `GET /v1/chest/preview` y `GET /v1/benefits/flash/preview`. |
+| **Estado «plan vencido»** en `GET /v1/users` | Mostrar «Reactiva tu plan» y pasar directo al pago. Hoy se deduce: hay `subscription`, pero `hasSubscription` es falso. |
+| **Estado de una transacción** | Consultar un pago pendiente antes de permitir otro intento. Se necesita el estado por operación e idempotencia. |
+| **Fecha real de vigencia** del plan | «Próxima renovación» o «Activo hasta» en la confirmación y en el éxito. |
+| **Tipo y alcance de cada promoción** en `POST /v1/promo-codes/validate` | Mostrar el descuento o las Lanas que da el código. |
+| **Consentimientos por separado** | El registro ya envía `consentSubscribeOffers`, `consentShareDataWithPartners`, `consentReceivePersonalizedPromotions` y `consentAcceptedPrivacyPolicy`. Confirmar que se guardan por separado. |
+| **Reglas del código de Yape** | Vigencia y límites según la integración actual de YOKI. |
+| **Pago único con tarjeta** | Semestral y anual con la renovación apagada se envían con `isConcurrent: false`. Confirmar que se cobra una sola vez. |
 
-## 5. Formatos a unificar (no bloquean)
+## 3. Otros pendientes
 
-- **Fechas:** algunas llegan en `DD/MM/YYYY` (beneficios, historial de pagos, ganadores) y otras en ISO.
-- **Montos:** algunos llegan como texto con espacio no separable («S/ 75.00»), en `upgrade-offers`.
-- **Nombres de campos con errores:** `termAndConditionsUrl` (sin «s») en `/v1/raffles` y `oportunitiesPerRaffle`.
-- **Categorías:** el `categoryId` de beneficios no coincide con `/v1/benefit-categories`.
+| Pendiente | Quién |
+|---|---|
+| `renewableUntil` y ofertas para subir de plan en los planes de Akitá | Negocio |
+| Banner de `BENEFITS_MAIN` (carga en el BackOffice) | Negocio |
+| Límite por IP del Libro de Reclamaciones sin `x-client-ip` | Backend |
+| Recompensa del referido frente a la HU07 | Negocio |
+| Consentimientos que mencionan a Mall360 | Legal |
+| Qué ve «Mi plan y pagos» un plan sin renovación | Negocio |
+| Correo antes de cada cobro | Runatech |
 
-El sitio ya maneja todas estas variantes. Si se unifican, avisar para quitar los ajustes.
+## 4. Ya integrado en el front
+
+- **Planes:** el `planId` se toma de `GET /v1/subscription-plans` al pagar.
+- **Ganadores:** el historial y la búsqueda por código usan `GET /v1/raffles/winners/history`.
+- **Mis Cupones:** usa `GET /v1/coupons/me`. Si la ruta responde 404, usa el endpoint anterior.
+- **Banners:** con 404 de `BENEFITS_MAIN` no se muestra carrusel.
+- **Login:** sin Google ni Facebook.
+- **Notificaciones:** la campana queda oculta en el R1.
+- **Refresh token:** se envía en el body y se guarda en `sessionStorage`.

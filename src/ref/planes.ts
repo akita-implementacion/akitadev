@@ -16,17 +16,21 @@ export type Plan = {
 export const PLANES: Plan[] = [
   { id: 'lanita', nombre: 'LANITA', etiqueta: 'TU PRIMERA LANA', subtitulo: 'Empieza a participar', chances: 1,
     precios: { mensual: 7.5, semestral: 28, anual: 50 }, color: 'verde', imagen: 'img/oveja-plan-lanita.webp' },
-  { id: 'lanota', nombre: 'LANOTA', etiqueta: 'RECOMENDADO', subtitulo: 'Más oportunidades', chances: 3,
+  { id: 'lanota', nombre: 'LANOTA', etiqueta: 'RECOMENDADO', subtitulo: 'Más chances para ganar', chances: 3,
     precios: { mensual: 12.5, semestral: 54, anual: 95 }, color: 'amarillo', imagen: 'img/oveja-plan-lanota.webp' },
-  { id: 'lanaza', nombre: 'LANAZA', etiqueta: 'MÁS CHANCES', subtitulo: 'Vive la experiencia completa', chances: 5,
+  { id: 'lanaza', nombre: 'LANAZA', etiqueta: 'MÁS CHANCES', subtitulo: 'Ve por más en cada sorteo', chances: 5,
     precios: { mensual: 17.5, semestral: 80, anual: 125 }, color: 'rosa', oscuro: true, imagen: 'img/oveja-plan-lanaza.webp' },
 ];
 
 export const PERIODOS: { id: Periodo; label: string; meses: number; sufijo: string }[] = [
   { id: 'mensual', label: 'Mensual', meses: 1, sufijo: 'al mes' },
-  { id: 'semestral', label: 'Semestral', meses: 6, sufijo: 'cada 6 meses' },
-  { id: 'anual', label: 'Anual', meses: 12, sufijo: 'al año' },
+  { id: 'semestral', label: 'Semestral', meses: 6, sufijo: 'por 6 meses' },
+  { id: 'anual', label: 'Anual', meses: 12, sufijo: 'por 12 meses' },
 ];
+
+export const chancesTexto = (n: number) => `${n} ${n === 1 ? 'chance' : 'chances'} por sorteo regular`;
+export const BENEFICIOS_COMUNES = ['Beneficios, Cofre y Flash', 'Misiones para ganar Lanas y acceder a sorteos VIP'];
+export const reglaRenovacion = (p: Periodo) => p === 'mensual' ? 'Renovación automática mensual' : 'Renovación automática opcional';
 
 export function ahorro(plan: Plan, periodo: Periodo): number {
   const meses = PERIODOS.find((p) => p.id === periodo)!.meses;

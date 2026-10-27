@@ -2,7 +2,7 @@ type IconName =
   | 'hoy' | 'sorteos' | 'beneficios' | 'misiones' | 'cuenta'
   | 'campana' | 'flecha' | 'chevron' | 'chevron-abajo' | 'ticket' | 'rayo' | 'alerta'
   | 'calendario' | 'compartir' | 'cofre' | 'regalo' | 'trofeo' | 'copiar' | 'corona' | 'cupon' | 'candado' | 'chispa' | 'estrella' | 'lupa'
-  | 'cerrar' | 'check' | 'info' | 'reloj' | 'tarjeta';
+  | 'cerrar' | 'check' | 'info' | 'reloj' | 'tarjeta' | 'menu' | 'premios' | 'planes' | 'celular' | 'escudo';
 
 const P: Record<IconName, { vb: number; sw: number; d: string[]; fill?: boolean }> = {
   hoy: { vb: 22, sw: 1.83, d: ['M2.75 9.17L11 2.75L19.25 9.17V18.33C19.25 18.82 19.06 19.29 18.71 19.63C18.37 19.97 17.9 20.17 17.42 20.17H4.58C4.1 20.17 3.63 19.97 3.29 19.63C2.94 19.29 2.75 18.82 2.75 18.33V9.17Z', 'M8.25 20.17V11H13.75V20.17'] },
@@ -33,6 +33,11 @@ const P: Record<IconName, { vb: number; sw: number; d: string[]; fill?: boolean 
   info: { vb: 24, sw: 2, d: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 16v-5', 'M12 8h.01'] },
   reloj: { vb: 24, sw: 2, d: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 7v5l3 2'] },
   tarjeta: { vb: 24, sw: 2, d: ['M3 6h18v12H3z', 'M3 10h18', 'M7 15h3'] },
+  menu: { vb: 24, sw: 2, d: ['M4 7H20M4 12H20M4 17H20'] },
+  premios: { vb: 24, sw: 2, d: ['M20 12V21H4V12M2 7H22V12H2V7Z', 'M12 21V7M12 7H7.5C6.84 7 6.2 6.74 5.73 6.27C5.26 5.8 5 5.16 5 4.5C5 3.84 5.26 3.2 5.73 2.73C6.2 2.26 6.84 2 7.5 2C11 2 12 7 12 7ZM12 7H16.5C17.16 7 17.8 6.74 18.27 6.27C18.74 5.8 19 5.16 19 4.5C19 3.84 18.74 3.2 18.27 2.73C17.8 2.26 17.16 2 16.5 2C13 2 12 7 12 7Z'] },
+  planes: { vb: 24, sw: 2, d: ['M12 3L14.2 9.8L21 12L14.2 14.2L12 21L9.8 14.2L3 12L9.8 9.8L12 3Z'] },
+  celular: { vb: 24, sw: 2, d: ['M17 2H7C5.9 2 5 2.9 5 4V20C5 21.1 5.9 22 7 22H17C18.1 22 19 21.1 19 20V4C19 2.9 18.1 2 17 2Z', 'M12 18H12.01'] },
+  escudo: { vb: 24, sw: 2, d: ['M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z', 'M9 12L11 14L15 10'] },
   candado: { vb: 24, sw: 2, d: ['M18 11H6C4.9 11 4 11.9 4 13V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V13C20 11.9 19.1 11 18 11Z', 'M8 11V7C8 4.79 9.79 3 12 3C14.21 3 16 4.79 16 7V11'] },
 };
 

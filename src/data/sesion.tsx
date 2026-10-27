@@ -18,13 +18,18 @@ export type Suscripcion = {
   referido: string;
   promoId?: string;
   promoTexto?: string;
+  promoDetalle?: string;
   nombre: string;
   correo: string;
+  consentimientos: boolean[];
+  premio?: { nombre: string; sorteo: string } | null;
+  referidoAplicado?: boolean;
 };
 export type PagoPendiente = { tipo: 'tarjeta'; token: string; tarjeta: string } | { tipo: 'yape'; celular: string; otp: string };
 
 type Sesion = {
   logueado: boolean;
+  conPlan: boolean;
   verificando: boolean;
   modoMock: boolean;
   me: AuthMe | null;
@@ -53,7 +58,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<AuthMe | null>(null);
   const pago = useRef<PagoPendiente | null>(null);
   const [suscripcion, setSuscripcion] = useState<Suscripcion>({
-    plan: 'LANOTA', periodo: 'mensual', metodo: 'tarjeta', renovacion: true, referido: '',
+    plan: 'LANOTA', periodo: 'mensual', metodo: 'tarjeta', renovacion: true, referido: '', consentimientos: [false, false, false, false, false],
     nombre: modoMock ? 'Camila' : '', correo: modoMock ? 'camila.r@correo.com' : '',
   });
 
@@ -94,6 +99,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
 
   const valor: Sesion = {
     logueado,
+    conPlan: logueado && (modoMock || !!me?.hasSubscription),
     verificando,
     modoMock,
     me,
@@ -114,6 +120,8 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     actualizar: (p) => setSuscripcion((s) => {
       const n = { ...s, ...p };
       if (n.periodo === 'mensual') { n.metodo = 'tarjeta'; n.renovacion = true; }
+      else if (n.metodo === 'yape') n.renovacion = false;
+      else if (s.periodo === 'mensual' && p.renovacion === undefined) n.renovacion = false;
       return n;
     }),
     pago,
@@ -128,9 +136,9 @@ export function useSesion() {
   return c;
 }
 
-export function SegunSesion({ publico, usuario }: { publico: ReactNode; usuario: ReactNode }) {
+export function SegunSesion({ publico, usuario, basta }: { publico: ReactNode; usuario: ReactNode; basta?: 'sesion' }) {
   const s = useSesion();
   if (s.verificando) return <div className="min-h-[60vh]" aria-busy="true" />;
   if (s.logueado && s.perfilPendiente) return <Navigate to="/suscribirse/cuenta" replace state={{ completarPerfil: true }} />;
-  return <>{s.logueado ? usuario : publico}</>;
+  return <>{(basta === 'sesion' ? s.logueado : s.conPlan) ? usuario : publico}</>;
 }
