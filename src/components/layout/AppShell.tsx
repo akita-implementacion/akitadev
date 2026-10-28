@@ -95,7 +95,7 @@ function HeaderPublicoDesktop() {
     <header className="fixed inset-x-0 top-0 z-30 hidden lg:block">
       <Preheader alto="h-9" logo={158} />
       <div className="border-b border-cafe/[.12] bg-n0 shadow-header">
-        <div className="mx-auto flex h-[77px] max-w-[1366px] items-center justify-between gap-4 px-16">
+        <div className="mx-auto flex h-[77px] max-w-[1366px] items-center justify-between gap-4 px-8 xl:px-16">
           <NavLink to="/" aria-label="Ir al inicio" className="shrink-0"><LogoAkita width={100} className="text-cafe" /></NavLink>
           <nav className="flex min-w-0 gap-0.5 xl:gap-1">
             {NAV_PUBLICA.map((n) => (
@@ -143,7 +143,7 @@ function HeaderDesktop() {
         <LogoJockeyPlaza width={158} className="text-n0" />
       </div>
       <div className="border-b border-cafe/[.12] bg-n0 shadow-header">
-        <div className="mx-auto flex h-[77px] max-w-[1366px] items-center justify-between px-16">
+        <div className="mx-auto flex h-[77px] max-w-[1366px] items-center justify-between px-8 xl:px-16">
           <NavLink to="/" aria-label="Ir a Hoy"><LogoAkita width={100} className="text-cafe" /></NavLink>
           <nav className="flex gap-2">
             {TABS.map((t) => (
@@ -199,7 +199,7 @@ function TabBar({ tabs = TABS }: { tabs?: typeof TABS }) {
   return (
     <nav className={cx('fixed inset-x-0 bottom-0 z-30 flex h-20 items-center justify-between border-t border-n10 bg-n0 px-3 pb-[18px] pt-3.5 transition-transform duration-300 lg:hidden', oculto && 'translate-y-full')} aria-label="Navegación principal">
       {tabs.map((t) => (
-        <NavLink key={t.to} to={t.to} end={t.to === '/'} className="flex w-[72px] flex-col items-center gap-1">
+        <NavLink key={t.to} to={t.to} end={t.to === '/'} className="flex min-w-0 max-w-[72px] flex-1 flex-col items-center gap-1">
           {({ isActive }) => (
             <>
               <span className={cx('flex h-[30px] w-[52px] items-center justify-center rounded-pill', isActive ? 'bg-amarillo text-cafe' : 'text-n60')}>

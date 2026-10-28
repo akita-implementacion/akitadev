@@ -38,11 +38,13 @@ export function TarjetaPlanActual({ className }: { className?: string }) {
           {p.yoki && <span className="rounded-md bg-rosa px-2 py-1 text-[11px] font-bold text-cafe">Plan YOKI</span>}
         </div>
         <p className="text-[22px] font-black leading-tight text-cafe">{p.plan} {p.periodo && <span className="text-[15px] font-bold text-n60">· {p.periodo}</span>}</p>
-        <p className="text-[13px] leading-[18px] text-n60">{p.cancelada ? `No se renovará. Sigues participando hasta el ${p.vence}.` : 'Puedes subir a un plan con más chances cuando quieras.'}</p>
+        {p.cancelada ? <p className="text-[13px] leading-[18px] text-n60">No se renovará. Sigues participando hasta el {p.vence}.</p>
+          : p.recurrente ? <p className="text-[13px] leading-[18px] text-n60">Se renueva automáticamente. Puedes subir a un plan con más chances cuando quieras.</p>
+            : <p className="text-[13px] leading-[18px] text-cafe"><b>Sin renovación automática.</b> Tu plan está activo hasta el <b className="whitespace-nowrap">{p.vence}</b>; al vencer, podrás renovarlo.</p>}
       </div>
       <dl className="grid grid-cols-2 gap-2.5 text-cafe sm:grid-cols-3 lg:w-[420px] lg:shrink-0 lg:gap-3">
         <div className="rounded-xl bg-n5 px-3 py-2.5"><dt className="text-[11px] text-n60">Monto</dt><dd className="whitespace-nowrap text-[16px] font-extrabold">{p.monto || '—'}</dd></div>
-        <div className="rounded-xl bg-n5 px-3 py-2.5"><dt className="text-[11px] text-n60">Vence</dt><dd className="whitespace-nowrap text-[16px] font-extrabold">{p.vence || '—'}</dd></div>
+        <div className="rounded-xl bg-n5 px-3 py-2.5"><dt className="text-[11px] text-n60">{p.recurrente && !p.cancelada ? 'Se renueva el' : 'Activo hasta'}</dt><dd className="whitespace-nowrap text-[16px] font-extrabold">{p.vence || '—'}</dd></div>
         <div className="col-span-2 flex items-center justify-between rounded-xl bg-n5 px-3 py-2.5 sm:col-span-1 sm:block"><dt className="whitespace-nowrap text-[11px] text-n60">Chances x sorteo</dt><dd className="whitespace-nowrap text-[16px] font-extrabold">{p.chances}</dd></div>
       </dl>
     </section>
@@ -299,12 +301,20 @@ export function MiPlanYPagos() {
           <>
             <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <Dato k="Fecha de inicio" v={p.inicio} />
-              <Dato k={p.cancelada ? 'Vigente hasta' : 'Próximo cobro'} v={p.vence} />
+              <Dato k={p.cancelada ? 'Vigente hasta' : p.recurrente ? 'Se renueva el' : 'Activo hasta'} v={p.vence} />
               <Dato k="Chances x sorteo" v={String(p.chances)} />
               <Dato k="Monto" v={p.monto} />
             </dl>
+            {!p.cancelada && (
+              <p className={cx('flex items-start gap-2 rounded-2xl px-4 py-3 text-[13px] leading-[19px] text-cafe', p.recurrente ? 'bg-n5' : 'bg-amarillo/30')}>
+                <Icon name="info" size={16} className="mt-0.5 shrink-0" />
+                {p.recurrente
+                  ? <span><b>Renovación automática {p.periodo === 'Mensual' ? 'cada mes' : p.periodo === 'Semestral' ? 'cada 6 meses' : p.periodo === 'Anual' ? 'cada 12 meses' : ''}.</b> Se renueva el <b className="whitespace-nowrap">{p.vence}</b>{p.monto ? ` por ${p.monto}` : ''}{p.tarjetas.length ? ` con tu tarjeta ${(p.tarjetas.find((t) => t.principal) ?? p.tarjetas[0]).marca} ···${(p.tarjetas.find((t) => t.principal) ?? p.tarjetas[0]).ultimos}` : ''}.</span>
+                  : <span><b>Sin renovación automática.</b> {p.yape ? 'Pagaste con Yape, en un solo pago.' : 'Pagaste una sola vez.'} Tu plan está activo hasta el <b className="whitespace-nowrap">{p.vence}</b>; al vencer, podrás renovarlo.</span>}
+              </p>
+            )}
             <SubirDePlan />
-            <CancelarSuscripcion />
+            {(p.recurrente || p.cancelada) && <CancelarSuscripcion />}
           </>
         ) : <Link to="/planes" className="inline-flex h-12 w-fit items-center gap-2 rounded-pill bg-amarillo px-6 text-[15px] font-bold text-cafe">Ver planes<Icon name="flecha" size={18} /></Link>}
       </section>

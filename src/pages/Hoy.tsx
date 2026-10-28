@@ -21,7 +21,7 @@ export default function Hoy() {
       <Hero color="#45E586" titulo={<Tx k="hoy.hero.titulo" v={{ nombre: usuario.nombre }} />} bajada={<Tx k="hoy.hero.bajada" />} pose="hoy" />
 
       <Contenido className="pt-4 lg:hidden">
-        <div className="flex gap-4">
+        <div className="flex gap-3 max-[359px]:gap-2">
           <CardFlash variante="compacta" />
           <CardCofre variante="compacta" />
         </div>

@@ -10,8 +10,8 @@ import type { Beneficio, Canje, Ganador, Marca, Premio, Pregunta, Slide } from '
 import { proximaFecha, redes } from './publico';
 import { useFuenteSorteos } from './sitio';
 import { useDetallePublico, type DetallePremio } from '../components/sorteos/DetallePremio';
-import { CERRADO, rutaPlanesConPremio, textoCierre, useDetallePremio, usePremioMes, type PremioDetalle } from './premio';
-import { usePerfil } from './demo';
+import { CERRADO, rutaPlanesConPremio, textoCierre, textoCierreCorto, useDetallePremio, usePremioMes, type PremioDetalle } from './premio';
+import { useDemo, usePerfil } from './demo';
 import { LogoMarca, type MarcaId } from './LogoMarca';
 
 export { Carrusel };
@@ -58,7 +58,8 @@ function ImagenSlide({ s }: { s: Slide }) {
             <img src={s.foto} alt="" className="absolute -left-[6%] top-[15%] w-[112%] max-w-none" />
           </div>
         ) : (
-          <img src={s.foto} alt={s.titulo.join(' ')} className="absolute bottom-[6%] left-[-4%] w-[108%] max-w-none object-contain drop-shadow-[0_18px_18px_rgba(33,20,2,0.25)]" />
+          <img src={s.foto} alt={s.titulo.join(' ')} className={cx('absolute max-w-none object-contain drop-shadow-[0_18px_18px_rgba(33,20,2,0.25)]',
+            s.foto.includes('cofre-slide') ? 'bottom-[6%] left-[2%] w-[96%]' : 'bottom-[6%] left-[-4%] w-[108%]')} />
         )}
       </div>
     </div>
@@ -71,10 +72,12 @@ export function SliderHero({ slides: base }: { slides: Slide[] }) {
   const toque = useRef<number | null>(null);
   const mes = usePremioMes();
   const { elegirMiPlan, participa } = usePerfil();
+  const v = useDemo().heroMovil;
   const slides = base.map((sl) => sl.premioMes
-    ? { ...sl, bajada: `${sl.bajada} Sorteo: ${mes.sorteo}.`, nota: mes.cerrado ? CERRADO : textoCierre(mes.fecha),
+    ? { ...sl, bajada: `${sl.bajada} Sorteo: ${mes.sorteo}.`, bajadaCorta: sl.bajadaCorta && `${sl.bajadaCorta} Sorteo: ${mes.sorteo}.`,
+      dato: mes.cerrado ? CERRADO : textoCierre(mes.fecha), datoCorto: mes.cerrado ? 'Participación cerrada' : textoCierreCorto(mes.fecha),
       cta: mes.cerrado ? elegirMiPlan : participa, to: mes.cerrado ? '/planes' : rutaPlanesConPremio(mes.p) }
-    : { ...sl, nota: undefined, cta: sl.cta === 'Elegir mi plan' ? elegirMiPlan : sl.cta });
+    : { ...sl, cta: sl.cta === 'Elegir mi plan' ? elegirMiPlan : sl.cta });
   useEffect(() => {
     if (pausa || slides.length < 2) return;
     const t = window.setTimeout(() => setI((x) => (x + 1) % slides.length), 5000);
@@ -82,7 +85,8 @@ export function SliderHero({ slides: base }: { slides: Slide[] }) {
   }, [pausa, slides.length, i]);
   const s = slides[i];
   return (
-    <section className="vista relative h-[clamp(480px,calc(100svh-300px),556px)] scroll-mt-[92px] overflow-hidden transition-colors duration-700 lg:h-[calc(var(--alto-vista)-92px)] lg:min-h-[440px] lg:scroll-mt-0"
+    <section className={cx('vista relative scroll-mt-[92px] overflow-hidden transition-colors duration-700 lg:h-[calc(var(--alto-vista)-92px)] lg:min-h-[440px] lg:scroll-mt-0',
+      { a: 'h-[clamp(270px,calc(100svh-284px),556px)]', b: 'h-[470px]', c: 'h-[600px]', d: 'h-[430px]' }[v])}
       style={{ background: s.fondo }} aria-roledescription="carrusel"
       onTouchStart={(e) => { toque.current = e.touches[0].clientX; setPausa(true); }}
       onTouchEnd={(e) => {
@@ -94,19 +98,29 @@ export function SliderHero({ slides: base }: { slides: Slide[] }) {
         const amarillo = sl.fondo.toUpperCase() === '#FFD400';
         return (
           <div key={sl.id} aria-hidden={k !== i} className={cx('absolute inset-0 transition-opacity duration-700', k === i ? 'opacity-100' : 'pointer-events-none opacity-0')}>
-            <div className="mx-auto flex h-full max-w-[1366px] flex-col px-6 pb-8 pt-4 lg:flex-row lg:items-center lg:gap-10 lg:px-[100px] lg:pb-[76px] lg:pt-6">
-              <div className="relative z-10 flex shrink-0 flex-col items-start gap-2 lg:order-1 lg:w-[520px] lg:gap-4">
+            <div className={cx('mx-auto flex h-full max-w-[1366px] flex-col px-6 pb-8 pt-4 max-lg:[@media(max-height:760px)]:pb-6 max-lg:[@media(max-height:760px)]:pt-2.5 min-[480px]:[@media(max-height:700px)]:flex-row min-[480px]:[@media(max-height:700px)]:items-center min-[480px]:[@media(max-height:700px)]:gap-4 min-[480px]:[@media(max-height:700px)]:pb-10 sm:flex-row sm:items-center sm:gap-6 sm:pb-10 lg:justify-start lg:gap-10 lg:px-16 xl:px-[100px] lg:pb-[76px] lg:pt-6', v !== 'a' && 'justify-center')}>
+              {v === 'c' && <div className="h-[220px] shrink-0 lg:hidden"><ImagenSlide s={sl} /></div>}
+              <div className="relative z-10 flex shrink-0 flex-col items-start gap-2 min-[480px]:[@media(max-height:700px)]:order-1 min-[480px]:[@media(max-height:700px)]:w-[54%] sm:order-1 sm:w-[50%] sm:max-w-[440px] lg:w-[460px] lg:max-w-none xl:w-[600px] lg:gap-4">
                 <span className="flex items-center gap-1 rounded-pill bg-cafe px-3 py-1 text-[11px] font-bold tracking-[0.8px] text-amarillo"><span aria-hidden>★</span>{sl.etiqueta}</span>
-                <h1 className="text-[clamp(34px,10vw,44px)] font-black leading-[0.95] text-cafe lg:text-[clamp(48px,9dvh,84px)]">{sl.titulo.map((l) => <span key={l} className="block">{l}</span>)}</h1>
-                <p className="text-[14px] leading-[19px] text-cafe lg:max-w-[480px] lg:text-[clamp(16px,2.6dvh,20px)] lg:leading-[1.4]">{sl.bajada}</p>
-                {sl.nota && <p className="text-[13px] font-bold leading-[18px] text-cafe lg:text-base">{sl.nota}</p>}
-                {sl.precio && <p className="text-[17px] font-extrabold leading-tight text-cafe lg:text-[22px]">{sl.precio}</p>}
-                <Link to={sl.to} tabIndex={k === i ? 0 : -1}
-                  className={cx('mt-0.5 inline-flex h-[50px] items-center whitespace-nowrap rounded-pill px-7 text-[16px] font-bold lg:h-[58px] lg:px-9 lg:text-xl', amarillo ? 'bg-cafe text-n0' : 'bg-amarillo text-cafe')}>
-                  {sl.cta}
-                </Link>
+                <div className={cx('flex w-full items-center gap-2', v !== 'd' && 'contents lg:contents')}>
+                  <h1 className="text-[clamp(34px,10vw,44px)] font-black max-lg:[@media(max-height:760px)]:text-[34px] min-[480px]:[@media(max-height:700px)]:text-[clamp(30px,6.4vw,40px)] sm:text-[48px] leading-[0.95] text-cafe lg:text-[clamp(48px,min(9dvh,6.2vw),84px)]">{sl.titulo.map((l) => <span key={l} className="block">{l}</span>)}</h1>
+                  {v === 'd' && <div className="-my-2 ml-auto h-[100px] w-[100px] shrink-0 lg:hidden"><ImagenSlide s={sl} /></div>}
+                </div>
+                <p className="min-h-[38px] text-[14px] leading-[19px] text-cafe sm:text-[16px] sm:leading-[22px] lg:min-h-0 lg:max-w-[480px] lg:text-[clamp(16px,2.6dvh,20px)] lg:leading-[1.4]">{sl.bajadaCorta ? <><span className="hidden max-[379px]:inline min-[480px]:max-sm:[@media(max-height:700px)]:inline">{sl.bajadaCorta}</span><span className="max-[379px]:hidden min-[480px]:max-sm:[@media(max-height:700px)]:hidden">{sl.bajada}</span></> : sl.bajada}</p>
+                <div className={cx('flex w-full items-center gap-3', v !== 'b' && 'contents lg:contents')}>
+                  <div className={cx('flex flex-col items-start gap-2', v !== 'b' && 'contents lg:contents')}>
+                    {sl.dato && <p className={cx('flex h-[22px] items-center whitespace-nowrap font-extrabold leading-tight text-cafe lg:h-auto lg:text-[22px]', sl.dato.length > 30 ? 'text-[14px]' : 'text-[17px]')}>{sl.datoCorto ? <><span className="hidden max-[379px]:inline min-[480px]:max-sm:[@media(max-height:700px)]:inline">{sl.datoCorto}</span><span className="max-[379px]:hidden min-[480px]:max-sm:[@media(max-height:700px)]:hidden">{sl.dato}</span></> : sl.dato}</p>}
+                    <Link to={sl.to} tabIndex={k === i ? 0 : -1}
+                      className={cx('mt-0.5 inline-flex h-[50px] max-lg:[@media(max-height:760px)]:h-[46px] items-center whitespace-nowrap rounded-pill font-bold lg:h-[58px] lg:px-9 lg:text-xl', v === 'b' ? 'px-5 text-[15px]' : 'px-7 text-[16px]', amarillo ? 'bg-cafe text-n0' : 'bg-amarillo text-cafe')}>
+                      {sl.cta}
+                    </Link>
+                  </div>
+                  {v === 'b' && <div className="-my-6 -mr-8 ml-auto h-[190px] w-[190px] shrink-0 lg:hidden"><ImagenSlide s={sl} /></div>}
+                </div>
               </div>
-              <div className="min-h-0 flex-1 pt-2 lg:order-2 lg:h-full lg:flex-[1.15] lg:pt-0"><ImagenSlide s={sl} /></div>
+              <div className={cx('relative min-h-0 flex-1 pt-2 max-[479px]:[@media(max-height:620px)]:hidden min-[480px]:[@media(max-height:700px)]:order-2 min-[480px]:[@media(max-height:700px)]:block min-[480px]:[@media(max-height:700px)]:h-full min-[480px]:[@media(max-height:700px)]:pt-0 sm:order-2 sm:block sm:h-full sm:pt-0 lg:flex-[1.15]', v !== 'a' && 'hidden')}>
+                <div className="size-full origin-bottom scale-[1.32] max-[479px]:[@media(max-height:700px)]:scale-[1.55] min-[480px]:[@media(max-height:700px)]:origin-center min-[480px]:[@media(max-height:700px)]:scale-100 sm:origin-center sm:scale-100"><ImagenSlide s={sl} /></div>
+              </div>
             </div>
           </div>
         );
@@ -313,7 +327,7 @@ export function SelectorPeriodo({ periodo, onChange, compacto, sinCondiciones, i
       <div className="flex rounded-pill bg-n0 p-1.5" role="radiogroup" aria-label="Elige cada cuánto pagar">
         {PERIODOS.map((p) => (
           <button key={p.id} role="radio" aria-checked={periodo === p.id} onClick={() => onChange(p.id)}
-            className={cx('flex-1 whitespace-nowrap rounded-pill px-5 font-bold lg:px-7', compacto ? 'h-11 text-[15px] lg:h-[46px] lg:text-base' : 'h-[51px] text-[16px] lg:text-lg', periodo === p.id ? 'bg-cafe text-n0' : 'text-cafe')}>
+            className={cx('flex-1 whitespace-nowrap rounded-pill px-5 font-bold max-[359px]:px-3.5 lg:px-7', compacto ? 'h-11 text-[15px] lg:h-[46px] lg:text-base' : 'h-[51px] text-[16px] lg:text-lg', periodo === p.id ? 'bg-cafe text-n0' : 'text-cafe')}>
             {p.label}
           </button>
         ))}
@@ -525,11 +539,11 @@ export function TarjetaBeneficio({ b, compacta, apilada }: { b: Beneficio; compa
       <div className={cx('relative overflow-hidden', compacta ? 'h-[clamp(76px,11svh,150px)] lg:h-[clamp(96px,calc(var(--alto-vista)*0.2),180px)]' : apilada ? 'h-[118px] sm:h-[160px] lg:h-[clamp(128px,calc(var(--alto-vista)*0.22),180px)]' : 'h-[180px]')}>
         {b.foto ? <img src={b.foto} alt={b.titulo} className="size-full object-cover" loading="lazy" draggable={false} />
           : <div className="flex size-full items-center justify-center bg-rosa-claro p-6"><img src={b.logo} alt={b.comercio} className="max-h-[60%] max-w-[70%] object-contain" loading="lazy" draggable={false} /></div>}
-        <span className="absolute left-2 top-2 rounded-md bg-verde px-[7px] py-[3px] text-xs font-black text-cafe">{b.etiqueta}</span>
+        <span className="absolute left-2 top-2 rounded-lg bg-cafe px-2 py-1 text-[13px] font-black text-amarillo shadow-[0_2px_6px_rgba(33,20,2,0.25)]">{b.etiqueta}</span>
         {b.foto && (b.marca
-          ? <LogoMarca marca={b.marca as MarcaId} tamano="sm" className="absolute bottom-2 right-2" />
-          : b.logo ? <span className="absolute bottom-2 right-2 inline-flex h-8 w-[72px] items-center justify-center rounded-xl bg-n0 p-1 shadow-[0_1px_4px_rgba(33,20,2,0.12)]"><img src={b.logo} alt={b.comercio} className="max-h-full max-w-full object-contain" loading="lazy" draggable={false} /></span>
-          : <span className="absolute bottom-2 right-2 inline-flex h-8 items-center rounded-xl bg-n0 px-2.5 text-[11px] font-black text-cafe shadow-[0_1px_4px_rgba(33,20,2,0.12)]">{b.comercio}</span>)}
+          ? <LogoMarca marca={b.marca as MarcaId} tamano="md" className="absolute bottom-2 right-2" />
+          : b.logo ? <span className="absolute bottom-2 right-2 inline-flex h-11 w-[104px] items-center justify-center rounded-xl bg-n0 p-1.5 shadow-[0_1px_4px_rgba(33,20,2,0.12)]"><img src={b.logo} alt={b.comercio} className="max-h-full max-w-full object-contain" loading="lazy" draggable={false} /></span>
+          : <span className="absolute bottom-2 right-2 inline-flex h-11 items-center rounded-xl bg-n0 px-3 text-[13px] font-black text-cafe shadow-[0_1px_4px_rgba(33,20,2,0.12)]">{b.comercio}</span>)}
       </div>
       <div className={cx('flex flex-1 items-center justify-between gap-3', compacta ? 'px-4 py-3 max-lg:flex-col max-lg:items-stretch max-lg:gap-2.5' : apilada ? 'p-3 max-lg:flex-col max-lg:items-stretch max-lg:gap-2 lg:p-4' : 'p-4')}>
         <div className="flex min-w-0 flex-col gap-0.5">

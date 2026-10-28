@@ -7,15 +7,18 @@ export type Canje = { id: string; costo: number; titulo: string; detalle: string
 export type Marca = { nombre: string; logo: string };
 export type Pregunta = { pregunta: string; respuesta: string };
 
-export type Slide = { id: number; etiqueta: string; titulo: string[]; bajada: string; precio?: string; foto: string; tipo: 'personas' | 'premio'; fondo: string; cta: string; to: string; premioMes?: boolean };
+export type Slide = { id: number; etiqueta: string; titulo: string[]; bajada: string;  dato?: string;
+  bajadaCorta?: string; datoCorto?: string; foto: string; tipo: 'personas' | 'premio'; fondo: string; cta: string; to: string; premioMes?: boolean };
 export const slides: Slide[] = [
   { id: 1, etiqueta: 'SORTEOS EN VIVO CADA MIÉRCOLES', titulo: ['VIVE', 'GANANDO'],
-    bajada: 'Con tu suscripción participas en sorteos, aprovechas descuentos y accedes a Cofre y Flash cada miércoles. Completa misiones y gana Lanas para canjear recompensas.',
-    precio: 'Desde S/7.50 al mes', foto: img('hero-personas.webp'), tipo: 'personas', fondo: '#45E586', cta: 'Elegir mi plan', to: '/planes' },
-  { id: 2, etiqueta: 'PREMIO GRANDE DEL MES', titulo: ['GANA UNA', 'KIA NIRO EV'], bajada: 'Camioneta 100 % eléctrica, 0 km, con SOAT y placa.',
+    bajada: 'Sorteos, descuentos, Cofre y Flash cada miércoles, y Lanas por tus misiones.',
+    bajadaCorta: 'Sorteos, descuentos, Cofre y Flash cada miércoles.',
+    dato: 'Desde S/7.50 al mes', foto: img('hero-personas.webp'), tipo: 'personas', fondo: '#45E586', cta: 'Elegir mi plan', to: '/planes' },
+  { id: 2, etiqueta: 'PREMIO GRANDE DEL MES', titulo: ['GANA UNA', 'KIA NIRO EV'], bajada: 'Camioneta 100 % eléctrica, 0 km, con SOAT y placa.', bajadaCorta: 'Camioneta eléctrica 0 km, con SOAT y placa.',
     foto: img('premio-kia.webp'), tipo: 'premio', fondo: '#FFD400', cta: 'Elige tu plan y participa', to: '/planes?premio=kia', premioMes: true },
-  { id: 3, etiqueta: 'CADA MIÉRCOLES', titulo: ['COFRE', 'Y FLASH'], bajada: 'Elige un premio o Lanas en el Cofre y aprovecha el Beneficio Flash de la semana. ¡Cupos limitados!',
-    foto: img('3d/cofre-3d.webp'), tipo: 'premio', fondo: '#FF88F7', cta: 'Elegir mi plan', to: '/planes' },
+  { id: 3, etiqueta: 'CADA MIÉRCOLES', titulo: ['COFRE', 'Y FLASH'], bajada: 'Elige un premio o Lanas en el Cofre y aprovecha el Beneficio Flash.',
+    bajadaCorta: 'Elige un premio o Lanas y aprovecha el Flash.',
+    dato: '¡Cupos limitados cada semana!', datoCorto: '¡Cupos limitados!', foto: img('3d/cofre-slide.webp'), tipo: 'premio', fondo: '#FF88F7', cta: 'Elegir mi plan', to: '/planes' },
 ];
 
 export const propuestaValor = [

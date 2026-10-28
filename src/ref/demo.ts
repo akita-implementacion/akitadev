@@ -12,6 +12,7 @@ type Demo = {
   cofre: EstadoCofreDemo; flash: EstadoFlashDemo; clienteAntiguo: false | 'bendecido' | 'suertudo';
   perfil: PerfilDemo; sorteoMes: 'abierto' | 'cerrado';
   stockCofre: Exclude<StockDemo, 'finalizado'>; stockFlash: StockDemo; pago: ResultadoPagoDemo;
+  heroMovil: 'a' | 'b' | 'c' | 'd';
 };
 
 function usePerfilActual(): PerfilDemo {
@@ -24,7 +25,7 @@ function usePerfilActual(): PerfilDemo {
 export function useDemo(): Demo {
   return {
     cofre: 'disponible', flash: 'disponible', clienteAntiguo: false, sorteoMes: 'abierto',
-    stockCofre: 'ambas', stockFlash: 'ambas', pago: 'aprobado', perfil: usePerfilActual(),
+    stockCofre: 'ambas', stockFlash: 'ambas', pago: 'aprobado', heroMovil: 'a', perfil: usePerfilActual(),
   };
 }
 

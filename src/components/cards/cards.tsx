@@ -394,7 +394,7 @@ function ModalUsarBeneficio({ b, abierto, onCerrar }: { b: BeneficioVista; abier
         <div className="flex items-center gap-3 pr-8">
           <LogoMarca src={b.logo} nombre={b.comercio} />
           <div className="flex min-w-0 flex-col">
-            {b.etiqueta && <span className="w-fit rounded-md bg-verde px-[7px] py-[2px] text-[11px] font-black text-cafe">{b.etiqueta}</span>}
+            {b.etiqueta && <span className="w-fit rounded-lg bg-cafe px-2 py-0.5 text-[11px] font-black text-amarillo">{b.etiqueta}</span>}
             <h2 className="text-2xl font-black text-cafe">{b.titulo}</h2>
             <p className="text-sm text-n60">{b.comercio} · {b.uso}{b.ubicacion ? ` · ${b.ubicacion}` : ''}</p>
           </div>
@@ -452,9 +452,9 @@ export function CardBeneficioMini({ b, i, ancho = 140, conCta }: { b: BeneficioV
     <div role="button" tabIndex={0} onClick={() => setAbierto(true)} onKeyDown={(e) => e.key === 'Enter' && setAbierto(true)}
       className={cx('flex shrink-0 cursor-pointer flex-col overflow-hidden rounded-2xl bg-n0 text-left transition hover:shadow-card', conCta ? 'lg:flex-1' : '')} style={conCta ? undefined : { width: ancho }}>
       <Foto src={b.foto} alt={b.titulo} tono={i + 1} className={conCta ? 'h-[86px] lg:h-[180px]' : 'h-[86px]'}>
-        <span className="absolute left-2 top-2 z-10 rounded-md bg-verde px-[7px] py-[3px] text-[11px] font-black text-cafe">{b.etiqueta}</span>
+        <span className="absolute left-2 top-2 z-10 rounded-lg bg-cafe px-2 py-1 text-[12px] font-black text-amarillo shadow-[0_2px_6px_rgba(33,20,2,0.25)]">{b.etiqueta}</span>
         {b.logo && (b.foto
-          ? <LogoMarca src={b.logo} nombre={b.comercio} tamano="sm" className="absolute bottom-2 right-2 z-10" />
+          ? <LogoMarca src={b.logo} nombre={b.comercio} tamano={conCta ? 'md' : 'sm'} className="absolute bottom-2 right-2 z-10" />
           : <span className="absolute inset-0 z-10 flex items-center justify-center"><LogoMarca src={b.logo} nombre={b.comercio} tamano="lg" /></span>)}
       </Foto>
       <div className={cx('flex items-center justify-between gap-2', conCta ? 'px-2.5 py-2 lg:p-4' : 'px-2.5 py-2')}>

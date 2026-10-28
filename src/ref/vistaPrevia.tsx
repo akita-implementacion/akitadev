@@ -126,7 +126,7 @@ export function CardFlashVisitante() {
     <div className="flex h-full flex-col gap-2.5 overflow-hidden rounded-[24px] p-3.5 lg:gap-[clamp(6px,1.4dvh,14px)] lg:p-[clamp(14px,2.6dvh,24px)]" style={{ background: 'linear-gradient(140deg, #FF88F7 0%, #FF88F7 40%, #B5179E 135%)' }}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Badge className="!px-2.5 !text-[11px]">⚡ BENEFICIO FLASH</Badge>
-        <span className="flex items-center gap-1 rounded-pill bg-n0 px-2.5 py-1 text-xs font-bold text-cafe">
+        <span className={cx('flex items-center gap-1 rounded-pill px-2.5 py-1 text-xs font-bold tabular-nums', st.finalizado ? 'bg-n0 text-cafe' : 'bg-cafe text-amarillo')}>
           <Icon name="reloj" size={14} />{st.finalizado ? 'Flash finalizado' : `Disponible por ${formatoRestante(finFlash().getTime() - ahora)}`}
         </span>
       </div>
@@ -145,9 +145,12 @@ export function CardFlashVisitante() {
       </div>
       <div className="flex flex-col gap-0.5 text-cafe">
         <p className="text-[13px] font-semibold leading-[18px] lg:text-sm">Con tu suscripción, elige este beneficio o {flash.lanas} Lanas. ¡Cupos limitados!</p>
-        <p className="text-[13px] font-bold leading-[18px] lg:text-sm">
-          {st.finalizado ? 'Llega un nuevo Flash el próximo miércoles.' : <>{st.sinBeneficio ? 'Beneficio agotado' : `${st.quedanB} beneficios disponibles`} · {st.sinLanas ? 'Lanas agotadas' : `${st.quedanL} cupos de ${flash.lanas} Lanas`}</>}
-        </p>
+        {st.finalizado ? <p className="text-[13px] font-bold leading-[18px] lg:text-sm">Llega un nuevo Flash el próximo miércoles.</p>
+          : <div className="mt-1 flex flex-wrap gap-1.5">
+              {[[st.sinBeneficio, 'Beneficio agotado', `Quedan ${st.quedanB} beneficios`], [st.sinLanas, 'Lanas agotadas', `Quedan ${st.quedanL} cupos de ${flash.lanas} Lanas`]].map(([agot, t1, t2]) => (
+                <span key={String(t2)} className={cx('inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-[12px] font-extrabold', agot ? 'bg-n0/60 text-n60 line-through' : 'bg-n0 text-cafe')}>
+                  {!agot && <span className="size-2 rounded-full bg-rosa-fuerte" />}{agot ? t1 : t2}</span>))}
+            </div>}
       </div>
       <button onClick={() => setHoja(true)} className="flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-pill bg-n0 text-[15px] font-bold text-morado lg:h-12">Ver Flash de esta semana<Icon name="chevron" size={16} /></button>
       <HojaFlashVistaPrevia abierto={hoja} onCerrar={cerrar} />

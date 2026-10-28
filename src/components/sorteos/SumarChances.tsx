@@ -68,11 +68,14 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
       setError(e instanceof ApiError && e.code === 'KUSHKI_NO_CONFIGURADO' ? 'El pago con tarjeta se activa cuando backend entregue la credencial pública de Kushki.' : mensajeError(e));
     } finally { setEnviando(false); }
   };
-  const validarPromo = modoMock ? undefined : async (code: string) => {
+  const validarPromo = async (code: string): Promise<{ error?: string; detalle?: string }> => {
+    if (modoMock) return code === 'CHANCES50' ? { detalle: 'Ganas +50 chances adicionales para este sorteo. El importe no cambia.' } : { error: 'Este código no es válido o ya venció.' };
     try {
       const r = await promoApi.validar({ code, raffleId: sorteo.id, applicationContext: 'CHANCES', opportunities: cantidad });
-      return (r?.isValid ?? r?.valid) === false ? (r.message || 'Este código no es válido.') : null;
-    } catch (e) { return mensajeError(e); }
+      if ((r?.isValid ?? r?.valid) === false) return { error: r.message || 'Este código no es válido o ya venció.' };
+      const extra = r?.bonusChances ?? r?.potentialBonus;
+      return { detalle: extra ? `Ganas +${extra} chances adicionales para este sorteo. El importe no cambia.` : r?.message };
+    } catch (e) { return { error: mensajeError(e) }; }
   };
 
   const titulo = paso === 'listo' ? '¡Chances sumadas!' : paso === 'pago' ? 'Paga tus chances' : 'Suma chances';
@@ -169,8 +172,6 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
             </Bloque>
           )}
 
-
-
           {error && <p role="alert" className="text-xs font-semibold text-error">{error}</p>}
           <Button full disabled={!pagoCompleto || enviando} className="disabled:opacity-40" onClick={pagarConSoles}>{enviando ? 'Procesando…' : `Pagar ${soles(costoSoles)}`}</Button>
         </>
@@ -215,36 +216,36 @@ function Campo({ label, ayuda, value, onChange, placeholder, inputMode }: {
   );
 }
 
-function CodigoPromo({ valor, onCambio, validar }: { valor: string; onCambio: (v: string) => void; validar?: (code: string) => Promise<string | null> }) {
-  const [abierto, setAbierto] = useState(!!valor);
+function CodigoPromo({ valor, onCambio, validar }: { valor: string; onCambio: (v: string) => void; validar: (code: string) => Promise<{ error?: string; detalle?: string }> }) {
   const [aplicado, setAplicado] = useState(false);
+  const [detalle, setDetalle] = useState('');
   const [revisando, setRevisando] = useState(false);
   const [aviso, setAviso] = useState('');
   const aplicar = async () => {
     setAviso('');
-    if (!validar) { setAplicado(true); return; }
+    if (!valor) { setAviso('Escribe tu código.'); return; }
     setRevisando(true);
-    const err = await validar(valor);
+    const r = await validar(valor);
     setRevisando(false);
-    if (err) setAviso(err); else setAplicado(true);
+    if (r.error) setAviso(r.error); else { setDetalle(r.detalle ?? ''); setAplicado(true); }
   };
   if (aplicado && valor) {
     return (
-      <p className="flex items-center gap-2 rounded-xl bg-verde/25 px-3 py-2 text-[13px] font-bold">
-        <Icon name="check" size={16} />Código {valor} {validar ? 'aplicado' : 'agregado · se valida al pagar'}
-        <button type="button" onClick={() => { setAplicado(false); onCambio(''); }} className="ml-auto text-xs underline">Quitar</button>
-      </p>
+      <div className="flex flex-col gap-0.5 rounded-xl bg-verde/25 px-3 py-2.5 text-cafe">
+        <p className="flex items-center justify-between gap-2 text-[13px] font-bold"><span className="flex items-center gap-2"><Icon name="check" size={16} />Código {valor} aplicado</span>
+          <button type="button" onClick={() => { setAplicado(false); onCambio(''); }} className="text-[12px] font-semibold underline">Quitar</button></p>
+        {detalle && <p className="text-[12px] leading-[17px]">{detalle}</p>}
+      </div>
     );
   }
-  if (!abierto) return <button type="button" onClick={() => setAbierto(true)} className="flex items-center gap-1.5 self-start text-[13px] font-bold underline"><Icon name="cupon" size={16} />¿Tienes un código promocional?</button>;
   return (
-    <>
-    <div className="flex items-end gap-2">
-      <Campo label="Código promocional" placeholder="Ej. AKITA10" value={valor} onChange={(v) => onCambio(v.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20))}
-        ayuda="Si da chances adicionales, se suman a este sorteo." />
-      <button type="button" disabled={!valor || revisando} onClick={aplicar} className="mb-[22px] h-12 shrink-0 rounded-xl bg-cafe px-4 text-sm font-bold text-fondo disabled:opacity-40">{revisando ? '…' : 'Aplicar'}</button>
+    <div className="flex flex-col gap-1.5">
+      <p className="flex items-center gap-1.5 text-[14px] font-extrabold"><Icon name="cupon" size={18} />¿Tienes un código promocional?</p>
+      <div className="flex items-end gap-2">
+        <Campo label="Código (opcional)" placeholder="Ej. CHANCES50" value={valor} onChange={(v) => onCambio(v.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20))} />
+        <button type="button" disabled={revisando} onClick={aplicar} className="h-12 shrink-0 rounded-xl bg-cafe px-4 text-sm font-bold text-fondo disabled:opacity-40">{revisando ? '…' : 'Aplicar'}</button>
+      </div>
+      {aviso && <p role="alert" className="text-xs font-medium text-error">{aviso}</p>}
     </div>
-    {aviso && <p role="alert" className="-mt-1 text-xs font-semibold text-error">{aviso}</p>}
-    </>
   );
 }

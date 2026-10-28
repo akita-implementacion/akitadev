@@ -38,7 +38,7 @@ function useCondiciones() {
   const textoRenovacion = s.periodo === 'mensual'
     ? 'Tu plan se renueva automáticamente cada mes. Puedes cancelar la renovación desde Mi cuenta.'
     : recurrente ? `Tu plan se renovará por otro periodo de ${meses}. Puedes cancelar la renovación desde Mi cuenta.`
-      : `Pagas una sola vez por ${meses}. Al vencer, podrás renovar tu plan.`;
+      : `Pagas una sola vez por ${meses}. Tu plan estará activo hasta el ${fechaNum(vence)}.`;
   return { s, plan, per, metodo, precio, recurrente, vence, meses, textoRenovacion, total: soles(precio), sufijoPrecio: s.periodo === 'mensual' ? 'al mes' : `por ${meses}` };
 }
 
@@ -124,7 +124,7 @@ function ResumenCompacto({ pago }: { pago?: boolean }) {
         : <p className="whitespace-nowrap text-[22px] font-black leading-tight">{c.total} <span className="text-[14px] font-semibold text-n60">{c.sufijoPrecio}</span></p>}
       <p className="text-[13px] text-n60">{chancesTexto(c.plan.chances)} · Incluye IGV</p>
       <p className="flex items-start gap-1.5 text-[13px] font-semibold leading-[18px]"><Icon name="info" size={15} className="mt-[1px] shrink-0" />{renov}</p>
-      {c.s.premio && <p className="flex items-center gap-1.5 text-[13px] leading-[18px] text-n60"><Icon name="premios" size={15} className="shrink-0" />Participas por la {c.s.premio.nombre}{c.s.premio.sorteo ? ` · ${c.s.premio.sorteo}` : ''}</p>}
+      {c.s.premio && <p className="flex items-center gap-1.5 text-[13px] leading-[18px] text-n60"><Icon name="premios" size={15} className="shrink-0" />Participas por la {c.s.premio.nombre}{c.s.premio.sorteo ? ` (${c.s.premio.sorteo})` : ''} y por todos los premios de cada miércoles</p>}
     </div>
   );
 }
@@ -207,10 +207,10 @@ function Consentimientos({ error }: { error?: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-2xl bg-n0 p-3" id="consentimientos" tabIndex={-1}>
       {CONSENTIMIENTOS.map((k, i) => (
-        <div key={k.t} className={cx('flex flex-col', i === 0 && 'border-b border-n10 pb-1')}>
-          <div className="flex items-start gap-2.5 py-2">
+        <div key={k.t} className={cx('flex flex-col', i === 0 && 'mb-1 rounded-xl bg-amarillo/35 px-2.5 ring-1 ring-amarillo')}>
+          <div className={cx('flex items-start gap-2.5', i === 0 ? 'py-3' : 'py-1.5')}>
             <input id={`cons-${i}`} type="checkbox" checked={c[i]} onChange={(e) => marcar(i, e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[#211402]" />
-            <label htmlFor={`cons-${i}`} className={cx('flex-1 text-[13px] leading-[19px] text-cafe', i === 0 && 'font-bold')}>
+            <label htmlFor={`cons-${i}`} className={cx('flex-1', i === 0 ? 'text-[15px] font-extrabold leading-5 text-cafe' : k.obligatorio ? 'text-[13px] leading-[19px] text-cafe' : 'text-[12px] leading-[17px] text-n60')}>
               {k.obligatorio
                 ? <>¡Sí! Acepto la <a href="#" onClick={(e) => e.preventDefault()} className="font-bold underline">Política de Privacidad</a> y los <a href="#" onClick={(e) => e.preventDefault()} className="font-bold underline">Términos y Condiciones</a>. <span className="text-error">*</span></>
                 : k.t}
@@ -447,12 +447,14 @@ function CompletarDatos() {
   };
   return (
     <Contenedor>
-      <Cabecera titulo="Completa tus datos" oveja sub={<p className="text-[14px] text-n60">{nombre ? `Hola, ${nombre}. ` : ''}Usamos los datos de tu cuenta.</p>} />
+      <Cabecera titulo="Completa tus datos" oveja sub={<div className="flex flex-col items-start gap-1.5">
+        <span className="inline-flex items-center gap-1.5 rounded-pill bg-verde/30 px-2.5 py-1 text-[12px] font-bold text-cafe"><Icon name="check" size={14} />Sesión iniciada</span>
+        <p className="text-[14px] leading-5 text-n60">{nombre ? `Hola, ${nombre}. ` : ''}Ya tienes una cuenta AKITÁ: usamos tus datos guardados y solo te pedimos lo que falta.</p></div>} />
       <Pasos actual={2} />
       <ResumenCompacto />
       {u && (
         <div className="flex flex-col gap-1 rounded-2xl bg-n0 px-4 py-3 text-[14px] text-cafe">
-          <p className="text-[12px] font-bold tracking-[0.8px] text-n60">TUS DATOS</p>
+          <p className="text-[12px] font-bold tracking-[0.8px] text-n60">TU CUENTA</p>
           <p className="font-bold">{[u.firstName, u.paternalSurname, u.maternalSurname].filter(Boolean).join(' ')}</p>
           <p className="text-n60">{DOC_DE_API[u.documentType ?? ''] ?? u.documentType ?? ''} •••• {(u.documentNumber ?? '').slice(-4)} · {u.email}</p>
         </div>
@@ -476,7 +478,6 @@ function CompletarDatos() {
 
 function CodigoPromo() {
   const { suscripcion: s, actualizar, modoMock } = useSesion();
-  const [abierto, setAbierto] = useState(false);
   const [codigo, setCodigo] = useState('');
   const [error, setError] = useState('');
   const [revisando, setRevisando] = useState(false);
@@ -484,14 +485,17 @@ function CodigoPromo() {
     <div className="flex flex-col gap-1 rounded-2xl bg-verde/25 px-4 py-3 text-cafe">
       <p className="flex items-center justify-between gap-2 text-[14px] font-bold"><span className="flex items-center gap-2"><Icon name="check" size={18} />Código {s.promoTexto} aplicado</span>
         <button onClick={() => actualizar({ promoId: undefined, promoTexto: undefined, promoDetalle: undefined })} className="text-[13px] font-semibold underline">Quitar</button></p>
-      <p className="text-[13px] leading-[18px]">{s.promoDetalle || 'El beneficio del código se aplica al confirmar el pago.'}</p>
+      <p className="text-[13px] leading-[18px]">{s.promoDetalle || 'El beneficio del código se aplica cuando tu plan quede activo. El importe no cambia.'}</p>
     </div>
   );
-  if (!abierto) return <button onClick={() => setAbierto(true)} className="flex items-center gap-2 self-start text-[14px] font-bold text-cafe underline underline-offset-2"><Icon name="cupon" size={18} />¿Tienes un código promocional?</button>;
   const aplicar = async () => {
     const k = codigo.trim().toUpperCase();
     if (!k) { setError('Escribe tu código.'); return; }
-    if (modoMock) { actualizar({ promoId: 'demo', promoTexto: k, promoDetalle: undefined }); setError(''); return; }
+    if (modoMock) {
+      if (k === 'CHANCES50') { actualizar({ promoId: 'demo', promoTexto: k, promoDetalle: 'Ganas +50 chances adicionales para los sorteos cuando tu plan quede activo. El importe no cambia.' }); setError(''); }
+      else setError('Este código no es válido o ya venció. Revísalo e inténtalo otra vez.');
+      return;
+    }
     setRevisando(true);
     try {
       const r = await promoApi.validar({ code: k, applicationContext: 'SUBSCRIPTION' });
@@ -500,9 +504,12 @@ function CodigoPromo() {
     } catch (e) { setError(mensajeError(e)); } finally { setRevisando(false); }
   };
   return (
-    <div className="flex items-start gap-2">
-      <Campo label="Código promocional" placeholder="Ej. AKITA10" autoCapitalize="characters" maxLength={20} value={codigo} onChange={(e) => setCodigo(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))} error={error || undefined} />
-      <button onClick={aplicar} disabled={revisando} className="mt-[27px] h-14 shrink-0 rounded-2xl bg-cafe px-4 text-sm font-bold text-fondo disabled:opacity-60">{revisando ? '…' : 'Aplicar'}</button>
+    <div className="flex flex-col gap-2 rounded-2xl bg-n0 px-4 py-3.5 shadow-card">
+      <p className="flex items-center gap-2 text-[15px] font-extrabold text-cafe"><Icon name="cupon" size={20} />¿Tienes un código promocional?</p>
+      <div className="flex items-start gap-2">
+        <Campo label="Código (opcional)" placeholder="Ej. CHANCES50" autoCapitalize="characters" maxLength={20} value={codigo} onChange={(e) => setCodigo(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))} error={error || undefined} />
+        <button onClick={aplicar} disabled={revisando} className="mt-[27px] h-14 shrink-0 rounded-2xl bg-cafe px-4 text-sm font-bold text-fondo disabled:opacity-60">{revisando ? '…' : 'Aplicar'}</button>
+      </div>
     </div>
   );
 }
@@ -587,6 +594,7 @@ export function Pago() {
       <Cabecera titulo="Método de pago" />
       <Pasos actual={3} />
       <ResumenCompacto pago />
+      <CodigoPromo />
       <div className="flex flex-col gap-2.5">
         <p className="text-base font-extrabold text-cafe">Elige cómo pagar</p>
         {opcion('tarjeta', 'Tarjeta de crédito o débito', periodo === 'mensual' ? 'Cobro automático cada mes.' : `Pagas hoy el total por ${c.meses}.`, true)}
@@ -598,7 +606,7 @@ export function Pago() {
           {periodo !== 'mensual' && (
             <label className="flex items-start gap-3.5 rounded-2xl bg-n0 px-4 py-3.5">
               <span className="flex-1"><span className="block text-[15px] font-bold text-cafe">Renovar automáticamente al vencer</span>
-                <span className="text-[13px] leading-[18px] text-n60">{renovacion ? `Tu plan se renovará por otro periodo de ${c.meses}. Puedes cancelar la renovación desde Mi cuenta.` : `Pagas una sola vez por ${c.meses}. Al vencer, podrás renovar tu plan.`}</span></span>
+                <span className="text-[13px] leading-[18px] text-n60">{renovacion ? <>Se renueva el <b className="text-cafe">{fechaNum(c.vence)}</b> por {c.total}. Puedes cancelar la renovación desde Mi cuenta.</> : <>Pagas una sola vez. Tu plan estará activo hasta el <b className="text-cafe">{fechaNum(c.vence)}</b>; al vencer, podrás renovarlo.</>}</span></span>
               <span className="relative mt-0.5 inline-flex shrink-0">
                 <input type="checkbox" role="switch" checked={renovacion} onChange={(e) => actualizar({ renovacion: e.target.checked })} className="peer sr-only" />
                 <span className="h-7 w-12 rounded-pill bg-n40 transition peer-checked:bg-verde peer-focus-visible:ring-2 peer-focus-visible:ring-cafe" />
@@ -630,7 +638,6 @@ export function Pago() {
         </div>
       )}
       <BloqueReferido enPago />
-      <CodigoPromo />
       <div className="flex flex-col gap-0.5 text-center text-[13px] text-n60">
         <p>Revisa el detalle antes de pagar.</p><p>Podrás confirmar el importe en el siguiente paso.</p>
       </div>
@@ -645,7 +652,6 @@ export function Confirmar() {
   const c = useCondiciones();
   const { modoMock, pago, recargarMe } = useSesion();
   const navigate = useNavigate();
-  const [autorizo, setAutorizo] = useState(false);
   const [fase, setFase] = useState<FasePago>('listo');
   const [motivo, setMotivo] = useState('');
   const [nuevoCodigo, setNuevoCodigo] = useState('');
@@ -689,8 +695,8 @@ export function Confirmar() {
     </div>
   );
   const autorizacion = !c.recurrente
-    ? `Autorizo el pago único de ${c.total} por mi plan ${c.per.label.toLowerCase()}.`
-    : `Autorizo el cobro de ${c.total} hoy y su renovación automática ${c.s.periodo === 'mensual' ? 'cada mes' : `cada ${c.meses}`} por ${c.total}, hasta que la cancele desde Mi cuenta.`;
+    ? `Al tocar «Confirmar y pagar» autorizas el pago único de ${c.total} por tu plan ${c.per.label.toLowerCase()}.`
+    : `Al tocar «Confirmar y pagar» autorizas el cobro de ${c.total} hoy y su renovación automática ${c.s.periodo === 'mensual' ? 'cada mes' : `cada ${c.meses}`} por ${c.total}, hasta que la canceles desde Mi cuenta.`;
   return (
     <Contenedor>
       <Cabecera titulo="Confirma tu suscripción" />
@@ -714,8 +720,8 @@ export function Confirmar() {
 
       {fase === 'rechazado' && (
         <div className="flex flex-col gap-2 rounded-2xl border-2 border-error bg-[#fee2e2] p-4 text-cafe" role="alert">
-          <p className="text-[15px] font-extrabold">No pudimos procesar tu pago</p>
-          <p className="text-[13px] leading-[18px]">{motivo || 'Tu banco no aprobó el cobro.'} No se hizo ningún cargo. Revisa los datos o paga con otro método; tu plan, tu referido y tu promoción se mantienen.</p>
+          <p className="text-[15px] font-extrabold">No pudimos realizar el cobro</p>
+          <p className="text-[13px] leading-[18px]">No se hizo ningún cargo. Revisa tus datos o inténtalo más tarde. Tu plan, tu referido y tu promoción se mantienen.</p>
           <Link to="/suscribirse/pago" className="self-start text-[14px] font-bold underline">Volver a ingresar el pago</Link>
         </div>
       )}
@@ -736,12 +742,9 @@ export function Confirmar() {
 
       {fase !== 'pendiente' && fase !== 'rechazado' && (
         <>
-          <label className="flex items-start gap-2.5 text-[14px] leading-5 text-cafe">
-            <input type="checkbox" checked={autorizo} onChange={(e) => setAutorizo(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[#211402]" />
-            {autorizacion}
-          </label>
+          <p className="text-[13px] leading-[18px] text-n60">{autorizacion}</p>
           <p className="flex items-center gap-2 text-[13px] text-n60"><Icon name="alerta" size={16} />Te enviaremos el comprobante a tu correo.</p>
-          <BtnPrimario disabled={!autorizo || fase === 'procesando' || (fase === 'codigoVencido' && nuevoCodigo.length !== 6)} onClick={cobrar}>
+          <BtnPrimario disabled={fase === 'procesando' || (fase === 'codigoVencido' && nuevoCodigo.length !== 6)} onClick={cobrar}>
             {fase === 'procesando' ? <><span className="size-5 animate-spin rounded-full border-2 border-cafe border-t-transparent" />Procesando tu pago…</>
               : fase === 'codigoVencido' ? <>Reintentar el pago de {c.total}</> : <><Icon name="candado" size={20} />Confirmar y pagar {c.total}</>}
           </BtnPrimario>
@@ -759,11 +762,12 @@ export function Listo() {
   if (!modoMock && r === undefined) return <Navigate to="/" replace />;
   const nombre = (c.s.nombre || '').split(' ')[0];
   return (
-    <div className="mx-auto flex max-w-[560px] flex-col items-center gap-4 px-6 pb-12 pt-6 text-center lg:py-14">
-      <img src={asset('img/oveja-ganadores.webp')} alt="" className="h-[150px] w-auto object-contain" />
-      <h1 className="text-[34px] font-black leading-[1.05] text-cafe lg:text-[44px]">¡Empieza a <span className="whitespace-nowrap rounded-xl bg-amarillo px-2">VIVIR GANANDO</span>!</h1>
+    <div className="mx-auto flex max-w-[560px] flex-col items-center gap-3 px-6 pb-12 pt-4 text-center lg:gap-4 lg:py-14">
+      <img src={asset('img/oveja-ganadores.webp')} alt="" className="h-[96px] w-auto object-contain lg:h-[150px]" />
+      <h1 className="text-[32px] font-black leading-[1.05] text-cafe lg:text-[44px]">¡Empieza a <span className="whitespace-nowrap rounded-xl bg-amarillo px-2">VIVIR GANANDO</span>!</h1>
       <p className="text-[17px] font-bold text-cafe">{nombre ? `${nombre}, tu` : 'Tu'} plan {c.plan.nombre} ya está activo</p>
-      <div className="flex w-full flex-col gap-2 rounded-2xl bg-n0 p-4 text-left">
+      <button onClick={() => { if (modoMock) iniciar(); navigate('/'); }} className="inline-flex h-14 w-full items-center justify-center gap-2.5 whitespace-nowrap rounded-pill bg-amarillo px-8 text-[15px] font-bold text-cafe sm:w-auto">Empezar a vivir ganando <Icon name="flecha" size={20} /></button>
+      <div className="mt-2 flex w-full flex-col gap-2 rounded-2xl bg-n0 p-4 text-left">
         <p className="text-[14px] font-extrabold text-cafe">Esto tienes con tu plan:</p>
         {[chancesTexto(c.plan.chances), ...BENEFICIOS_COMUNES].map((t) => (
           <p key={t} className="flex items-start gap-2.5 text-[14px] text-cafe"><span className="flex size-6 shrink-0 items-center justify-center rounded-pill bg-amarillo"><Icon name="check" size={14} /></span>{t}</p>
@@ -774,7 +778,6 @@ export function Listo() {
         {' '}Participas en los sorteos cuyo cierre de lista (miércoles 11:59 a. m.) aún no pasó.
         {r?.operationCode && <> Operación {r.operationCode}.</>}
       </p>
-      <button onClick={() => { if (modoMock) iniciar(); navigate('/'); }} className="inline-flex h-14 w-full items-center justify-center gap-2.5 whitespace-nowrap rounded-pill bg-amarillo px-8 text-[15px] font-bold text-cafe sm:w-auto">Empezar a vivir ganando <Icon name="flecha" size={20} /></button>
     </div>
   );
 }

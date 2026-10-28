@@ -46,7 +46,7 @@ export default function Sorteos() {
         <div className="flex w-full gap-1.5 rounded-pill bg-n0 p-1.5 lg:w-fit" role="tablist">
           {pestanas.map(([id, label]) => (
             <button key={id} role="tab" aria-selected={vista === id} onClick={() => setVista(id)}
-              className={cx('flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-pill px-3 py-2.5 text-sm font-bold lg:flex-none lg:px-6 lg:text-[15px]', vista === id ? 'bg-cafe text-amarillo' : 'text-cafe')}>
+              className={cx('flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-pill px-3 py-2.5 text-sm font-bold max-[359px]:px-1.5 max-[359px]:text-[13px] lg:flex-none lg:px-6 lg:text-[15px]', vista === id ? 'bg-cafe text-amarillo' : 'text-cafe')}>
               {id === 'exclusivos' && <Icon name="corona" size={16} className="text-amarillo" />}{label}
             </button>
           ))}

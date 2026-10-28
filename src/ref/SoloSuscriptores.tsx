@@ -8,7 +8,7 @@ const IMG3D = (f: string) => `${import.meta.env.BASE_URL}img/3d/${f}`;
 export function SoloSuscriptores() {
   return (
     <>
-      <section className="vista-d bg-fondo px-6 pt-6 lg:flex lg:min-h-[var(--alto-vista)] lg:flex-col lg:justify-center lg:px-16 lg:py-[clamp(22px,4dvh,44px)]">
+      <section className="vista-d bg-fondo px-6 pt-6 max-lg:[@media(max-height:760px)]:pt-4 lg:flex lg:min-h-[var(--alto-vista)] lg:flex-col lg:justify-center lg:px-16 lg:py-[clamp(22px,4dvh,44px)]">
         <div className="mx-auto flex w-full max-w-[1238px] flex-col gap-4 lg:gap-[clamp(10px,1.8dvh,20px)]">
           <div className="flex flex-col gap-1.5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
             <div className="flex shrink-0 flex-col gap-1.5">

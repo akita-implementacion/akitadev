@@ -166,7 +166,7 @@ export function useMiPlan() {
   const s = useSesion();
   const r = useRecurso<T.Usuario | null>('usuario:perfil', usuarioApi.perfil, null, null, s.logueado);
   const mock = { plan: M.usuario.plan, periodo: 'Mensual', monto: 'S/ 12.50', chances: M.usuario.chancesPorPlan, inicio: '01/10/2026', vence: '01/11/2026', activo: true,
-    cancelada: false, recurrente: true, tarjetas: [{ id: 't1', marca: 'Visa', ultimos: '9984', principal: true }], idSuscripcion: 'SUB-DEMO', yoki: false };
+    cancelada: false, recurrente: true, tarjetas: [{ id: 't1', marca: 'Visa', ultimos: '9984', principal: true }], idSuscripcion: 'SUB-DEMO', yoki: false, yape: false };
   if (config.usarMock || r.ejemplo) return { ...mock, cargando: false };
   const sub = r.data?.subscription;
   const st = sub?.status;
@@ -180,6 +180,7 @@ export function useMiPlan() {
     activo: !!sub && !/EXPIR|INACTIV/i.test(estado), cancelada: estado === 'CANCELED', recurrente: !!sub?.isConcurrent,
     tarjetas: (r.data?.savedCards ?? sub?.savedCards ?? []).map((t) => ({ id: t.id, marca: t.cardBrand ?? 'Tarjeta', ultimos: t.lastFourDigits ?? '', principal: !!t.isDefault })),
     idSuscripcion: sub?.referenceId ?? '', yoki: (sub?.origin ?? '').toUpperCase() === 'YOKI', cargando: r.cargando,
+    yape: /YAPE/i.test(sub?.paymentGateway ?? ''),
   };
 }
 

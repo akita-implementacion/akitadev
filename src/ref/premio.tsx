@@ -26,6 +26,7 @@ export function usePremioMes() {
 }
 
 export const textoCierre = (fecha: Date) => `Activa tu plan antes del ${fechaCorta(fecha)}, 11:59 a. m.`;
+export const textoCierreCorto = (fecha: Date) => `Cierra: ${fechaCorta(fecha)}, 11:59 a. m.`;
 export const CERRADO = 'La participación en este sorteo ya cerró';
 export const NOTA_CERRADO = 'Con tu plan participas en los próximos sorteos.';
 

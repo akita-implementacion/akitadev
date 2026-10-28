@@ -14,8 +14,6 @@ import { invalidar } from '../../data/recurso';
 import { aApertura } from '../../data/adaptadores';
 import { asset } from '../../data/assets';
 
-
-
 export function Modal({ abierto, onCerrar, children, blanco }: { abierto: boolean; onCerrar: () => void; children: ReactNode; blanco?: boolean }) {
   useEffect(() => {
     if (!abierto) return;
@@ -101,7 +99,6 @@ function Entregados({ lista }: { lista: { titulo: string; logo?: string; cantida
   );
 }
 
-
 type Resultado = 'ok' | 'agotada' | 'error';
 type Obtenido = { opcion: OpcionRecompensa; codigo?: string | null };
 
@@ -154,7 +151,6 @@ function Eleccion({ r, textoOpcion, detalleOpcion, nota, intro, pie, logo }: {
     </>
   );
 }
-
 
 let aperturaEnCurso: (ReturnType<typeof aApertura> & { codigo?: string }) | null = null;
 let cofreAbiertoDemo = false;
@@ -338,7 +334,6 @@ function HojaCofre({ r, info, abierto, onCerrar }: { r: Recompensa; info: Return
   );
 }
 
-
 let eleccionFlash: 'premio' | 'lanas' | null = null;
 let codigoFlash: string | null = null;
 
@@ -474,7 +469,11 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
   const stockBarra = total > 0 && (
     <div className="flex flex-col gap-1.5">
       <div className="h-1.5 overflow-hidden rounded-pill bg-n0/40"><div className="h-full rounded-pill bg-success" style={{ width: `${Math.min(100, (disfrutando / total) * 100)}%` }} /></div>
-      <p className="text-xs font-medium text-cafe">{disfrutando} personas lo disfrutan · quedan {beneficio?.quedan ?? 0} beneficios{lanas ? ` y ${lanas.quedan ?? 0} de Lanas` : ''}</p>
+      <p className="text-xs font-medium text-cafe">{disfrutando} personas ya lo disfrutan</p>
+      <div className="flex flex-wrap gap-1.5">
+        <span className="inline-flex items-center gap-1 rounded-pill bg-n0 px-2.5 py-1 text-[12px] font-extrabold text-cafe"><span className="size-2 rounded-full bg-rosa-fuerte" />Quedan {beneficio?.quedan ?? 0} beneficios</span>
+        {lanas && <span className="inline-flex items-center gap-1 rounded-pill bg-n0 px-2.5 py-1 text-[12px] font-extrabold text-cafe"><span className="size-2 rounded-full bg-rosa-fuerte" />Quedan {lanas.quedan ?? 0} cupos de {lanas.titulo.replace(/^\+/, '')}</span>}
+      </div>
     </div>
   );
 
@@ -484,8 +483,8 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
         <Icon name="rayo" size={grande ? 11 : 9} />{grande ? 'BENEFICIO FLASH' : 'FLASH'}
       </span>
       {!agotado && !proximamente && f.eligeHasta && (grande
-        ? <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap rounded-pill bg-n0/40 px-2.5 py-1 text-xs font-bold text-cafe"><Icon name="reloj" size={12} />Termina en {f.eligeHasta}</span>
-        : <span className="flex items-center gap-0.5 whitespace-nowrap text-[10px] font-bold text-cafe"><Icon name="reloj" size={10} />{f.eligeHasta}</span>)}
+        ? <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap rounded-pill bg-cafe px-2.5 py-1 text-xs font-bold tabular-nums text-amarillo"><Icon name="reloj" size={12} />Termina en {f.eligeHasta}</span>
+        : <span className="flex items-center gap-0.5 whitespace-nowrap rounded-pill bg-cafe px-1.5 py-0.5 text-[10px] font-bold text-amarillo"><Icon name="reloj" size={10} />{f.eligeHasta}</span>)}
     </div>
   );
 
@@ -542,6 +541,7 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
               <p className="text-[34px] font-black leading-9 tracking-[-1.5px] text-cafe">{f.descuento}</p>
               <p className="line-clamp-2 text-[14px] font-extrabold leading-[17px] text-cafe">{corto}</p>
               <p className="truncate text-[11px] font-medium text-cafe">{lanas ? `o ${lanas.titulo}` : f.marca}</p>
+              {beneficio?.quedan != null && <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-pill bg-n0 px-2 py-0.5 text-[11px] font-extrabold text-cafe"><span className="size-1.5 rounded-full bg-rosa-fuerte" />Quedan {beneficio.quedan}</span>}
               <div className="flex-1" />
             </>
           )}
@@ -654,7 +654,7 @@ export function CardFlashVisitante() {
     <div className="flex h-full flex-col gap-2.5 overflow-hidden rounded-[24px] p-3.5 lg:gap-3 lg:p-6" style={FONDO_FLASH}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md bg-amarillo px-2.5 py-1 text-[11px] font-black tracking-[1px] text-cafe"><Icon name="rayo" size={11} />BENEFICIO FLASH</span>
-        <span className="flex items-center gap-1 whitespace-nowrap rounded-pill bg-n0 px-2.5 py-1 text-xs font-bold text-cafe"><Icon name="reloj" size={14} />Termina en {flashSemana.eligeHasta}</span>
+        <span className="flex items-center gap-1 whitespace-nowrap rounded-pill bg-cafe px-2.5 py-1 text-xs font-bold tabular-nums text-amarillo"><Icon name="reloj" size={14} />Termina en {flashSemana.eligeHasta}</span>
       </div>
       <div className="flex min-h-0 flex-1 items-center gap-2 rounded-[18px] bg-rosa-claro py-2.5 pl-5 pr-3 lg:pl-7" style={MUESCAS}>
         <div className="flex min-w-0 flex-1 flex-col gap-1">

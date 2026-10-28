@@ -50,14 +50,15 @@ export default function Planes() {
       <div className="mx-auto flex max-w-[1366px] flex-col gap-4 px-6 pt-3 lg:gap-8 lg:px-16 lg:pt-10">
         {premio && (
           <p className="flex items-center gap-2 rounded-2xl bg-n0 px-3.5 py-2.5 text-[13px] leading-[18px] text-cafe shadow-card">
-            <Icon name="premios" size={20} className="shrink-0" /><span>Participa por la <b>{premio}</b>{sorteo ? ` · sorteo del ${sorteo}` : ''}</span>
+            <Icon name="premios" size={20} className="shrink-0" />
+            <span>Participa por la <b>{premio}</b>{sorteo ? ` (sorteo del ${sorteo})` : ''} y por todos los premios de cada miércoles</span>
           </p>
         )}
         <SelectorPeriodo periodo={periodo} onChange={cambiarPeriodo} izquierda compacto />
-        <div className="hidden grid-cols-3 gap-6 md:grid">
+        <div className="hidden grid-cols-3 gap-6 lg:grid">
           {PLANES.map((p) => <TarjetaPlan key={p.id} plan={p} periodo={periodo} extra={extra} />)}
         </div>
-        <div className="md:hidden">
+        <div className="lg:hidden">
           <Carrusel anchoClase="w-[82vw] max-w-[340px]" gap={12} tonoPuntos="cafe">
             {PLANES.map((p) => <TarjetaPlan key={p.id} plan={p} periodo={periodo} compacta apretada extra={extra} />)}
           </Carrusel>
