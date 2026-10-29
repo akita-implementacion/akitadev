@@ -29,8 +29,10 @@ function Estado({ activo, cancelada }: { activo: boolean; cancelada: boolean }) 
 export function TarjetaPlanActual({ className }: { className?: string }) {
   const p = useMiPlan();
   if (!p.plan) return null;
+  const principal = p.tarjetas.find((t) => t.principal) ?? p.tarjetas[0];
+  const metodo = p.yape ? 'Yape · pago único' : principal ? `${principal.marca} ···${principal.ultimos}` : '';
   return (
-    <section className={cx('flex flex-col gap-3 rounded-[24px] border-2 border-amarillo bg-n0 p-5 lg:flex-row lg:items-center lg:gap-6 lg:p-6', className)}>
+    <section className={cx('flex flex-col gap-3 rounded-[24px] border-2 border-amarillo bg-n0 p-5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-6 lg:p-6', className)}>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-md bg-cafe px-2.5 py-1 text-[11px] font-bold tracking-[0.6px] text-amarillo">TU PLAN ACTUAL</span>
@@ -47,6 +49,7 @@ export function TarjetaPlanActual({ className }: { className?: string }) {
         <div className="rounded-xl bg-n5 px-3 py-2.5"><dt className="text-[11px] text-n60">{p.recurrente && !p.cancelada ? 'Se renueva el' : 'Activo hasta'}</dt><dd className="whitespace-nowrap text-[16px] font-extrabold">{p.vence || '—'}</dd></div>
         <div className="col-span-2 flex items-center justify-between rounded-xl bg-n5 px-3 py-2.5 sm:col-span-1 sm:block"><dt className="whitespace-nowrap text-[11px] text-n60">Chances x sorteo</dt><dd className="whitespace-nowrap text-[16px] font-extrabold">{p.chances}</dd></div>
       </dl>
+      {metodo && <p className="flex basis-full items-center gap-1.5 text-[12px] text-n60"><Icon name="tarjeta" size={14} />{metodo}</p>}
     </section>
   );
 }

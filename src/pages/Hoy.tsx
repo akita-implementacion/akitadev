@@ -32,6 +32,10 @@ export default function Hoy() {
         </div>
         <EncabezadoSeccion titulo={tx('hoy.siguienteSorteo')} extra={sorteoDestacado.corte ? `cierra ${/^\d/.test(sorteoDestacado.corte) ? 'a las' : 'el'} ${sorteoDestacado.corte}` : undefined} />
         <CardSorteoCompacta />
+        <EncabezadoSeccion titulo={tx('hoy.misionDestacada')} accion={<Link to="/misiones"><ButtonCompacto variant="outline" iconRight="flecha">Ver todas</ButtonCompacto></Link>} />
+        {destacada && <CardMision m={destacada} />}
+        <CardProgresoMisiones />
+        <BannerVip />
         <div className="flex items-center gap-2">
           <h2 className="min-w-0 flex-1 text-xl font-extrabold leading-6"><Tx k="hoy.siempre.titulo" /></h2>
           <Link to="/beneficios" className="shrink-0"><ButtonCompacto variant="outline" iconRight="flecha" className="!h-10 !px-3.5">Ver catálogo</ButtonCompacto></Link>
@@ -39,10 +43,6 @@ export default function Hoy() {
         <FilaAuto className="no-scrollbar -mx-6 flex snap-x gap-3 overflow-x-auto scroll-px-6 px-6 [&>*]:snap-start">
           {siempre.map((b, i) => <div key={`${b.id ?? b.titulo}-${i}`} className="w-[78%] max-w-[300px] shrink-0"><TarjetaDestacado b={b} onAbrir={() => setAbierto(b)} /></div>)}
         </FilaAuto>
-        <EncabezadoSeccion titulo={tx('hoy.misionDestacada')} accion={<Link to="/misiones"><ButtonCompacto variant="outline" iconRight="flecha">Ver todas</ButtonCompacto></Link>} />
-        {destacada && <CardMision m={destacada} />}
-        <CardProgresoMisiones />
-        <BannerVip />
       </Contenido>
 
       <Contenido className="hidden lg:flex">

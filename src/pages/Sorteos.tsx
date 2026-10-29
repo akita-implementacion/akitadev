@@ -25,7 +25,7 @@ export default function Sorteos() {
     .filter(([id]) => id !== 'exclusivos' || usuario.tieneSuscripcion);
   const todasLasFechas = useFechasSorteo();
   const hoy = iso(new Date());
-  const vigentes = modoMock ? todasLasFechas : todasLasFechas.filter((d) => iso(d) >= hoy);
+  const vigentes = todasLasFechas.filter((d) => iso(d) >= hoy);
   const meses = [...new Set(vigentes.map((d) => iso(d).slice(0, 7)))];
   const [mesSel, setMes] = useState<string>();
   const mesActual = mesSel && meses.includes(mesSel) ? mesSel : meses[0] ?? '';
@@ -33,7 +33,7 @@ export default function Sorteos() {
   const proximos = useProximosSorteos();
   const [fechaSel, setFecha] = useState<string>();
   const fecha = fechaSel && fechasSorteo.some((d) => iso(d) === fechaSel) ? fechaSel : (fechasSorteo[0] ? iso(fechasSorteo[0]) : '');
-  const mes = fechasSorteo[0]?.toLocaleDateString('es-PE', { month: 'long', year: 'numeric', timeZone: 'America/Lima' }) ?? '';
+  const mes = (fechasSorteo[0]?.toLocaleDateString('es-PE', { month: 'long', year: 'numeric', timeZone: 'America/Lima' }) ?? '').replace(' de ', ' ');
   const iMes = meses.indexOf(mesActual);
   const banners = useBanners(usuario.tieneSuscripcion ? ['PRIZES_LOGGED'] : ['RAFFLES_MAIN', 'PRIZES_LOGGED']);
   const proximosSorteos = proximos.filter((p) => !('fechaIso' in p) || !fecha || p.fechaIso === fecha);

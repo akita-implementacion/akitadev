@@ -27,7 +27,7 @@ import { usePerfil } from '../../ref/demo';
 import { FuenteSorteosApi, useFuenteSorteos } from '../../ref/sitio';
 import { DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, vistaDe, type BeneficioVista } from '../../components/beneficios/catalogo';
 import { canjesEjemplo, pasos as pasosRef, type Beneficio as BeneficioRef } from '../../ref/publico';
-import { preguntasFaq } from '../../components/publico/Secciones';
+import { preguntas as preguntasRef } from '../../ref/publico';
 
 const nombreCorto = (n: string) => n.split(' ').slice(0, 2).join(' ');
 const DIAS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
@@ -358,7 +358,7 @@ export function ComoFunciona() {
         </section>
       </div>
       <div className="mx-auto flex max-w-[1366px] flex-col gap-10 px-6 pb-10 lg:gap-14 lg:px-16 lg:pb-14">
-        <PreguntasFrecuentes preguntas={preguntasFaq()} />
+        <PreguntasFrecuentes preguntas={preguntasRef} />
         <CardCtaRef titulo="¿Listo para pertenecer al rebaño y participar?" bajada="Elige tu plan y únete al rebaño AKITÁ." boton="Elegir mi plan" iconoIzq />
       </div>
     </>

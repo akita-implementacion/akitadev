@@ -34,8 +34,7 @@ function Perfil() {
         <p className="text-[28px] font-extrabold leading-8">{usuario.nombreCompleto}</p>
         {usuario.plan
           ? <p className="text-[13px] text-n60"><Tx k="cuenta.plan" v={{ plan: usuario.plan, n: usuario.chancesPorPlan }} /></p>
-          : <p className="text-[13px] text-n60">Sin plan activo</p>}
-        <Link to="/planes" className="text-[13px] font-bold text-error">Ver planes</Link>
+          : <><p className="text-[13px] text-n60">Sin plan activo</p><Link to="/planes" className="text-[13px] font-bold text-error">Ver planes</Link></>}
       </div>
     </div>
   );

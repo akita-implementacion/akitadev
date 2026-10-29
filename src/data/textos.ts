@@ -78,7 +78,7 @@ export const textos = {
   'cuenta.plan': { t: 'Plan {plan} · {n} chances por sorteo regular', estado: 'final', ref: 'T07/T08' },
   'cuenta.perfil.falta': { t: 'Falta tu distrito · +{n} Lanas', estado: 'validar', ref: 'Por página · p21 · confirmar +150' },
   'cuenta.rebano.avance': { t: '{avance} de {meta} amigos · falta {faltan} para +{n} Lanas', estado: 'validar', ref: 'Por página · p20 · confirmar +500' },
-  'cuenta.rebano.condicion': { t: 'Cuenta cuando tu amigo paga su primera suscripción. Tu amigo también recibe Lanas.', estado: 'validar', ref: 'Por página · p20 / p22 referido' },
+  'cuenta.rebano.condicion': { t: 'Tu amigo también gana Lanas cuando hace su primer pago.', estado: 'validar', ref: 'Por página · p20 / p22 referido' },
 
   'planes.hero.titulo': { t: 'Elige el plan que va contigo', estado: 'provisional', ref: 'Por página · p8' },
   'planes.hero.bajada': { t: 'Todos los planes incluyen participación en los sorteos regulares.', estado: 'provisional', ref: 'Por página · p6 (ejemplo de Renato)' },

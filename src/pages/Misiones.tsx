@@ -6,9 +6,9 @@ import { useMisiones, useReferidos } from '../data/datos';
 import { tx } from '../data/textos';
 
 const comoFuncionan = [
-  { t: 'Se acreditan al completar', d: 'Al llegar a la meta, las Lanas entran a tu billetera.' },
+  { t: 'Se acreditan solas', d: 'Al llegar a la meta, las Lanas entran a tu billetera.' },
   { t: 'Cada misión tiene su ciclo', d: 'Únicas, semanales o mensuales. Referidos siempre está activa.' },
-  { t: 'Recompensa completa', d: tx('misiones.requisitos') },
+  { t: 'Sin premios parciales', d: 'Si el ciclo termina antes de la meta, el avance no paga.' },
 ];
 
 export default function Misiones() {

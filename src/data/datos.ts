@@ -48,9 +48,15 @@ export function useProximosSorteos() {
   return data.length ? A.aProximos(data) : mockOVacio(prototipo);
 }
 
+function proximosMiercoles(n: number) {
+  const d = new Date(); d.setHours(16, 0, 0, 0);
+  while (d.getDay() !== 3) d.setDate(d.getDate() + 1);
+  return Array.from({ length: n + 3 }, (_, i) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + (i - 3) * 7, 16));
+}
+
 export function useFechasSorteo() {
   return useRecurso('sorteos:fechas', () => sorteosApi.fechas().then(A.aFechas),
-    M.fechasSorteo.map((d) => new Date(2026, 9, d)), []).data;
+    proximosMiercoles(8), []).data;
 }
 
 export function useGanadores(fecha?: string) {
@@ -77,7 +83,8 @@ export function useBeneficios() {
     () => (logueado ? beneficiosApi.propios() : beneficiosApi.publicos()),
     null as unknown, null as unknown);
   const prototipo = M.beneficios.map((b, i) => ({ id: b.titulo, agotado: false, ...b, foto: b.foto as string | undefined,
-    destacado: i < 4, descripcion: `${b.etiqueta} en ${b.comercio}. Se usa con ${b.uso === 'DNI' ? 'tu DNI' : b.uso === 'QR' ? 'QR' : 'código'}.`,
+    destacado: !!b.destacado || (!M.beneficios.some((x) => x.destacado) && i < 4),
+    descripcion: b.descripcion ?? `${b.etiqueta} en ${b.comercio}. Se usa con ${b.uso === 'DNI' ? 'tu DNI' : b.uso === 'QR' ? 'QR' : 'código'}.`,
     desde: '01/10/2026', hasta: '31/12/2026', metodo: b.uso === 'DNI' ? 'IN_PERSON' : b.uso === 'QR' ? 'EXTERNAL' : 'PROMO_CODE' }));
   if (r.ejemplo) return { beneficios: prototipo, categorias: M.categoriasBeneficios };
   return {

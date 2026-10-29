@@ -86,16 +86,16 @@ export const ganadores = [
 ];
 
 const logoDe = (m: string) => `assets/marcas/${m}.webp`;
-export const beneficios: { titulo: string; comercio: string; logo?: string; uso: string; etiqueta: string; ahorro: string; categoria: string; ubicacion: string; foto?: string }[] = [
-  { titulo: 'Menú ejecutivo', comercio: 'Franklin', logo: logoDe('franklin'), uso: 'Código', etiqueta: '30%', ahorro: 'S/ 13', categoria: 'Restaurantes', ubicacion: 'Lima', foto: 'assets/beneficios/menu.webp' },
-  { titulo: 'Entradas de cine', comercio: 'Cinemark', logo: logoDe('cinemark'), uso: 'QR', etiqueta: '2x1', ahorro: 'S/ 18', categoria: 'Entretenimiento', ubicacion: 'En todo el Perú', foto: 'assets/beneficios/cine.webp' },
-  { titulo: 'Consulta dermatológica', comercio: 'Dermohelp', logo: logoDe('dermohelp'), uso: 'DNI', etiqueta: '65%', ahorro: 'S/ 31', categoria: 'Salud', ubicacion: 'Lima', foto: 'assets/beneficios/farmacia.webp' },
+export const beneficios: { titulo: string; destacado?: boolean; descripcion?: string; comercio: string; logo?: string; uso: string; etiqueta: string; ahorro: string; categoria: string; ubicacion: string; foto?: string }[] = [
+  { titulo: 'Menú ejecutivo', destacado: true, descripcion: '30% en el menú del día, de lunes a viernes en Franklin Kitchen & Bar.', comercio: 'Franklin', logo: logoDe('franklin'), uso: 'Código', etiqueta: '30%', ahorro: 'S/ 13', categoria: 'Restaurantes', ubicacion: 'Lima', foto: 'assets/beneficios/menu.webp' },
+  { titulo: 'Entradas de cine', destacado: true, descripcion: '2x1 en entradas 2D de lunes a jueves, en salas tradicionales.', comercio: 'Cinemark', logo: logoDe('cinemark'), uso: 'QR', etiqueta: '2x1', ahorro: 'S/ 18', categoria: 'Entretenimiento', ubicacion: 'En todo el Perú', foto: 'assets/beneficios/cine.webp' },
+  { titulo: 'Consulta dermatológica', destacado: true, descripcion: '65% en tu consulta. Previa cita, presentando tu DNI.', comercio: 'Dermohelp', logo: logoDe('dermohelp'), uso: 'DNI', etiqueta: '65%', ahorro: 'S/ 31', categoria: 'Salud', ubicacion: 'Lima', foto: 'assets/beneficios/farmacia.webp' },
   { titulo: 'Corte y barba', comercio: 'Barba Negra', logo: logoDe('barba-negra'), uso: 'Código', etiqueta: '40%', ahorro: 'S/ 24', categoria: 'Belleza', ubicacion: 'Lima' },
-  { titulo: 'Combo hamburguesa', comercio: 'Hollyfood', logo: logoDe('hollyfood'), uso: 'Código', etiqueta: '25%', ahorro: 'S/ 9', categoria: 'Restaurantes', ubicacion: 'En todo el Perú', foto: 'assets/beneficios/comida.webp' },
+  { titulo: 'Combo hamburguesa', destacado: true, descripcion: '25% en combos en local o delivery desde su web.', comercio: 'Hollyfood', logo: logoDe('hollyfood'), uso: 'Código', etiqueta: '25%', ahorro: 'S/ 9', categoria: 'Restaurantes', ubicacion: 'En todo el Perú', foto: 'assets/beneficios/comida.webp' },
   { titulo: 'Depilación láser', comercio: 'Aquamed', logo: logoDe('aquamed'), uso: 'DNI', etiqueta: '50%', ahorro: 'S/ 120', categoria: 'Belleza', ubicacion: 'Lima' },
   { titulo: 'Terapia online', comercio: 'Psicoturay', logo: logoDe('psicoturay'), uso: 'Código', etiqueta: '35%', ahorro: 'S/ 42', categoria: 'Salud', ubicacion: 'En todo el Perú', foto: 'assets/beneficios/fitness.webp' },
   { titulo: 'Lavado de auto', comercio: 'Repsol', logo: logoDe('repsol'), uso: 'QR', etiqueta: '20%', ahorro: 'S/ 8', categoria: 'Auto', ubicacion: 'Provincias' },
-  { titulo: 'Lentes de sol', comercio: 'Arthur & Sons', logo: logoDe('arthur-sons'), uso: 'Código', etiqueta: '30%', ahorro: 'S/ 90', categoria: 'Moda', ubicacion: 'Lima' },
+  { titulo: 'Lentes de sol', destacado: true, descripcion: '30% en lentes de sol seleccionados en tiendas Arthur & Sons.', comercio: 'Arthur & Sons', logo: logoDe('arthur-sons'), uso: 'Código', etiqueta: '30%', ahorro: 'S/ 90', categoria: 'Moda', ubicacion: 'Lima' },
   { titulo: 'Café y postre', comercio: 'Franklin', logo: logoDe('franklin'), uso: 'DNI', etiqueta: '20%', ahorro: 'S/ 10', categoria: 'Restaurantes', ubicacion: 'Lima', foto: 'assets/beneficios/cafe.webp' },
   { titulo: 'Combo cine', comercio: 'Cinemark', logo: logoDe('cinemark'), uso: 'QR', etiqueta: '30%', ahorro: 'S/ 12', categoria: 'Entretenimiento', ubicacion: 'Provincias', foto: 'assets/beneficios/cine.webp' },
   { titulo: 'Chequeo de piel', comercio: 'Dermohelp', logo: logoDe('dermohelp'), uso: 'DNI', etiqueta: '45%', ahorro: 'S/ 40', categoria: 'Salud', ubicacion: 'Provincias', foto: 'assets/beneficios/farmacia.webp' },
@@ -143,10 +143,10 @@ export type Mision = {
 
 export const misiones: Mision[] = [
   { id: 'referidos', titulo: 'Refiere a un amigo', ciclo: 'SIEMPRE', recompensa: '+500', destacada: true,
-    descripcion: 'Cuando 3 amigos pagan su primera suscripción, recibes +500 Lanas. Puedes volver a empezar.',
+    descripcion: 'Cada 3 amigos que hagan su primer pago = +500 Lanas. Se reinicia y puedes volver a ganar.',
     avance: 2, meta: 3, cta: { texto: 'Copiar mi código', variant: 'link' } },
-  { id: 'cofre', titulo: 'Abre tu cofre', ciclo: 'SEMANAL', recompensa: '+ premio',
-    descripcion: 'Cada jueves a las 8:00 a. m. llega un cofre nuevo. Elige tu premio o Lanas antes de que se agoten.',
+  { id: 'cofre', titulo: 'Cofre semanal', ciclo: 'SEMANAL', recompensa: '+ premio',
+    descripcion: 'Cada jueves a las 8:00 a. m. hay un cofre nuevo. Ábrelo hasta el miércoles 11:59 p. m.; si se agota, vuelve el jueves.',
     avance: 0, meta: 1, cta: { texto: 'Ir a Hoy', variant: 'link', to: '/' } },
   { id: 'visita', titulo: 'Visita semanal', ciclo: 'SEMANAL', recompensa: '+150',
     descripcion: 'Entra a AKITÁ una vez por semana (de miércoles a martes). Meta de semanas por definir.',
@@ -308,7 +308,7 @@ export const flashSemana = {
   usoNota: 'El beneficio se usa hasta el 30 nov · 11:59 p. m., aunque el Flash cierre antes.',
   opciones: [
     { id: 'premio', etiqueta: 'BENEFICIO', titulo: '90% OFF en lentes', lugar: 'Arthur & Sons · lentes y monturas', quedan: 188, total: 500 },
-    { id: 'lanas', etiqueta: 'LANAS', titulo: '+30 Lanas', lugar: 'Se suman a tu billetera al instante', quedan: 140, total: 300, lanas: 30 },
+    { id: 'lanas', etiqueta: 'LANAS', titulo: '+40 Lanas', lugar: 'Se suman a tu billetera al instante', quedan: 64, total: 100, lanas: 40 },
   ] as OpcionRecompensa[],
   detalles: [
     ['Elige hasta', 'Hoy · 11:59 p. m. (06:12:16)'],
