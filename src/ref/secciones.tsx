@@ -9,6 +9,7 @@ import { BENEFICIOS_COMUNES, PERIODOS, PLANES, ahorro, chancesTexto, reglaRenova
 import type { Beneficio, Canje, Ganador, Marca, Premio, Pregunta, Slide } from './publico';
 import { proximaFecha, redes } from './publico';
 import { useFuenteSorteos } from './sitio';
+import { LogoComercio } from '../components/beneficios/catalogo';
 import { useDetallePublico, type DetallePremio } from '../components/sorteos/DetallePremio';
 import { CERRADO, rutaPlanesConPremio, textoCierre, textoCierreCorto, useDetallePremio, usePremioMes, type PremioDetalle } from './premio';
 import { useDemo, usePerfil } from './demo';
@@ -540,15 +541,14 @@ export function TarjetaBeneficio({ b, compacta, apilada }: { b: Beneficio; compa
         {b.foto ? <img src={b.foto} alt={b.titulo} className="size-full object-cover" loading="lazy" draggable={false} />
           : <div className="flex size-full items-center justify-center bg-rosa-claro p-6"><img src={b.logo} alt={b.comercio} className="max-h-[60%] max-w-[70%] object-contain" loading="lazy" draggable={false} /></div>}
         <span className="absolute left-2 top-2 rounded-lg bg-cafe px-2 py-1 text-[13px] font-black text-amarillo shadow-[0_2px_6px_rgba(33,20,2,0.25)]">{b.etiqueta}</span>
-        {b.foto && (b.marca
-          ? <LogoMarca marca={b.marca as MarcaId} tamano="md" className="absolute bottom-2 right-2" />
-          : b.logo ? <span className="absolute bottom-2 right-2 inline-flex h-11 w-[104px] items-center justify-center rounded-xl bg-n0 p-1.5 shadow-[0_1px_4px_rgba(33,20,2,0.12)]"><img src={b.logo} alt={b.comercio} className="max-h-full max-w-full object-contain" loading="lazy" draggable={false} /></span>
-          : <span className="absolute bottom-2 right-2 inline-flex h-11 items-center rounded-xl bg-n0 px-3 text-[13px] font-black text-cafe shadow-[0_1px_4px_rgba(33,20,2,0.12)]">{b.comercio}</span>)}
       </div>
-      <div className={cx('flex flex-1 items-center justify-between gap-3', compacta ? 'px-4 py-3 max-lg:flex-col max-lg:items-stretch max-lg:gap-2.5' : apilada ? 'p-3 max-lg:flex-col max-lg:items-stretch max-lg:gap-2 lg:p-4' : 'p-4')}>
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <p className="text-[15px] font-bold leading-[18px] text-cafe">{b.titulo}</p>
-          <p className="text-xs text-n60">{b.comercio} · {b.uso}</p>
+      <div className={cx('flex flex-1 items-center justify-between gap-3', compacta ? 'flex-col !items-stretch gap-2.5 px-4 py-3' : apilada ? 'p-3 max-lg:flex-col max-lg:items-stretch max-lg:gap-2 lg:p-4' : 'p-4')}>
+        <div className="flex min-w-0 items-center gap-2.5">
+          {b.foto && (b.marca || b.logo) && <LogoComercio logo={b.marca ? `${base}img/marcas/${b.marca}.png` : b.logo} nombre={b.comercio} tamano="sm" className="!shadow-none ring-1 ring-n10" />}
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <p className="text-[15px] font-bold leading-[18px] text-cafe">{b.titulo}</p>
+            <p className="truncate text-xs text-n60">{b.comercio} · {b.uso}</p>
+          </div>
         </div>
         <Link to="/planes" className={cx('inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-pill bg-cafe px-4 text-sm font-bold text-n0', apilada ? 'h-9 lg:h-10' : 'h-10')}>{boton}</Link>
       </div>

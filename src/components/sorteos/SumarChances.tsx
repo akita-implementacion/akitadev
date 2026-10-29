@@ -1,251 +1,380 @@
 import { LogoYape, LogosTarjeta } from '../ui/LogosPago';
-import { useState } from 'react';
-import { Icon } from '../ui/Icon';
-import { Button, MonedaLana, cx } from '../ui/primitives';
-import { Bloque, Hoja, OpcionElegible } from '../ui/Hoja';
+import { useEffect, useState, type ReactNode } from 'react';
+import { erroresTarjeta, erroresYape, formatoCelular, formatoCodigoYape, formatoCvv, formatoTarjeta, formatoVenc, sinTildes, type DatosTarjeta, type DatosYape } from '../pago/validacion';
 import { FLAGS, PRECIO_CHANCE, soles } from '../../data/reglas';
 import { formatoLanas } from '../../data/mock';
 import { useBilletera } from '../../data/datos';
 import { useSesion } from '../../data/sesion';
 import { promoApi, sorteosApi } from '../../api/servicios';
 import { tokenizarTarjeta } from '../../api/kushki';
+import { config } from '../../api/config';
 import { ApiError, mensajeError } from '../../api/client';
 import { invalidar } from '../../data/recurso';
-import { limpiar } from '../../data/validacion';
+import { Icon } from '../ui/Icon';
+import { LogoAkita, LogoJockeyPlaza } from '../ui/Brand';
+import { MonedaLana, cx } from '../ui/primitives';
 
-type Metodo = 'lanas' | 'soles';
+type Metodo = 'soles' | 'lanas';
+type MedioSoles = 'tarjeta' | 'yape';
 type Paso = 'elegir' | 'pago' | 'listo';
+type Codigo = { texto: string; regalo: number };
 
 export type SorteoParaChances = { id: string; premio: string; fecha: string; corte: string; chancesActuales: number; puedeComprar?: boolean };
+
+const SUGERIDOS = [10, 20, 30, 50];
+const RECOMENDADO = 30;
+const CODIGOS_DEMO: Record<string, number> = { CHANCES50: 50, DEMO10: 10 };
+
+const solesCorto = (n: number) => soles(n).replace(/\.00$/, '').replace(' ', '');
+
+export function FranjaCreadoPor({ className }: { className?: string }) {
+  return (
+    <div className={cx('flex items-center justify-between gap-3 bg-cafe px-5 py-2.5 text-n0', className)}>
+      <LogoAkita width={70} className="text-amarillo" />
+      <span className="flex items-center gap-2 text-[11px] font-semibold leading-tight text-n0/80">Creado por<LogoJockeyPlaza width={92} className="text-n0" /></span>
+    </div>
+  );
+}
 
 export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoParaChances; abierto: boolean; onCerrar: () => void }) {
   const { modoMock } = useSesion();
   const billetera = useBilletera();
   const [paso, setPaso] = useState<Paso>('elegir');
-  const [cantidad, setCantidad] = useState(3);
+  const [cantidad, setCantidad] = useState(RECOMENDADO);
   const [metodo, setMetodo] = useState<Metodo>('soles');
-  const [medio, setMedio] = useState<'tarjeta' | 'yape'>('tarjeta');
-  const [pago, setPago] = useState({ tarjeta: '', vence: '', cvv: '', celular: '', codigo: '', promo: '' });
+  const [medio, setMedio] = useState<MedioSoles>('tarjeta');
+  const [codigo, setCodigo] = useState<Codigo | null>(null);
+  const [tarjeta, setTarjeta] = useState<DatosTarjeta>({ numero: '', venc: '', cvv: '', nombre: '' });
+  const [yape, setYape] = useState<DatosYape>({ celular: '', codigo: '' });
+  const [tocado, setTocado] = useState<Record<string, boolean>>({});
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
-  const [total, setTotal] = useState<number | null>(null);
+  const [totalApi, setTotalApi] = useState<number | null>(null);
+  const et = erroresTarjeta(tarjeta); const ey = erroresYape(yape);
+  const err = (k: string, m?: string) => (tocado[k] ? m : undefined);
+  const campoT = (k: keyof DatosTarjeta, fmt: (v: string) => string) => ({
+    id: `ch-tarjeta-${k}`, value: tarjeta[k], onChange: (e: React.ChangeEvent<HTMLInputElement>) => setTarjeta({ ...tarjeta, [k]: fmt(e.target.value) }),
+    onBlur: () => setTocado((x) => ({ ...x, [`t${k}`]: true })), error: err(`t${k}`, et[k]),
+  });
+  const campoY = (k: keyof DatosYape, fmt: (v: string) => string) => ({
+    id: `ch-yape-${k}`, value: yape[k], onChange: (e: React.ChangeEvent<HTMLInputElement>) => setYape({ ...yape, [k]: fmt(e.target.value) }),
+    onBlur: () => setTocado((x) => ({ ...x, [`y${k}`]: true })), error: err(`y${k}`, ey[k]),
+  });
 
   const precioLanas = modoMock ? PRECIO_CHANCE.lanas : billetera.precioChance;
   const sinPrecioLanas = precioLanas == null;
   const costoLanas = cantidad * (precioLanas ?? 0);
   const costoSoles = cantidad * PRECIO_CHANCE.soles;
   const faltan = Math.max(0, costoLanas - billetera.saldo);
-  const cerrar = () => { setPaso('elegir'); setError(''); setTotal(null); onCerrar(); };
+  const regalo = codigo?.regalo ?? 0;
+  const total = totalApi ?? sorteo.chancesActuales + cantidad + regalo;
+  const limite = sorteo.corte ? `${/^\d/.test(sorteo.corte) ? 'las' : 'el'} ${sorteo.corte}` : '';
+
+  useEffect(() => {
+    if (!abierto) return;
+    setPaso('elegir'); setError(''); setTotalApi(null);
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onCerrar();
+    window.addEventListener('keydown', esc);
+    document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', esc); document.body.style.overflow = ''; };
+  }, [abierto, onCerrar]);
 
   const usarLanas = async () => {
     setError('');
-    if (modoMock) { setTotal(sorteo.chancesActuales + cantidad); setPaso('listo'); return; }
+    if (modoMock) { setPaso('listo'); return; }
     setEnviando(true);
     try {
       const r = await sorteosApi.comprarChancesConLanas(sorteo.id, cantidad);
-      setTotal(r?.userChances ?? sorteo.chancesActuales + cantidad);
+      if (r?.userChances != null) setTotalApi(r.userChances);
       invalidar('lanas'); invalidar('sorteos'); invalidar('misiones');
       setPaso('listo');
     } catch (e) { setError(mensajeError(e)); } finally { setEnviando(false); }
   };
 
-  const pagarConSoles = async () => {
+  const pagar = async () => {
+    const errs = medio === 'tarjeta' ? Object.keys(et).map((k) => `ch-tarjeta-${k}`) : Object.keys(ey).map((k) => `ch-yape-${k}`);
+    if (errs.length) {
+      setTocado({ tnumero: true, tvenc: true, tcvv: true, tnombre: true, ycelular: true, ycodigo: true });
+      document.getElementById(errs[0])?.focus();
+      return;
+    }
     setError('');
-    if (modoMock) { setTotal(sorteo.chancesActuales + cantidad); setPaso('listo'); return; }
+    if (modoMock) { setPaso('listo'); return; }
     setEnviando(true);
     try {
-      const promoCode = pago.promo || undefined;
-      const r = medio === 'tarjeta'
-        ? await sorteosApi.comprarChancesConTarjeta({ token: await tokenizarTarjeta({ numero: pago.tarjeta, venc: pago.vence, cvv: pago.cvv, titular: '' }, costoSoles, false),
-          raffleId: sorteo.id, opportunities: cantidad, promoCode })
-        : await sorteosApi.comprarChancesConYape({ raffleId: sorteo.id, opportunities: cantidad, phoneNumber: pago.celular.replace(/\D/g, ''), otp: pago.codigo, promoCode });
-      void r;
-      setPago((x) => ({ ...x, tarjeta: '', cvv: '', codigo: '' }));
-      setTotal(sorteo.chancesActuales + cantidad);
+      const promoCode = codigo?.texto;
+      if (medio === 'tarjeta') {
+        const token = await tokenizarTarjeta({ numero: tarjeta.numero, venc: tarjeta.venc, cvv: tarjeta.cvv, titular: tarjeta.nombre }, costoSoles, false);
+        await sorteosApi.comprarChancesConTarjeta({ token, raffleId: sorteo.id, opportunities: cantidad, promoCode });
+      } else {
+        await sorteosApi.comprarChancesConYape({ raffleId: sorteo.id, opportunities: cantidad, phoneNumber: yape.celular, otp: yape.codigo, promoCode });
+      }
+      setTarjeta((x) => ({ ...x, numero: '', cvv: '' })); setYape((x) => ({ ...x, codigo: '' }));
       invalidar('sorteos'); invalidar('misiones');
       setPaso('listo');
     } catch (e) {
       setError(e instanceof ApiError && e.code === 'KUSHKI_NO_CONFIGURADO' ? 'El pago con tarjeta se activa cuando backend entregue la credencial pública de Kushki.' : mensajeError(e));
     } finally { setEnviando(false); }
   };
-  const validarPromo = async (code: string): Promise<{ error?: string; detalle?: string }> => {
-    if (modoMock) return code === 'CHANCES50' ? { detalle: 'Ganas +50 chances adicionales para este sorteo. El importe no cambia.' } : { error: 'Este código no es válido o ya venció.' };
+
+  const validarCodigo = async (texto: string): Promise<{ codigo?: Codigo; error?: string }> => {
+    if (modoMock) return CODIGOS_DEMO[texto] ? { codigo: { texto, regalo: CODIGOS_DEMO[texto] } } : { error: 'Este código no es válido o ya venció.' };
     try {
-      const r = await promoApi.validar({ code, raffleId: sorteo.id, applicationContext: 'CHANCES', opportunities: cantidad });
+      const r = await promoApi.validar({ code: texto, raffleId: sorteo.id, applicationContext: 'CHANCES', opportunities: cantidad });
       if ((r?.isValid ?? r?.valid) === false) return { error: r.message || 'Este código no es válido o ya venció.' };
-      const extra = r?.bonusChances ?? r?.potentialBonus;
-      return { detalle: extra ? `Ganas +${extra} chances adicionales para este sorteo. El importe no cambia.` : r?.message };
+      return { codigo: { texto, regalo: r?.bonusChances ?? r?.potentialBonus ?? 0 } };
     } catch (e) { return { error: mensajeError(e) }; }
   };
 
+  if (!abierto) return null;
   const titulo = paso === 'listo' ? '¡Chances sumadas!' : paso === 'pago' ? 'Paga tus chances' : 'Suma chances';
-  const pagoCompleto = medio === 'tarjeta'
-    ? pago.tarjeta.replace(/\s/g, '').length >= 15 && pago.vence.length === 5 && pago.cvv.length >= 3
-    : pago.celular.replace(/\s/g, '').length === 9 && pago.codigo.length === 6;
+  const pruebas = modoMock || config.kushki.test;
 
   return (
-    <Hoja abierto={abierto} onCerrar={cerrar} titulo={titulo} subtitulo={`${sorteo.premio} · ${sorteo.fecha}`} onVolver={paso === 'pago' ? () => setPaso('elegir') : undefined}>
-      {paso === 'elegir' && (
-        <>
-          <Bloque>
-            <p className="text-sm font-bold">¿Cuántas chances quieres sumar?</p>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <button aria-label="Quitar una chance" disabled={cantidad <= 1} onClick={() => setCantidad(Math.max(1, cantidad - 1))} className="flex size-10 items-center justify-center rounded-pill bg-n5 text-xl font-bold disabled:opacity-40">−</button>
-                <input aria-label="Cantidad de chances" inputMode="numeric" value={cantidad}
-                  onChange={(e) => setCantidad(Math.min(999, Math.max(1, Number(e.target.value.replace(/\D/g, '')) || 1)))}
-                  className="h-11 w-16 rounded-xl border border-n10 bg-n0 text-center text-[26px] font-black outline-none focus:border-cafe" />
-                <button aria-label="Sumar una chance" onClick={() => setCantidad(Math.min(999, cantidad + 1))} className="flex size-10 items-center justify-center rounded-pill bg-n5 text-xl font-bold">+</button>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-cafe/60 lg:items-center" role="dialog" aria-modal="true" aria-label={titulo} onClick={onCerrar}>
+      <div className="flex max-h-[94vh] w-full flex-col overflow-hidden rounded-t-[28px] bg-fondo text-cafe lg:w-[480px] lg:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
+        <FranjaCreadoPor />
+        <div className="flex flex-col gap-4 overflow-y-auto p-5 pb-6">
+          <div className="flex items-start gap-3">
+            {paso === 'pago' && (
+              <button aria-label="Volver" onClick={() => setPaso('elegir')} className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-n0">
+                <Icon name="flecha" size={18} className="rotate-180" />
+              </button>
+            )}
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <p className="text-[24px] font-black leading-7">{titulo}</p>
+              <p className="text-[14px] font-bold text-cafe">{sorteo.premio}</p>
+              {sorteo.fecha && <p className="text-[13px] text-n60">{/^Sorteo/i.test(sorteo.fecha) ? sorteo.fecha : `Sorteo: ${sorteo.fecha}`}</p>}
+            </div>
+            <button aria-label="Cerrar" onClick={onCerrar} className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-n0"><Icon name="cerrar" size={18} /></button>
+          </div>
+          {paso !== 'listo' && limite && (
+            <p className="flex items-center gap-2 rounded-xl bg-amarillo/35 px-3 py-2 text-[13px] font-bold text-cafe"><Icon name="reloj" size={16} className="shrink-0" />Compra hasta {limite}</p>
+          )}
+
+          {paso === 'elegir' && (
+            <>
+              <div className="flex flex-col gap-2.5">
+                <p className="text-sm font-bold">¿Cuántas chances quieres sumar?</p>
+                <div className="flex items-center justify-between gap-2">
+                  <Contador valor={cantidad} onCambio={setCantidad} />
+                  <p className="text-[13px] text-n60">Ya tienes {sorteo.chancesActuales} chances</p>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {SUGERIDOS.map((n) => (
+                    <button key={n} onClick={() => setCantidad(n)} aria-pressed={n === cantidad}
+                      className={cx('flex min-w-0 flex-col items-center gap-0.5 rounded-2xl border px-1 py-2 text-center', n === cantidad ? 'border-cafe bg-cafe text-n0' : 'border-n10 bg-n0 text-cafe')}>
+                      <span className="text-[11px] font-semibold">{n} chances</span>
+                      <span className="text-[16px] font-black leading-tight">{solesCorto(n * PRECIO_CHANCE.soles)}</span>
+                      {n === RECOMENDADO && <span className="rounded-pill bg-amarillo px-1.5 text-[9px] font-extrabold text-cafe">Recomendado</span>}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <p className="text-[13px] text-n60">Hoy tienes {sorteo.chancesActuales}</p>
-            </div>
-            <div className="flex gap-2">
-              {[1, 3, 5, 10].map((n) => (
-                <button key={n} onClick={() => setCantidad(n)}
-                  className={cx('h-9 flex-1 rounded-pill text-sm font-bold', n === cantidad ? 'bg-cafe text-amarillo' : 'border border-n10 bg-n0 text-cafe')}>+{n}</button>
-              ))}
-            </div>
-          </Bloque>
 
-          <div role="radiogroup" className="flex flex-col gap-2.5">
-            <p className="text-sm font-bold">¿Cómo quieres pagar?</p>
-            <OpcionElegible activa={metodo === 'soles'} onClick={() => setMetodo('soles')} icono={<Icon name="tarjeta" size={22} />}
-              titulo={`Con soles · ${soles(costoSoles)}`} detalle="Tarjeta o Yape. Te enviamos tu boleta por correo." />
-            <OpcionElegible activa={metodo === 'lanas'} onClick={() => setMetodo('lanas')} icono={<MonedaLana size={22} />} agotada={sinPrecioLanas}
-              titulo={sinPrecioLanas ? 'Con Lanas · no disponible' : `Con Lanas · ${formatoLanas(costoLanas)} Lanas`}
-              detalle={sinPrecioLanas ? 'Pronto podrás sumar chances con tus Lanas.' : `Tu saldo: ${formatoLanas(billetera.saldo)} Lanas`} />
-          </div>
+              {FLAGS.codigoChances && <CodigoPromo codigo={codigo} onCambio={setCodigo} validar={validarCodigo} />}
+              <Total total={total} actuales={sorteo.chancesActuales} cantidad={cantidad} regalo={regalo} />
 
-          {metodo === 'lanas' && !billetera.puedeGastar && (
-            <p className="rounded-2xl bg-rosa-claro p-4 text-[13px] font-semibold text-cafe">Necesitas una suscripción vigente para usar tus Lanas. Puedes pagar estas chances con soles.</p>
-          )}
-          {metodo === 'lanas' && billetera.puedeGastar && faltan > 0 && (
-            <div className="flex flex-col gap-2 rounded-2xl border border-error/30 bg-error/[.06] p-4">
-              <p className="text-sm font-semibold text-error">Te faltan {formatoLanas(faltan)} Lanas.</p>
-              <p className="text-[13px] text-cafe">Puedes pagar estas {cantidad} chances con soles o sumar menos chances con tus Lanas.</p>
-              <button onClick={() => setMetodo('soles')} className="self-start text-sm font-bold text-cafe underline">Pagar con soles</button>
-            </div>
-          )}
-
-          <p className="text-xs text-n60">Valen solo para este sorteo.{sorteo.corte ? ` Puedes sumarlas hasta ${/^\d/.test(sorteo.corte) ? 'las' : 'el'} ${sorteo.corte}${sorteo.corte.endsWith('.') ? '' : '.'}` : ''}</p>
-          {error && <p role="alert" className="text-xs font-semibold text-error">{error}</p>}
-
-          {metodo === 'lanas' ? (
-            <Button full disabled={sinPrecioLanas || faltan > 0 || !billetera.puedeGastar || enviando || sorteo.puedeComprar === false} className="disabled:opacity-40" onClick={usarLanas}>
-              {enviando ? 'Sumando…' : `Usar ${formatoLanas(costoLanas)} ${costoLanas === 1 ? 'Lana' : 'Lanas'}`}
-            </Button>
-          ) : (
-            <Button full disabled={sorteo.puedeComprar === false} className="disabled:opacity-40" onClick={() => setPaso('pago')}>Continuar · {soles(costoSoles)}</Button>
-          )}
-        </>
-      )}
-
-      {paso === 'pago' && (
-        <>
-          <Bloque>
-            <Fila k="Chances" v={`+${cantidad} para este sorteo`} />
-            <Fila k="Total" v={soles(costoSoles)} fuerte />
-            <p className="text-xs text-n60">Precio con IGV. Te enviamos la boleta a tu correo.</p>
-            {FLAGS.codigoChances && <CodigoPromo valor={pago.promo} onCambio={(v) => setPago({ ...pago, promo: v })} validar={validarPromo} />}
-          </Bloque>
-
-          <div className="flex gap-2 rounded-pill bg-n0 p-1.5" role="tablist">
-            {(['tarjeta', 'yape'] as const).map((m) => (
-              <button key={m} role="tab" aria-selected={medio === m} onClick={() => setMedio(m)}
-                className={cx('flex h-12 flex-1 items-center justify-center gap-2 rounded-pill text-sm font-bold', medio === m ? 'bg-cafe text-amarillo' : 'text-cafe')}>
-                {m === 'tarjeta' ? <><LogosTarjeta size={22} />Tarjeta</> : <><LogoYape size={24} />Yape</>}</button>
-            ))}
-          </div>
-
-          {medio === 'tarjeta' ? (
-            <Bloque>
-              <Campo label="Número de tarjeta" placeholder="•••• •••• •••• ••••" inputMode="numeric" value={pago.tarjeta} onChange={(v) => setPago({ ...pago, tarjeta: limpiar.tarjeta(v) })} />
-              <div className="flex gap-3">
-                <Campo label="Vence" placeholder="MM/AA" inputMode="numeric" value={pago.vence} onChange={(v) => setPago({ ...pago, vence: limpiar.vencimiento(v) })} />
-                <Campo label="CVV" placeholder="•••" inputMode="numeric" value={pago.cvv} onChange={(v) => setPago({ ...pago, cvv: limpiar.cvv(v, pago.tarjeta) })} />
+              <div className="flex flex-col gap-2.5">
+                <p className="text-sm font-bold">¿Cómo quieres sumar tus chances?</p>
+                <Opcion activa={metodo === 'soles'} onClick={() => setMetodo('soles')}
+                  icono={<Icon name="tarjeta" size={22} />} titulo={`Comprar chances · ${soles(costoSoles)}`} detalle="Tarjeta o Yape" />
+                <Opcion activa={metodo === 'lanas'} onClick={() => !sinPrecioLanas && setMetodo('lanas')} deshabilitada={sinPrecioLanas}
+                  icono={<MonedaLana size={22} />} titulo={sinPrecioLanas ? 'Canjear Lanas · no disponible' : `Canjear Lanas · ${formatoLanas(costoLanas)} Lanas`}
+                  detalle={sinPrecioLanas ? 'Pronto podrás sumar chances con tus Lanas.' : `Tu saldo: ${formatoLanas(billetera.saldo)} Lanas`} />
               </div>
-            </Bloque>
-          ) : (
-            <Bloque>
-              <Campo label="Celular registrado en Yape" placeholder="987 654 321" inputMode="numeric" value={pago.celular} onChange={(v) => setPago({ ...pago, celular: limpiar.celular(v) })} />
-              <Campo label="Código de aprobación" placeholder="______" inputMode="numeric" value={pago.codigo} onChange={(v) => setPago({ ...pago, codigo: limpiar.codigo6(v) })} ayuda="Lo encuentras en tu app Yape. Vence en 2 minutos." />
-            </Bloque>
+              {metodo === 'lanas' && !billetera.puedeGastar && (
+                <p className="rounded-2xl bg-rosa-claro p-3.5 text-[13px] font-semibold text-cafe">Necesitas una suscripción vigente para usar tus Lanas. Puedes comprar estas chances con soles.</p>
+              )}
+              {metodo === 'lanas' && billetera.puedeGastar && faltan > 0 && (
+                <div className="flex flex-col gap-1.5 rounded-2xl border border-error/30 bg-error/[.06] p-3.5">
+                  <p className="text-sm font-semibold text-error">Te faltan {formatoLanas(faltan)} Lanas.</p>
+                  <button onClick={() => setMetodo('soles')} className="self-start text-sm font-bold text-cafe underline">Comprar con soles</button>
+                </div>
+              )}
+              <p className="text-xs text-n60">Precios con IGV incluido. Las chances valen solo para este sorteo.</p>
+              {error && <p role="alert" className="text-xs font-semibold text-error">{error}</p>}
+              <BotonPrincipal disabled={sorteo.puedeComprar === false || enviando || (metodo === 'lanas' && (faltan > 0 || !billetera.puedeGastar || sinPrecioLanas))}
+                onClick={() => (metodo === 'lanas' ? usarLanas() : setPaso('pago'))}>
+                {enviando ? 'Sumando…' : metodo === 'lanas' ? `Usar ${formatoLanas(costoLanas)} Lanas` : `Continuar · ${soles(costoSoles)}`}
+              </BotonPrincipal>
+            </>
           )}
 
-          {error && <p role="alert" className="text-xs font-semibold text-error">{error}</p>}
-          <Button full disabled={!pagoCompleto || enviando} className="disabled:opacity-40" onClick={pagarConSoles}>{enviando ? 'Procesando…' : `Pagar ${soles(costoSoles)}`}</Button>
-        </>
-      )}
+          {paso === 'pago' && (
+            <>
+              <Bloque>
+                <Fila k="Chances a comprar" v={String(cantidad)} />
+                {codigo && codigo.regalo > 0 && <Fila k={`Código ${codigo.texto}`} v={`+${codigo.regalo} de regalo`} verde />}
+                <Fila k="Ya tienes" v={String(sorteo.chancesActuales)} />
+                <div className="border-t border-n10 pt-2">
+                  <p className="text-[15px] font-extrabold">Tu total será de {total} chances</p>
+                  <p className="text-xs text-n60">Para este premio y sorteo.</p>
+                </div>
+              </Bloque>
+              <div className="flex items-start justify-between rounded-2xl bg-amarillo/35 px-4 py-3">
+                <span className="text-[15px] font-extrabold">Total a pagar</span>
+                <span className="flex flex-col items-end"><span className="text-[24px] font-black leading-none">{soles(costoSoles)}</span><span className="text-[11px] text-n60">IGV incluido</span></span>
+              </div>
+              <div className="flex gap-2 rounded-pill bg-n0 p-1.5" role="tablist">
+                {(['tarjeta', 'yape'] as const).map((m) => (
+                  <button key={m} role="tab" aria-selected={medio === m} onClick={() => setMedio(m)}
+                    className={cx('flex h-12 flex-1 items-center justify-center gap-2 rounded-pill text-sm font-bold', medio === m ? 'bg-cafe text-amarillo' : 'text-cafe')}>
+                    {m === 'tarjeta' ? <><LogosTarjeta size={22} />Tarjeta</> : <><LogoYape size={24} />Yape</>}
+                  </button>
+                ))}
+              </div>
+              {medio === 'tarjeta' ? (
+                <Bloque>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[15px] font-extrabold">Datos de tu tarjeta</p>
+                    {pruebas && <button type="button" onClick={() => setTarjeta({ numero: '4456 5400 0000 0063', venc: '12/29', cvv: '123', nombre: 'CAMILA ROJAS' })} className="text-[12px] font-semibold text-n60 underline">Datos de prueba</button>}
+                  </div>
+                  <Campo label="Número de tarjeta" placeholder="0000 0000 0000 0000" inputMode="numeric" autoComplete="cc-number" {...campoT('numero', formatoTarjeta)} />
+                  <div className="flex gap-3">
+                    <Campo label="Vencimiento" placeholder="MM/AA" inputMode="numeric" autoComplete="cc-exp" {...campoT('venc', formatoVenc)} />
+                    <Campo label="CVV" placeholder="123" inputMode="numeric" autoComplete="cc-csc" {...campoT('cvv', formatoCvv)} />
+                  </div>
+                  <Campo label="Nombre del titular" placeholder="Como aparece en tu tarjeta" autoComplete="cc-name" autoCapitalize="characters" ayuda="Sin tildes, como aparece en tu tarjeta." {...campoT('nombre', sinTildes)} />
+                </Bloque>
+              ) : (
+                <Bloque>
+                  <Campo label="Celular registrado en Yape" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="987654321" {...campoY('celular', formatoCelular)} />
+                  <Campo label="Código de aprobación" inputMode="numeric" placeholder="000000" ayuda="Lo encuentras en tu app Yape, en «Código de aprobación»." {...campoY('codigo', formatoCodigoYape)} />
+                </Bloque>
+              )}
+              <p className="text-xs text-n60">Te enviaremos la boleta a tu correo.</p>
+              {error && <p role="alert" className="text-xs font-semibold text-error">{error}</p>}
+              <BotonPrincipal onClick={pagar} disabled={enviando}>{enviando ? 'Procesando…' : `Pagar ${soles(costoSoles)}`}</BotonPrincipal>
+            </>
+          )}
 
-      {paso === 'listo' && (
-        <>
-          <div className="flex flex-col items-center gap-3 rounded-[24px] bg-hero-brand px-5 py-7 text-center text-n0">
-            <span className="flex size-14 items-center justify-center rounded-pill bg-verde text-cafe"><Icon name="check" size={28} /></span>
-            <p className="text-[34px] font-black leading-none text-amarillo">+{cantidad} chances</p>
-            <p className="text-sm text-n0/80">Ahora tienes {total ?? sorteo.chancesActuales + cantidad} chances para {sorteo.premio}.</p>
-          </div>
-          <p className="text-center text-[13px] text-n60">
-            {metodo === 'lanas' ? `Usaste ${formatoLanas(costoLanas)} Lanas. Lo ves en tus movimientos.` : `Pagaste ${soles(costoSoles)}. Te enviamos la boleta a tu correo.`}
-          </p>
-          <Button full onClick={cerrar}>Listo</Button>
-        </>
-      )}
-    </Hoja>
-  );
-}
-
-function Fila({ k, v, fuerte }: { k: string; v: string; fuerte?: boolean }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-n60">{k}</span>
-      <span className={cx('font-bold', fuerte && 'text-lg font-black')}>{v}</span>
+          {paso === 'listo' && (
+            <>
+              <div className="flex flex-col items-center gap-1.5 rounded-[24px] bg-cafe px-5 py-6 text-center text-n0">
+                <span className="flex size-12 items-center justify-center rounded-pill bg-verde text-cafe"><Icon name="check" size={26} /></span>
+                <p className="mt-1 text-[15px] font-bold">Ahora tienes</p>
+                <p className="text-[38px] font-black leading-none text-amarillo">{total} chances</p>
+                <p className="text-sm text-n0/80">Para este premio y sorteo.</p>
+              </div>
+              <Bloque>
+                <Fila k="Ya tenías" v={`${sorteo.chancesActuales} chances`} />
+                <Fila k={metodo === 'lanas' ? 'Canjeaste' : 'Compraste'} v={`${cantidad} chances`} />
+                {codigo && codigo.regalo > 0 && <Fila k={`Tu código ${codigo.texto} te dio`} v={`${codigo.regalo} chances de regalo`} verde />}
+                <div className="flex items-center justify-between border-t border-n10 pt-2 text-[15px] font-extrabold"><span>Total ahora</span><span>{total} chances</span></div>
+              </Bloque>
+              <div className="flex items-center gap-3 rounded-2xl bg-n0 px-4 py-3">
+                {metodo === 'lanas' ? <MonedaLana size={26} /> : <Icon name="tarjeta" size={24} />}
+                <div className="flex flex-col">
+                  <p className="text-[15px] font-extrabold">{metodo === 'lanas' ? `Usaste ${formatoLanas(costoLanas)} Lanas` : `Pagaste ${soles(costoSoles)}`}</p>
+                  <p className="text-xs text-n60">{metodo === 'lanas' ? 'Lo ves en tus movimientos de Lanas.' : 'Te enviamos la boleta a tu correo.'}</p>
+                </div>
+              </div>
+              <BotonPrincipal onClick={onCerrar}>Listo</BotonPrincipal>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-function Campo({ label, ayuda, value, onChange, placeholder, inputMode }: {
-  label: string; ayuda?: string; value: string; onChange: (v: string) => void; placeholder?: string; inputMode?: 'numeric' | 'text';
-}) {
+function CodigoPromo({ codigo, onCambio, validar }: { codigo: Codigo | null; onCambio: (c: Codigo | null) => void; validar: (t: string) => Promise<{ codigo?: Codigo; error?: string }> }) {
+  const [texto, setTexto] = useState(codigo?.texto ?? '');
+  const [error, setError] = useState('');
+  const [revisando, setRevisando] = useState(false);
+  const aplicar = async () => {
+    const k = texto.trim().toUpperCase();
+    if (!k) { setError('Escribe tu código.'); return; }
+    setRevisando(true);
+    const r = await validar(k);
+    setRevisando(false);
+    if (r.codigo) { onCambio(r.codigo); setError(''); } else setError(r.error ?? 'Este código no es válido o ya venció.');
+  };
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-bold">Código promocional (opcional)</p>
+      <div className="flex items-stretch gap-2">
+        <input value={texto} onChange={(e) => { setTexto(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20)); if (codigo) onCambio(null); }} placeholder="Ingresa tu código" autoCapitalize="characters" aria-label="Código promocional"
+          className="h-12 w-full min-w-0 flex-1 rounded-xl border border-n10 bg-n0 px-4 text-[15px] uppercase outline-none placeholder:normal-case focus:border-cafe" />
+        {codigo
+          ? <button onClick={() => { onCambio(null); setTexto(''); }} className="h-12 shrink-0 rounded-xl border border-n10 bg-n0 px-4 text-sm font-bold text-cafe">Cambiar</button>
+          : <button onClick={aplicar} disabled={revisando} className="h-12 shrink-0 rounded-xl bg-cafe px-4 text-sm font-bold text-fondo disabled:opacity-60">{revisando ? '…' : 'Aplicar'}</button>}
+      </div>
+      {error && <p className="text-xs font-medium text-error">{error}</p>}
+      {codigo
+        ? <div className="flex items-center gap-3 rounded-2xl bg-verde/30 px-3.5 py-2.5">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-pill bg-verde"><Icon name="check" size={18} /></span>
+            <p className="flex flex-col text-[13px] leading-[18px]"><b className="text-[14px]">Código aplicado</b>{codigo.regalo > 0 ? `Tu código te da ${codigo.regalo} chances de regalo.` : 'El beneficio se aplica al pagar.'}</p>
+          </div>
+        : !error && <p className="text-xs text-n60">Aplica tu código para ver tu beneficio.</p>}
+    </div>
+  );
+}
+
+function Total({ total, actuales, cantidad, regalo }: { total: number; actuales: number; cantidad: number; regalo: number }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-n0 px-4 py-3">
+      <Icon name="ticket" size={26} className="shrink-0" />
+      <div className="flex flex-col">
+        <p className="text-[15px] font-extrabold">Tu total será de {total} chances</p>
+        <p className="text-xs text-n60">{actuales} actuales + {cantidad} seleccionadas{regalo ? ` + ${regalo} de regalo` : ''}</p>
+        <p className="text-xs text-n60">Para este premio y sorteo.</p>
+      </div>
+    </div>
+  );
+}
+
+function BotonPrincipal({ children, onClick, disabled }: { children: ReactNode; onClick: () => void; disabled?: boolean }) {
+  return <button onClick={onClick} disabled={disabled} className="inline-flex h-14 w-full shrink-0 items-center justify-center rounded-pill bg-amarillo text-[16px] font-extrabold text-cafe disabled:opacity-40">{children}</button>;
+}
+
+function Bloque({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col gap-2.5 rounded-2xl bg-n0 p-4">{children}</div>;
+}
+
+function Fila({ k, v, verde }: { k: string; v: string; verde?: boolean }) {
+  return (
+    <div className={cx('flex items-center justify-between gap-3 text-sm', verde && 'font-bold text-verde-texto')}>
+      <span className={verde ? '' : 'text-n60'}>{k}</span>
+      <span className="text-right font-bold">{v}</span>
+    </div>
+  );
+}
+
+function Contador({ valor, onCambio }: { valor: number; onCambio: (n: number) => void }) {
+  const btn = 'flex size-10 items-center justify-center rounded-pill bg-n0 text-xl font-bold disabled:opacity-40';
+  return (
+    <div className="flex items-center gap-3">
+      <button aria-label="Quitar una chance" className={btn} disabled={valor <= 1} onClick={() => onCambio(Math.max(1, valor - 1))}>−</button>
+      <span className="w-12 text-center text-[30px] font-black" aria-live="polite">{valor}</span>
+      <button aria-label="Sumar una chance" className={btn} onClick={() => onCambio(Math.min(999, valor + 1))}>+</button>
+    </div>
+  );
+}
+
+function Opcion({ activa, onClick, icono, titulo, detalle, deshabilitada }: { activa: boolean; onClick: () => void; icono: ReactNode; titulo: string; detalle: string; deshabilitada?: boolean }) {
+  return (
+    <button onClick={onClick} aria-pressed={activa} disabled={deshabilitada}
+      className={cx('flex items-center gap-3 rounded-2xl border-2 bg-n0 p-3.5 text-left', activa ? 'border-cafe' : 'border-transparent', deshabilitada && 'opacity-60')}>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-n5">{icono}</span>
+      <span className="flex flex-1 flex-col gap-0.5">
+        <span className="text-[15px] font-extrabold">{titulo}</span>
+        <span className="text-[13px] text-n60">{detalle}</span>
+      </span>
+      <span className={cx('flex size-5 items-center justify-center rounded-pill border-2', activa ? 'border-cafe bg-cafe' : 'border-n40')}>
+        {activa && <span className="size-2 rounded-pill bg-amarillo" />}
+      </span>
+    </button>
+  );
+}
+
+function Campo({ label, ayuda, error, ...rest }: { label: string; ayuda?: string; error?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="flex min-w-0 flex-1 flex-col gap-1.5">
       <span className="text-[13px] font-bold">{label}</span>
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} inputMode={inputMode}
-        className="h-12 w-full min-w-0 rounded-xl border border-n10 bg-n0 px-4 text-[15px] outline-none focus:border-cafe" />
-      {ayuda && <span className="text-xs text-n60">{ayuda}</span>}
+      <input {...rest} aria-invalid={!!error} className={cx('h-12 w-full min-w-0 rounded-xl border bg-n0 px-4 text-[15px] tabular-nums outline-none focus:border-cafe', error ? 'border-error' : 'border-n10')} />
+      {error ? <span role="alert" className="text-xs font-semibold text-error">{error}</span> : ayuda && <span className="text-xs text-n60">{ayuda}</span>}
     </label>
-  );
-}
-
-function CodigoPromo({ valor, onCambio, validar }: { valor: string; onCambio: (v: string) => void; validar: (code: string) => Promise<{ error?: string; detalle?: string }> }) {
-  const [aplicado, setAplicado] = useState(false);
-  const [detalle, setDetalle] = useState('');
-  const [revisando, setRevisando] = useState(false);
-  const [aviso, setAviso] = useState('');
-  const aplicar = async () => {
-    setAviso('');
-    if (!valor) { setAviso('Escribe tu código.'); return; }
-    setRevisando(true);
-    const r = await validar(valor);
-    setRevisando(false);
-    if (r.error) setAviso(r.error); else { setDetalle(r.detalle ?? ''); setAplicado(true); }
-  };
-  if (aplicado && valor) {
-    return (
-      <div className="flex flex-col gap-0.5 rounded-xl bg-verde/25 px-3 py-2.5 text-cafe">
-        <p className="flex items-center justify-between gap-2 text-[13px] font-bold"><span className="flex items-center gap-2"><Icon name="check" size={16} />Código {valor} aplicado</span>
-          <button type="button" onClick={() => { setAplicado(false); onCambio(''); }} className="text-[12px] font-semibold underline">Quitar</button></p>
-        {detalle && <p className="text-[12px] leading-[17px]">{detalle}</p>}
-      </div>
-    );
-  }
-  return (
-    <div className="flex flex-col gap-1.5">
-      <p className="flex items-center gap-1.5 text-[14px] font-extrabold"><Icon name="cupon" size={18} />¿Tienes un código promocional?</p>
-      <div className="flex items-end gap-2">
-        <Campo label="Código (opcional)" placeholder="Ej. CHANCES50" value={valor} onChange={(v) => onCambio(v.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20))} />
-        <button type="button" disabled={revisando} onClick={aplicar} className="h-12 shrink-0 rounded-xl bg-cafe px-4 text-sm font-bold text-fondo disabled:opacity-40">{revisando ? '…' : 'Aplicar'}</button>
-      </div>
-      {aviso && <p role="alert" className="text-xs font-medium text-error">{aviso}</p>}
-    </div>
   );
 }

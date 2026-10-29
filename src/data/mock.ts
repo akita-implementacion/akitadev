@@ -146,7 +146,7 @@ export const misiones: Mision[] = [
     descripcion: 'Cuando 3 amigos pagan su primera suscripción, recibes +500 Lanas. Puedes volver a empezar.',
     avance: 2, meta: 3, cta: { texto: 'Copiar mi código', variant: 'link' } },
   { id: 'cofre', titulo: 'Abre tu cofre', ciclo: 'SEMANAL', recompensa: '+ premio',
-    descripcion: 'Cada miércoles a las 8:00 a. m. llega un cofre nuevo. Elige tu premio o Lanas antes de que se agoten.',
+    descripcion: 'Cada jueves a las 8:00 a. m. llega un cofre nuevo. Elige tu premio o Lanas antes de que se agoten.',
     avance: 0, meta: 1, cta: { texto: 'Ir a Hoy', variant: 'link', to: '/' } },
   { id: 'visita', titulo: 'Visita semanal', ciclo: 'SEMANAL', recompensa: '+150',
     descripcion: 'Entra a AKITÁ una vez por semana (de miércoles a martes). Meta de semanas por definir.',
@@ -169,7 +169,6 @@ export const menuCuenta = [
 ];
 
 export const miAnio = { cupones: 42, sorteos: 12 };
-
 
 export const checkout = {
   primerCobro: 'Hoy, 17 oct',
@@ -217,7 +216,6 @@ export const marcasAliadas = [
   { nombre: 'Repsol', logo: 'assets/marcas/repsol.webp' },
 ];
 
-
 export const movimientosLanas = [
   { id: 'm1', titulo: 'Cofre de la semana', origen: 'Cofre', fecha: '15 oct 2026', lanas: 200, vence: '15 oct 2027', lotes: 1 },
   { id: 'm2', titulo: 'Chances para el sorteo KIA Niro EV', origen: 'Chances de sorteo', fecha: '12 oct 2026', lanas: -300, vence: '', lotes: 2 },
@@ -263,7 +261,6 @@ export const ubigeo = {
   ],
 };
 
-
 export type OpcionRecompensa = {
   id: 'premio' | 'lanas';
   etiqueta: string;
@@ -282,8 +279,8 @@ export const cofreSemana = {
   ],
   logo: 'assets/marcas/franklin.webp',
   cierraEn: '2 d 14 h',
-  proximo: 'mié 8:00 a. m.',
-  proximoLargo: 'el mié a las 8:00 a. m.',
+  proximo: 'jue 8:00 a. m.',
+  proximoLargo: 'el jue a las 8:00 a. m.',
   entregados: 28,
   totalPremios: 40,
   auspicia: 'LOGO',
@@ -307,7 +304,7 @@ export const flashSemana = {
   logo: 'assets/marcas/arthur-sons.webp',
   imagen: 'assets/3d/flash-lentes-3d.webp',
   eligeHasta: '06:12:16',
-  proximo: 'mié 4 nov · 8:00 a. m.',
+  proximo: 'vie 6 nov · 8:00 a. m.',
   usoNota: 'El beneficio se usa hasta el 30 nov · 11:59 p. m., aunque el Flash cierre antes.',
   opciones: [
     { id: 'premio', etiqueta: 'BENEFICIO', titulo: '90% OFF en lentes', lugar: 'Arthur & Sons · lentes y monturas', quedan: 188, total: 500 },

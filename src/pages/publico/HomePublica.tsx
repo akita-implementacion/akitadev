@@ -5,7 +5,10 @@ import {
 import { SoloSuscriptores } from '../../ref/SoloSuscriptores';
 import { FuenteSorteosApi } from '../../ref/sitio';
 import { pasos, preguntas, propuestaValor, slides } from '../../ref/publico';
-import { useBeneficios, useUltimosGanadores } from '../../data/datos';
+import { useBanners, useBeneficios, useUltimosGanadores } from '../../data/datos';
+import { config } from '../../api/config';
+import { BannerInicio } from '../../components/layout/BannerInicio';
+import { useBannersQueCargan } from '../../components/layout/HeroCarrusel';
 import { asset } from '../../data/assets';
 import { useScrollPorVistas } from '../../hooks/vistas';
 
@@ -18,9 +21,11 @@ export default function HomePublica() {
   const { beneficios } = useBeneficios();
   const { fecha, ganadores } = useUltimosGanadores();
   const fechaTxt = fecha ? `${DIAS[fecha.getDay()]} ${fecha.getDate()} ${MESES[fecha.getMonth()]}` : '';
+  const banners = useBanners(['LANDING_MAIN']);
+  const conBanners = useBannersQueCargan(config.usarMock ? [] : banners.imagenes).length > 0;
   return (
     <FuenteSorteosApi>
-      <SliderHero slides={slides} />
+      {conBanners ? <BannerInicio banners={banners.imagenes} intervalo={banners.intervalo} autoAvance={banners.autoAvance} /> : <SliderHero slides={slides} />}
       <PropuestaValor items={propuestaValor} />
       <SoloSuscriptores />
       <div className="vista-d lg:flex lg:min-h-[var(--alto-vista)] lg:flex-col">

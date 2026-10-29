@@ -1,8 +1,29 @@
-# AKITÁ · Pendientes de backend (28/10/2026)
+# AKITÁ · Pendientes de backend (29/10/2026)
 
-Actualizado con la revisión UX del 28/10. Anteriores: ajustes RF y respuesta de backend del 27/10.
+Actualizado con la revisión UX del 29/10. Debajo siguen los pendientes del 28/10.
 
-## 1. ¿Hay una API para el carrusel del Inicio?
+## 1. Revisión UX del 29/10: qué falta de backend
+
+| # | Dato | Para qué |
+|---|---|---|
+| 1 | **Beneficios: `pasos[]` y orden de los destacados** | Hoy ya llegan `isFeatured`, `description`, `startDate`/`endDate` y `coverage`. Faltan los pasos de uso propios del comercio (si no llegan, se arman según la modalidad) y el orden de «Destacados para ti». |
+| 2 | **Modalidad de uso por beneficio:** `deliveryType`, `code`, `qrValue` o `qrImageUrl`, `url`, `validFrom` y `validTo` | Cupón con QR, enlace, DNI o «Te contactamos». Hoy se usa `deliveryMethod` (`PROMO_CODE`, `REDIRECT_LINK`, `PROMO_CODE_AND_LINK`, `IN_PERSON`, `EXTERNAL`). Falta **`CONTACT`** («Te contactamos»), y que la activación devuelva el QR (hoy solo lo trae el cupón externo, en `qrUrl`). |
+| 3 | **Términos del premio del Cofre y del Flash** (`terms`) | «Términos y condiciones» del premio. El Flash ya los trae; la apertura del Cofre no. |
+| 4 | **Días de Cofre y Flash configurables** | Hoy son textos provisionales (jueves y viernes). Deben venir del gestor. |
+| 5 | **Código promocional de chances:** tipo y cantidad de regalo | El front lee `bonusChances` (o `potentialBonus`) de `POST /v1/promo-codes/validate`. |
+| 6 | **Hora de cierre de compra de chances por sorteo** | «Compra hasta …». Hoy se usa la regla de las 12:00 del día del sorteo. |
+| 7 | **Banners de `LANDING_MAIN`, `BENEFITS_MAIN` y `PRIZES_LOGGED`** | Imagen web, imagen móvil, enlace y orden, cargados desde el BackOffice. `LANDING_MAIN` ya tiene una imagen en `api-dev`; `BENEFITS_MAIN` aún no. |
+| 8 | **CORS en `api-dev.akita.pe` y planes de Akitá** | Siguen pendientes (ver la sección 3). |
+
+**Otros pendientes:**
+- **Cliente:** textos finales de los días de Cofre y Flash.
+- **Marketing (Dani):** medidas de los banners (Inicio, Beneficios y Sorteos; web y móvil).
+- **Negocio:** plazo y canal de «Te contactamos».
+- **Renato:** textos de Sumar chances y del canje de beneficios.
+
+---
+
+## 2. ¿Hay una API para el carrusel del Inicio?
 
 **Sí, pero solo de imágenes.** Es `GET /v1/banners/public?section=…`. Las secciones las administra el BackOffice.
 
@@ -29,17 +50,17 @@ Actualizado con la revisión UX del 28/10. Anteriores: ajustes RF y respuesta de
 1. **Que backend agregue campos al banner:** `etiqueta`, `titulo`, `bajada`, `bajadaCorta`, `dato`, `cta`, `colorFondo` y la imagen recortada. Así el BackOffice administra los 3 slides con el diseño actual.
 2. **Mostrar las imágenes de `LANDING_MAIN` como slides extra** (imagen completa con enlace), como ya se hace en Sorteos y Beneficios. Es rápido, pero esas imágenes traen el texto dentro, contra la regla del 28/10.
 
-Hoy el sitio usa los 3 slides del diseño, con el premio del mes y su fecha calculados. El slide del premio del mes toma el nombre y la foto del sorteo destacado.
+**Actualización 29/10:** se decidió que todos los banners son una imagen con el texto incluido. El Inicio ya muestra las imágenes de `LANDING_MAIN` (web y móvil, con su enlace); si no hay ninguna o no cargan, quedan los 3 slides del diseño.
 
 ---
 
-## 2. Pendiente de backend
+## 3. Pendiente de backend (28/10)
 
 | # | Pendiente | Para qué |
 |---|---|---|
 | 1 | **CORS en `api-dev.akita.pe`** | El navegador no puede llamar a la API publicada. Mientras tanto, el front sigue con el mock de Cloud Run. |
 | 2 | **Planes de Akitá en `api-dev`** | `GET /v1/subscription-plans` responde listas vacías. Sin el `planId` no se puede pagar. |
-| 3 | **Campos estructurados en `LANDING_MAIN` / `LANDING_MAIN_LOGGED`** | Administrar el carrusel del Inicio desde el BackOffice (sección 1). |
+| 3 | **Campos estructurados en `LANDING_MAIN` / `LANDING_MAIN_LOGGED`** | Administrar el carrusel del Inicio desde el BackOffice (sección 2). |
 | 4 | **Marca de premio grande del mes** | Cómo se marca en el gestor (pregunta del LEEME del 28/10). Hoy se usa el sorteo destacado y la fecha del último miércoles del mes. |
 | 5 | **Fecha y `cutOffTime` por sorteo** | «Activa tu plan antes del…» y el estado cerrado. |
 | 6 | **`GET /v1/subscriptions/me`** con periodo, método (tarjeta o Yape), `autoRenew` y fecha de vigencia | «Se renueva el» o «Activo hasta» en Mi cuenta. Hoy se deduce de `GET /v1/users`: `isConcurrent`, `renewDate`/`endDate` y `paymentGateway`. |

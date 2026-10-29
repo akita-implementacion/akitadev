@@ -2,8 +2,10 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Icon } from './Icon';
 import { cx } from './primitives';
 
-export function Hoja({ abierto, onCerrar, titulo, subtitulo, onVolver, children }: {
+export function Hoja({ abierto, onCerrar, titulo, subtitulo, onVolver, children, amplia, pie }: {
   abierto: boolean; onCerrar: () => void; titulo: ReactNode; subtitulo?: ReactNode; onVolver?: () => void; children: ReactNode;
+  amplia?: boolean;
+  pie?: ReactNode;
 }) {
   useEffect(() => {
     if (!abierto) return;
@@ -16,7 +18,8 @@ export function Hoja({ abierto, onCerrar, titulo, subtitulo, onVolver, children 
   if (!abierto) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-cafe/60 lg:items-center" role="dialog" aria-modal="true" onClick={onCerrar}>
-      <div className="flex max-h-[88dvh] w-full flex-col gap-5 overflow-y-auto rounded-t-[28px] bg-fondo p-6 pb-[max(2rem,env(safe-area-inset-bottom))] text-cafe [&>*]:shrink-0 lg:max-h-[92vh] lg:w-[480px] lg:rounded-[28px] lg:pb-6" onClick={(e) => e.stopPropagation()}>
+      <div className={cx('flex max-h-[88dvh] w-full flex-col gap-5 overflow-y-auto rounded-t-[28px] bg-fondo p-6 text-cafe [&>*]:shrink-0 lg:max-h-[92vh] lg:rounded-[28px]',
+        pie ? 'pb-0' : 'pb-[max(2rem,env(safe-area-inset-bottom))] lg:pb-6', amplia ? 'lg:w-[min(920px,92vw)]' : 'lg:w-[480px]')} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start gap-3">
           {onVolver && (
             <button aria-label="Volver" onClick={onVolver} className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-n0">
@@ -30,6 +33,7 @@ export function Hoja({ abierto, onCerrar, titulo, subtitulo, onVolver, children 
           <button aria-label="Cerrar" onClick={onCerrar} className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-n0"><Icon name="cerrar" size={18} /></button>
         </div>
         {children}
+        {pie && <div className="sticky bottom-0 -mx-6 mt-auto flex flex-col gap-1.5 bg-fondo px-6 pb-6 pt-3 shadow-[0_-8px_16px_-12px_rgba(33,20,2,0.35)]">{pie}</div>}
       </div>
     </div>
   );
@@ -37,6 +41,18 @@ export function Hoja({ abierto, onCerrar, titulo, subtitulo, onVolver, children 
 
 export function Bloque({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={cx('flex flex-col gap-3 rounded-2xl bg-n0 p-4', className)}>{children}</div>;
+}
+
+export function TerminosPremio({ texto, etiqueta = 'Términos y condiciones del premio' }: { texto: string; etiqueta?: string }) {
+  const [ver, setVer] = useState(false);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <button type="button" onClick={(e) => { e.stopPropagation(); setVer((v) => !v); }} aria-expanded={ver} className="flex items-center gap-1.5 self-start text-left text-[13px] font-bold underline">
+        <Icon name="info" size={16} />{etiqueta}
+      </button>
+      {ver && <p className="rounded-xl bg-n5 p-3 text-[13px] leading-[19px] text-n60">{texto}</p>}
+    </div>
+  );
 }
 
 export function OpcionElegible({ activa, agotada, onClick, icono, titulo, detalle }: {

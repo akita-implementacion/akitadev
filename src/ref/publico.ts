@@ -2,7 +2,8 @@ const img = (f: string) => `${import.meta.env.BASE_URL}img/${f}`;
 
 export type Premio = { id: string; categoria: string; nombre: string; fechaSorteo: string; enDias: string; foto: string; fondo: 'amarillo' | 'rosa' | 'azul' | 'verde'; descripcion?: string; specs?: string[];  fecha?: Date };
 export type Ganador = { id: string; nombre: string; premio: string; premioCorto?: string; usuario: string; chances: number; fechaSorteo: string; foto: string };
-export type Beneficio = { id: string; titulo: string; comercio: string; uso: string; etiqueta: string; categoria: string; foto?: string; logo?: string;  marca?: string };
+export type Beneficio = { id: string; titulo: string; comercio: string; uso: string; etiqueta: string; categoria: string; foto?: string; logo?: string;  marca?: string;
+   destacado?: boolean; descripcion?: string };
 export type Canje = { id: string; costo: number; titulo: string; detalle: string };
 export type Marca = { nombre: string; logo: string };
 export type Pregunta = { pregunta: string; respuesta: string };
@@ -11,12 +12,12 @@ export type Slide = { id: number; etiqueta: string; titulo: string[]; bajada: st
   bajadaCorta?: string; datoCorto?: string; foto: string; tipo: 'personas' | 'premio'; fondo: string; cta: string; to: string; premioMes?: boolean };
 export const slides: Slide[] = [
   { id: 1, etiqueta: 'SORTEOS EN VIVO CADA MIÉRCOLES', titulo: ['VIVE', 'GANANDO'],
-    bajada: 'Sorteos, descuentos, Cofre y Flash cada miércoles, y Lanas por tus misiones.',
-    bajadaCorta: 'Sorteos, descuentos, Cofre y Flash cada miércoles.',
+    bajada: 'Sorteos cada miércoles, Cofre y Flash cada semana, y Lanas por tus misiones.',
+    bajadaCorta: 'Sorteos, Cofre y Flash cada semana.',
     dato: 'Desde S/7.50 al mes', foto: img('hero-personas.webp'), tipo: 'personas', fondo: '#45E586', cta: 'Elegir mi plan', to: '/planes' },
   { id: 2, etiqueta: 'PREMIO GRANDE DEL MES', titulo: ['GANA UNA', 'KIA NIRO EV'], bajada: 'Camioneta 100 % eléctrica, 0 km, con SOAT y placa.', bajadaCorta: 'Camioneta eléctrica 0 km, con SOAT y placa.',
     foto: img('premio-kia.webp'), tipo: 'premio', fondo: '#FFD400', cta: 'Elige tu plan y participa', to: '/planes?premio=kia', premioMes: true },
-  { id: 3, etiqueta: 'CADA MIÉRCOLES', titulo: ['COFRE', 'Y FLASH'], bajada: 'Elige un premio o Lanas en el Cofre y aprovecha el Beneficio Flash.',
+  { id: 3, etiqueta: 'CADA SEMANA', titulo: ['COFRE', 'Y FLASH'], bajada: 'Elige un premio o Lanas en el Cofre y aprovecha el Beneficio Flash.',
     bajadaCorta: 'Elige un premio o Lanas y aprovecha el Flash.',
     dato: '¡Cupos limitados cada semana!', datoCorto: '¡Cupos limitados!', foto: img('3d/cofre-slide.webp'), tipo: 'premio', fondo: '#FF88F7', cta: 'Elegir mi plan', to: '/planes' },
 ];
@@ -82,10 +83,10 @@ export const historicoGanadores = [
 ];
 
 export const beneficios: Beneficio[] = [
-  { id: 'b1', titulo: 'Packs de fitness', comercio: 'Andes Gym', uso: 'Código · Lima', etiqueta: '60%', categoria: 'Fitness', foto: img('beneficio-1.webp') },
-  { id: 'b2', titulo: 'Entradas de cine', comercio: 'Cinemark', marca: 'cinemark', uso: 'QR · todo el Perú', etiqueta: '2x1', categoria: 'Entretenimiento', foto: img('beneficio-2.webp') },
-  { id: 'b3', titulo: 'Consulta dermatológica', comercio: 'Dermohelp', marca: 'dermohelp', uso: 'DNI · Lima', etiqueta: '65%', categoria: 'Salud', foto: img('beneficio-3.webp') },
-  { id: 'b4', titulo: 'Menú ejecutivo', comercio: 'Franklin', marca: 'franklin', uso: 'Código · Lima', etiqueta: '30%', categoria: 'Comida', foto: img('beneficio-4.webp') },
+  { id: 'b1', destacado: true, descripcion: '60% en packs de 3 y 6 meses en sedes de Lima.', titulo: 'Packs de fitness', comercio: 'Andes Gym', uso: 'Código · Lima', etiqueta: '60%', categoria: 'Fitness', foto: img('beneficio-1.webp') },
+  { id: 'b2', destacado: true, descripcion: '2x1 en entradas 2D de lunes a jueves, en salas tradicionales.', titulo: 'Entradas de cine', comercio: 'Cinemark', marca: 'cinemark', uso: 'QR · todo el Perú', etiqueta: '2x1', categoria: 'Entretenimiento', foto: img('beneficio-2.webp') },
+  { id: 'b3', destacado: true, descripcion: '65% en tu consulta. Previa cita, presentando tu DNI.', titulo: 'Consulta dermatológica', comercio: 'Dermohelp', marca: 'dermohelp', uso: 'DNI · Lima', etiqueta: '65%', categoria: 'Salud', foto: img('beneficio-3.webp') },
+  { id: 'b4', destacado: true, descripcion: '30% en el menú del día, de lunes a viernes.', titulo: 'Menú ejecutivo', comercio: 'Franklin', marca: 'franklin', uso: 'Código · Lima', etiqueta: '30%', categoria: 'Comida', foto: img('beneficio-4.webp') },
   { id: 'b5', titulo: 'Tratamiento facial', comercio: 'Aquamed', marca: 'aquamed', uso: 'DNI · Lima', etiqueta: '65%', categoria: 'Salud', logo: img('marcas/dermohelp.png') },
   { id: 'b6', titulo: 'Corte y barba', comercio: 'Barba Negra', marca: 'barba-negra', uso: 'Código · Lima', etiqueta: '40%', categoria: 'Belleza', logo: img('marcas/barba-negra.png') },
   { id: 'b7', titulo: 'Combo hamburguesa', comercio: 'Hollyfood', marca: 'hollyfood', uso: 'Código · Lima', etiqueta: '25%', categoria: 'Comida', logo: img('marcas/hollyfood.png') },
@@ -108,7 +109,7 @@ export const marcas: Marca[] = [
 export const pasos = [
   { titulo: 'Elige tu plan', texto: 'LANITA, LANOTA o LANAZA: 1, 3 o 5 chances por sorteo regular.', img: img('paso-1.webp') },
   { titulo: 'Activa tu plan', texto: 'Paga con tarjeta, o con Yape en los planes semestral y anual. Tu plan se activa al confirmarse el pago.', img: img('paso-2.webp') },
-  { titulo: 'Usa tus beneficios', texto: 'Descuentos a diario y, cada miércoles, el **Cofre** y el **Beneficio Flash**: eliges un premio o Lanas, según disponibilidad.', img: img('paso-4.webp') },
+  { titulo: 'Usa tus beneficios', texto: 'Descuentos a diario, el **Cofre** cada jueves y el **Beneficio Flash** cada viernes: eliges un premio o Lanas, según disponibilidad.', img: img('paso-4.webp') },
   { titulo: 'Participa y gana', texto: 'Sorteos en vivo cada miércoles y sorteos VIP si cumples las misiones del mes. Revisa los resultados en Ganadores.', img: img('paso-3.webp') },
 ];
 

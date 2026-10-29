@@ -13,7 +13,7 @@ export function SoloSuscriptores() {
           <div className="flex flex-col gap-1.5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
             <div className="flex shrink-0 flex-col gap-1.5">
               <span className="w-fit rounded-pill bg-cafe px-3 py-1 text-[11px] font-bold tracking-[1px] text-amarillo">SOLO PARA SUSCRIPTORES</span>
-              <h2 className="text-[26px] font-black uppercase leading-[1.05] text-cafe lg:text-[clamp(28px,5dvh,40px)]">Cada miércoles hay algo nuevo</h2>
+              <h2 className="text-[26px] font-black uppercase leading-[1.05] text-cafe lg:text-[clamp(28px,5dvh,40px)]">Cada semana hay algo nuevo</h2>
             </div>
             <p className="text-[14px] leading-[20px] text-cafe/80 lg:max-w-[480px] lg:pb-1 lg:text-[15px] lg:leading-[22px]">Además de los sorteos y los descuentos, con tu suscripción eliges premios o Lanas en el Cofre y el Flash, y entras a sorteos VIP.</p>
           </div>

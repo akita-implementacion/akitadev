@@ -5,13 +5,13 @@ import { useDemo, usePerfil } from './demo';
 import { Icon } from '../components/ui/Icon';
 import { LogoMarca } from './LogoMarca';
 import { Badge, Button, MonedaLana, cx } from '../components/ui/primitives';
-import { Hoja } from '../components/ui/Hoja';
+import { Hoja, TerminosPremio } from '../components/ui/Hoja';
 
 const IMG3D = (f: string) => `${import.meta.env.BASE_URL}img/3d/${f}`;
 
-function proximoMiercoles8(hoy = new Date()) {
+function proximoMiercoles8(hoy = new Date(), dia = 4) {
   const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 8);
-  do d.setDate(d.getDate() + 1); while (d.getDay() !== 3);
+  do d.setDate(d.getDate() + 1); while (d.getDay() !== dia);
   return d;
 }
 function useAhora(ms = 1000) {
@@ -27,7 +27,7 @@ function formatoRestante(ms: number) {
 }
 const finFlash = () => { const d = new Date(); d.setHours(23, 59, 0, 0); return d; };
 
-function Opcion({ icono, titulo, lineas, stock, agotada }: { icono: ReactNode; titulo: string; lineas: string[]; stock: string; agotada: boolean }) {
+function Opcion({ icono, titulo, lineas, stock, agotada, terminos }: { icono: ReactNode; titulo: string; lineas: string[]; stock: string; agotada: boolean; terminos?: string }) {
   return (
     <div className={cx('flex gap-3 rounded-2xl bg-n0 p-3.5', agotada && 'opacity-70')}>
       <span className="flex w-[72px] shrink-0 items-start justify-center pt-0.5">{icono}</span>
@@ -37,6 +37,7 @@ function Opcion({ icono, titulo, lineas, stock, agotada }: { icono: ReactNode; t
         {agotada
           ? <span className="mt-0.5 w-fit rounded-pill bg-n10 px-2.5 py-0.5 text-[12px] font-bold text-n60">{titulo.includes('Lanas') ? 'Agotadas' : 'Agotado'}</span>
           : <span className="mt-0.5 w-fit rounded-pill bg-rosa px-2.5 py-0.5 text-[12px] font-bold text-cafe">{stock}</span>}
+        {terminos && <div className="mt-1"><TerminosPremio texto={terminos} etiqueta="Términos y condiciones" /></div>}
       </div>
     </div>
   );
@@ -53,13 +54,13 @@ export function CardCofreVisitante() {
   return (
     <div className="relative flex h-full flex-col overflow-hidden rounded-[24px] bg-[radial-gradient(120%_100%_at_78%_45%,#3D2A08_0%,#211402_62%)] text-n0 lg:flex-row">
       <div className="relative flex flex-col items-center gap-1 px-5 pt-4 lg:order-2 lg:flex-1 lg:p-0">
-        <Badge tone="rosa" className="!w-fit !px-2.5 !py-1 !text-[11px] lg:hidden">COFRE · CADA MIÉRCOLES</Badge>
+        <Badge tone="rosa" className="!w-fit !px-2.5 !py-1 !text-[11px] lg:hidden">COFRE · CADA JUEVES</Badge>
         <img src={IMG3D('cofre-3d.webp')} alt="Cofre con premios" className="h-[clamp(104px,16svh,170px)] w-auto max-w-full object-contain lg:absolute lg:inset-0 lg:m-auto lg:h-auto lg:max-h-[94%] lg:max-w-[96%]" />
       </div>
       <div className="flex flex-col items-center gap-2 px-5 pb-5 pt-1 text-center lg:order-1 lg:w-[56%] lg:shrink-0 lg:items-start lg:justify-center lg:gap-[clamp(6px,1.4dvh,12px)] lg:py-5 lg:pl-7 lg:pr-2 lg:text-left">
-        <Badge tone="rosa" className="!hidden !w-fit !px-2.5 !py-1 !text-[11px] lg:!inline-flex">COFRE · CADA MIÉRCOLES</Badge>
+        <Badge tone="rosa" className="!hidden !w-fit !px-2.5 !py-1 !text-[11px] lg:!inline-flex">COFRE · CADA JUEVES</Badge>
         <p className="text-[24px] font-black leading-[1.05] lg:text-[clamp(26px,4.4dvh,42px)]">Un cofre nuevo <span className="text-amarillo">cada semana</span></p>
-        <p className="text-[13px] leading-[18px] text-n0/85 lg:text-[15px] lg:leading-[21px]">Con tu suscripción, cada miércoles puedes elegir un premio o Lanas, según disponibilidad. ¡Ambos tienen stock limitado!</p>
+        <p className="text-[13px] leading-[18px] text-n0/85 lg:text-[15px] lg:leading-[21px]">Con tu suscripción, cada jueves puedes elegir un premio o Lanas, según disponibilidad. ¡Ambos tienen stock limitado!</p>
         <button onClick={() => setHoja(true)} className="mt-1 flex h-12 w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-pill bg-amarillo px-7 text-[15px] font-bold text-cafe lg:w-auto">
           <Icon name="cofre" size={18} />Ver Cofre de esta semana
         </button>
@@ -90,8 +91,8 @@ function HojaCofreVistaPrevia({ abierto, onCerrar }: { abierto: boolean; onCerra
         : <p className="text-[15px] leading-[22px]">El próximo abre en <b className="whitespace-nowrap">{formatoRestante(proximoMiercoles8().getTime() - ahora)}</b>. Suscríbete y prepárate para elegir tu próxima recompensa.</p>}
       <div className="flex flex-col gap-2.5">
         <Opcion icono={<LogoMarca marca={cofre.premio.marca} tamano="sm" />} titulo={premio}
-          lineas={['Salas Cinemark de todo el Perú', 'De lunes a jueves, salas tradicionales. Un uso por persona.']}
-          stock={`Quedan ${quedanP} disponibles`} agotada={sinPremio} />
+          lineas={['Salas Cinemark de todo el Perú', 'Se usa con QR en boletería. De lunes a jueves, salas tradicionales. Un uso por persona.']}
+          stock={`Quedan ${quedanP} disponibles`} agotada={sinPremio} terminos={cofre.premio.terminos} />
         <Opcion icono={<MonedaLana size={34} />} titulo={`${lanas} Lanas`}
           lineas={['Van a tu billetera al elegirlas', 'Canjéalas por chances o beneficios']}
           stock={`Quedan ${quedanL} cupos de ${lanas} Lanas`} agotada={sinLanas} />
@@ -125,7 +126,7 @@ export function CardFlashVisitante() {
   return (
     <div className="flex h-full flex-col gap-2.5 overflow-hidden rounded-[24px] p-3.5 lg:gap-[clamp(6px,1.4dvh,14px)] lg:p-[clamp(14px,2.6dvh,24px)]" style={{ background: 'linear-gradient(140deg, #FF88F7 0%, #FF88F7 40%, #B5179E 135%)' }}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Badge className="!px-2.5 !text-[11px]">⚡ BENEFICIO FLASH</Badge>
+        <Badge className="!px-2.5 !text-[11px]">⚡ FLASH · CADA VIERNES</Badge>
         <span className={cx('flex items-center gap-1 rounded-pill px-2.5 py-1 text-xs font-bold tabular-nums', st.finalizado ? 'bg-n0 text-cafe' : 'bg-cafe text-amarillo')}>
           <Icon name="reloj" size={14} />{st.finalizado ? 'Flash finalizado' : `Disponible por ${formatoRestante(finFlash().getTime() - ahora)}`}
         </span>
@@ -145,7 +146,7 @@ export function CardFlashVisitante() {
       </div>
       <div className="flex flex-col gap-0.5 text-cafe">
         <p className="text-[13px] font-semibold leading-[18px] lg:text-sm">Con tu suscripción, elige este beneficio o {flash.lanas} Lanas. ¡Cupos limitados!</p>
-        {st.finalizado ? <p className="text-[13px] font-bold leading-[18px] lg:text-sm">Llega un nuevo Flash el próximo miércoles.</p>
+        {st.finalizado ? <p className="text-[13px] font-bold leading-[18px] lg:text-sm">Llega un nuevo Flash el próximo viernes.</p>
           : <div className="mt-1 flex flex-wrap gap-1.5">
               {[[st.sinBeneficio, 'Beneficio agotado', `Quedan ${st.quedanB} beneficios`], [st.sinLanas, 'Lanas agotadas', `Quedan ${st.quedanL} cupos de ${flash.lanas} Lanas`]].map(([agot, t1, t2]) => (
                 <span key={String(t2)} className={cx('inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-[12px] font-extrabold', agot ? 'bg-n0/60 text-n60 line-through' : 'bg-n0 text-cafe')}>
@@ -186,8 +187,8 @@ function HojaFlashVistaPrevia({ abierto, onCerrar }: { abierto: boolean; onCerra
           </p>}
       <div className="flex flex-col gap-2.5">
         <Opcion icono={<LogoMarca marca={flash.marca} tamano="sm" />} titulo={`${flash.descuento} OFF ${flash.detalle}`}
-          lineas={['Tiendas Arthur & Sons de Lima', 'Un uso por persona. No acumulable con otras promociones.']}
-          stock={`Quedan ${st.quedanB} beneficios`} agotada={st.sinBeneficio || st.finalizado} />
+          lineas={['Tiendas Arthur & Sons de Lima', 'Se usa con código en caja. Un uso por persona. No acumulable con otras promociones.']}
+          stock={`Quedan ${st.quedanB} beneficios`} agotada={st.sinBeneficio || st.finalizado} terminos={flash.terminos} />
         <Opcion icono={<MonedaLana size={34} />} titulo={`${flash.lanas} Lanas`}
           lineas={['Van a tu billetera al elegirlas', 'Canjéalas por chances o beneficios']}
           stock={`Quedan ${st.quedanL} cupos de ${flash.lanas} Lanas`} agotada={st.sinLanas || st.finalizado} />

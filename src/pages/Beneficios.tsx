@@ -1,10 +1,11 @@
 import { config } from '../api/config';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Contenido } from '../components/layout/Hero';
 import { HeroCarrusel } from '../components/layout/HeroCarrusel';
-import { CardBeneficioMini, CardBilletera, CardCanje, CardFlash } from '../components/cards/cards';
-import { ChipFiltro, ImagenOpcional, cx } from '../components/ui/primitives';
+import { CardBilletera, CardCanje, CardFlash } from '../components/cards/cards';
+import { DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, vistaDe, type BeneficioVista } from '../components/beneficios/catalogo';
+import { ChipFiltro, cx } from '../components/ui/primitives';
 import { FilaAuto } from '../components/ui/Carrusel';
 import { Icon } from '../components/ui/Icon';
 import { misCupones, promosBeneficios, ubicaciones } from '../data/mock';
@@ -26,14 +27,16 @@ export default function Beneficios() {
   const [ubicacion, setUbicacion] = useState('Todas');
   const [orden, setOrden] = useState<'relevancia' | 'descuento'>('relevancia');
   const [mostrar, setMostrar] = useState(POR_PAGINA);
+  const [abierto, setAbierto] = useState<BeneficioVista | null>(null);
+  const cerrar = useCallback(() => setAbierto(null), []);
+  const destacados = beneficios.filter((b) => b.destacado).map(vistaDe);
 
   const conUbicacion = beneficios.some((b) => 'ubicacion' in b && b.ubicacion);
   let lista = beneficios
     .filter((b) => cat === 'Todos' || b.categoria === cat)
     .filter((b) => ubicacion === 'Todas' || !('ubicacion' in b) || b.ubicacion === ubicacion || b.ubicacion === 'En todo el Perú');
   if (orden === 'descuento') lista = [...lista].sort((a, b) => descuentoDe(b.etiqueta) - descuentoDe(a.etiqueta));
-  const hayMas = lista.length > mostrar;
-  const visibles = lista.slice(0, hayMas ? mostrar - 1 : mostrar);
+  const visibles = lista.slice(0, mostrar);
   const restantes = lista.length - visibles.length;
   const cambiar = (f: () => void) => { f(); setMostrar(POR_PAGINA); };
   const selectCls = 'h-10 rounded-pill border border-n10 bg-n0 px-3 text-sm font-semibold text-cafe';
@@ -49,9 +52,11 @@ export default function Beneficios() {
           <div className="hidden lg:block"><CardBilletera etiquetaCanje="Ganar Lanas" conOveja /></div>
         </div>
 
+        <DestacadosParaTi items={destacados} onAbrir={(i) => setAbierto(destacados[i])} />
+
         <section className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <h2 className="text-[22px] font-extrabold lg:text-[28px]">Siempre disponibles</h2>
+            <h2 className="text-[22px] font-black uppercase leading-none lg:text-[28px]">Todos los <span className="text-rosa-fuerte">beneficios</span></h2>
             <p className="text-sm text-n60">{beneficios.length} beneficios para ti, ganes o no el sorteo.</p>
           </div>
           <div className="no-scrollbar -mx-6 flex gap-2 overflow-x-auto px-6 lg:mx-0 lg:flex-wrap lg:px-0">
@@ -75,25 +80,18 @@ export default function Beneficios() {
             </label>
             <span className="text-[13px] text-n60">{lista.length} resultados</span>
           </div>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-5">
-            {visibles.map((b, i) => <CardBeneficioMini key={`${b.id}-${i}`} b={b} i={i} conCta />)}
-            {restantes > 0 && (
-              <button type="button" onClick={() => setMostrar((m) => m + POR_PAGINA)}
-                className="group flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-cafe/30 bg-n0 p-4 text-center text-cafe transition hover:border-cafe">
-                <ImagenOpcional src="assets/oveja-faq.webp" className="h-[72px] w-auto object-contain lg:h-[84px]" />
-                <span className="flex -space-x-2">
-                  {lista.slice(visibles.length, visibles.length + 4).map((b, k) => (
-                    <span key={`${b.id}-${k}`} className={cx('size-10 items-center justify-center rounded-pill border-2 border-n0 bg-verde text-[11px] font-black lg:size-11', k === 3 ? 'hidden lg:flex' : 'flex')}>{b.etiqueta}</span>
-                  ))}
-                </span>
-                <span className="text-[16px] font-extrabold leading-5">Ver {restantes} beneficios más</span>
-                <span className="text-[12px] text-n60">{[...new Set(lista.slice(visibles.length, visibles.length + 3).map((b) => b.comercio))].join(' · ')}</span>
-                <Icon name="chevron-abajo" size={22} className="transition group-hover:translate-y-0.5" />
-              </button>
-            )}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:gap-4 xl:grid-cols-3">
+            {visibles.map((b, i) => { const v = vistaDe(b); return <FilaBeneficio key={`${b.id}-${i}`} b={v} onAbrir={() => setAbierto(v)} />; })}
           </div>
+          {restantes > 0 && (
+            <button onClick={() => setMostrar((m) => m + POR_PAGINA)}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-pill border-[1.5px] border-cafe bg-n0 text-[15px] font-bold text-cafe lg:w-fit lg:self-center lg:px-10">
+              Ver {restantes} beneficios más<Icon name="chevron-abajo" size={20} />
+            </button>
+          )}
           {lista.length === 0 && <p className="text-n60">Pronto habrá beneficios aquí. Prueba con otra categoría o ubicación.</p>}
         </section>
+        {abierto && <HojaDetalleBeneficio b={abierto} abierto onCerrar={cerrar} />}
 
         <section className="flex flex-col gap-3 rounded-[24px] bg-yellow-cta p-4 lg:p-6">
           <h2 className="text-[22px] font-extrabold"><Tx k="beneficios.canje.titulo" /></h2>

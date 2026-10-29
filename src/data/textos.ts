@@ -135,7 +135,7 @@ export const textos = {
   'paso3.t': { t: 'Participa y gana', estado: 'final' },
   'paso3.d': { t: 'Sorteos en vivo cada miércoles y sorteos VIP. Revisa si ganaste en Ganadores.', estado: 'provisional', ref: 'Reunión 23/10' },
   'paso4.t': { t: 'Usa tus beneficios', estado: 'final' },
-  'paso4.d': { t: 'Descuentos a diario, un cofre sorpresa y un **Beneficio Flash** cada miércoles. Y **ganas Lanas**.', estado: 'provisional', ref: 'Reunión 23/10' },
+  'paso4.d': { t: 'Descuentos a diario, el cofre sorpresa cada jueves y el **Beneficio Flash** cada viernes. Y **ganas Lanas**.', estado: 'provisional', ref: 'Reunión 23/10' },
   'paso5.t': { t: 'Revisa si ganaste', estado: 'final' },
   'paso5.d': { t: 'Publicamos los resultados y nos comunicamos con los ganadores.', estado: 'validar', ref: 'Por página · p9 N.º 5 y 6 · validar canal del aviso' },
 
@@ -154,7 +154,7 @@ export const textos = {
   'faq.contacto': { t: '¿Otra duda? Escríbenos a contacto@akita.pe', estado: 'final' },
 
   'como.hero.titulo': { t: '¿Cómo funciona AKITÁ?', estado: 'final' },
-  'como.hero.bajada': { t: 'Elige tu plan, usa tus beneficios y participa cada miércoles: sorteos en vivo, cofre sorpresa y Beneficio Flash.', estado: 'provisional', ref: 'Por página · p16 N.º 1 y 2' },
+  'como.hero.bajada': { t: 'Elige tu plan, usa tus beneficios y participa cada semana: sorteos en vivo los miércoles, cofre sorpresa los jueves y Beneficio Flash los viernes.', estado: 'provisional', ref: 'Por página · p16 N.º 1 y 2' },
 
   'premios.hero.bajada': { t: 'Cada miércoles sorteamos premios en vivo. Suscríbete para participar.', estado: 'provisional', ref: 'Por página · p12 (ejemplo de Renato)' },
   'premios.cta': { t: 'Suscríbete para participar', estado: 'final', ref: 'Por página · p12' },

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Icon } from '../ui/Icon';
 import { Button, ImagenOpcional, MonedaLana, cx } from '../ui/primitives';
 import { LogoMarca } from '../ui/LogoMarca';
-import { Bloque, CodigoCopiable, Hoja, OpcionElegible } from '../ui/Hoja';
+import { Bloque, CodigoCopiable, Hoja, OpcionElegible, TerminosPremio } from '../ui/Hoja';
 import { cofreSemana, flashSemana, flashSemana2, formatoLanas, type OpcionRecompensa } from '../../data/mock';
 import { useDemo, type Eleccion } from '../../data/revision';
 import { useBilletera, useCofreApi, useFlash as useFlashApi } from '../../data/datos';
@@ -178,7 +178,8 @@ function useCofre() {
     };
     return {
       r, abrir: async () => { cofreAbiertoDemo = true; refrescar((n) => n + 1); return true; },
-      info: { cierra: 'mar 11:59 p. m.', proximo: cofreSemana.proximo, quedan: premio.quedan, total: premio.total, uso: cofreSemana.usoCorto, logo: cofreSemana.logo as string | undefined, entregados: cofreSemana.entregadosLista },
+      info: { cierra: 'mié 11:59 p. m.', proximo: cofreSemana.proximo, quedan: premio.quedan, total: premio.total, uso: cofreSemana.usoCorto, logo: cofreSemana.logo as string | undefined, entregados: cofreSemana.entregadosLista,
+        terminos: 'Válido de lunes a jueves en salas tradicionales de Cinemark de todo el Perú. No válido en estrenos, 3D, XD ni salas premium. Un uso por persona. Sujeto a stock.' as string | undefined },
     };
   }
 
@@ -231,7 +232,7 @@ function useCofre() {
       });
       return res === 'ok';
     },
-    info: { cierra: c?.cierra ?? '', proximo: c?.abre ?? '', quedan: c?.quedan ?? null, total: c?.premios.cupo || null, uso: ap?.detalle ?? '', logo: ap?.logo, entregados: [] as { titulo: string; logo?: string; cantidad: number }[] },
+    info: { cierra: c?.cierra ?? '', proximo: c?.abre ?? '', quedan: c?.quedan ?? null, total: c?.premios.cupo || null, uso: ap?.detalle ?? '', logo: ap?.logo, entregados: [] as { titulo: string; logo?: string; cantidad: number }[], terminos: undefined as string | undefined },
   };
 }
 
@@ -257,7 +258,7 @@ export function CardCofre({ variante = 'normal' }: { variante?: 'normal' | 'comp
         {ilustracion('h-[86px]')}
         <p className="text-center text-[15px] font-extrabold leading-[18px] text-amarillo">{agotado ? '¡Se agotó!' : 'Tu cofre de la semana'}</p>
         <p className="text-center text-[11px] font-medium leading-[14px] text-n0/80">
-          {agotado || listo ? (info.proximo ? `Nuevo: ${info.proximo}` : 'Vuelve el miércoles') : info.quedan !== null && info.total ? `Quedan ${info.quedan} de ${info.total}` : 'Nunca sabes qué sale'}
+          {agotado || listo ? (info.proximo ? `Nuevo: ${info.proximo}` : 'Vuelve el jueves') : info.quedan !== null && info.total ? <>Quedan {info.quedan} de {info.total}{info.cierra && <span className="block">hasta el {info.cierra.split(' ')[0]}</span>}</> : 'Nunca sabes qué sale'}
         </p>
         <div className="flex-1" />
         <button type="button" disabled={r.enviando} onClick={onBoton} className="w-full whitespace-nowrap rounded-pill bg-n0 py-[9px] text-[13px] font-bold text-cafe">
@@ -271,10 +272,10 @@ export function CardCofre({ variante = 'normal' }: { variante?: 'normal' | 'comp
   return (
     <>
       <div className={cx('relative flex flex-col gap-4 overflow-hidden rounded-[24px] p-6 text-n0', FONDO_COFRE, variante === 'hoyWeb' ? 'min-h-[400px] min-w-0 flex-1' : 'lg:flex-row lg:items-center lg:gap-8')}>
-        <span className={cx('w-fit rounded-md bg-rosa px-2.5 py-1 text-[11px] font-black tracking-[1px] text-cafe', variante !== 'hoyWeb' && 'lg:hidden')}>COFRE SORPRESA · CADA MIÉRCOLES</span>
+        <span className={cx('w-fit rounded-md bg-rosa px-2.5 py-1 text-[11px] font-black tracking-[1px] text-cafe', variante !== 'hoyWeb' && 'lg:hidden')}>COFRE SORPRESA · CADA JUEVES</span>
         <div className={cx('flex items-center justify-center', variante === 'hoyWeb' ? 'flex-1' : 'py-2 lg:w-[240px] lg:shrink-0')}>{ilustracion(variante === 'hoyWeb' ? 'h-[190px]' : 'h-[150px] lg:h-[170px]')}</div>
         <div className="flex flex-1 flex-col gap-3">
-          {variante !== 'hoyWeb' && <span className="hidden w-fit rounded-md bg-rosa px-2.5 py-1 text-[11px] font-black tracking-[1px] text-cafe lg:block">COFRE SORPRESA · CADA MIÉRCOLES</span>}
+          {variante !== 'hoyWeb' && <span className="hidden w-fit rounded-md bg-rosa px-2.5 py-1 text-[11px] font-black tracking-[1px] text-cafe lg:block">COFRE SORPRESA · CADA JUEVES</span>}
           <div className="flex flex-col gap-1.5">
             <p className="text-[26px] font-black leading-7 text-amarillo lg:text-[28px]">{agotado ? '¡Se agotó esta semana!' : 'Tu cofre de la semana'}</p>
             <p className="text-sm leading-[19px] text-n0/85">{linea}</p>
@@ -295,7 +296,7 @@ function HojaCofre({ r, info, abierto, onCerrar }: { r: Recompensa; info: Return
   const hayAlternativa = r.opciones.some((o) => o.id === 'lanas');
   const premio = r.opciones.find((o) => o.id === 'premio');
   const agotado = r.estado === 'agotado';
-  const volver = info.proximo ? `Vuelve el ${info.proximo}: tu nuevo cofre te espera.` : 'Vuelve el miércoles: tu nuevo cofre te espera.';
+  const volver = info.proximo ? `Vuelve el ${info.proximo}: tu nuevo cofre te espera.` : 'Vuelve el jueves: tu nuevo cofre te espera.';
   const titulo = agotado ? 'Se agotaron los premios' : r.estado === 'elegido' ? 'Tu cofre de esta semana' : premio?.etiqueta === 'LANAS' ? '¡Te tocaron Lanas!' : '¡Te tocó un premio!';
   return (
     <Hoja abierto={abierto} onCerrar={onCerrar} titulo={titulo} subtitulo={r.estado === 'abierto' && hayAlternativa ? 'Elige con qué te quedas. Cada opción tiene su propio stock.' : undefined}>
@@ -325,6 +326,7 @@ function HojaCofre({ r, info, abierto, onCerrar }: { r: Recompensa; info: Return
         <>
           <div className="flex justify-center rounded-2xl bg-cafe"><Cofre3D abierto className="h-32" /></div>
           <Eleccion r={r} logo={info.logo}
+            pie={info.terminos && r.opciones.some((o) => o.id !== 'lanas') ? <TerminosPremio texto={info.terminos} /> : undefined}
             textoOpcion={(o) => (o.id === 'lanas' ? `Cambiar por ${o.titulo.replace(/^\+/, '')}` : hayAlternativa ? `Quedarme con el premio: ${o.titulo}` : o.titulo)}
             detalleOpcion={(o) => [quedanTexto(o), o.id === 'lanas' ? o.lugar : info.uso || o.lugar].filter(Boolean).join(' · ') || 'Lo aplicas desde aquí'}
             nota={`Solo puedes elegir una. La elección es definitiva.${info.cierra ? ` Puedes decidir hasta el ${punto(info.cierra)}` : ''}`} />
@@ -433,7 +435,7 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
   const disfrutando = total ? total - quedanTodas : 0;
   const agotado = !proximamente && r.estado === 'agotado';
   const elegido = r.estado === 'elegido' && r.obtenido;
-  const volver = f.proximo ? `Vuelve el ${f.proximo}: llega un nuevo Beneficio Flash.` : 'Vuelve el miércoles: llega un nuevo Beneficio Flash.';
+  const volver = f.proximo ? `Vuelve el ${f.proximo}: llega un nuevo Beneficio Flash.` : 'Vuelve el viernes: llega un nuevo Beneficio Flash.';
   const texto = elegido ? (r.obtenido!.opcion.id === 'lanas' ? `${r.obtenido!.opcion.titulo} obtenidas` : 'Ver mi código') : 'Elegir';
   const corto = (beneficio?.titulo ?? '').replace(f.descuento, '').trim() || `OFF ${f.oferta}`;
 
@@ -494,14 +496,14 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
         <div className="flex flex-col items-center gap-2 rounded-[20px] bg-n0/70 px-5 py-8 text-center">
           <Icon name="reloj" size={36} />
           <p className="text-[34px] font-black leading-none text-cafe">Próximamente</p>
-          <p className="text-sm text-cafe">Cada miércoles, una oferta especial por pocas horas.</p>
+          <p className="text-sm text-cafe">Cada viernes, una oferta especial por pocas horas.</p>
         </div>
-        <Volver texto={f.proximo ? `El nuevo Beneficio Flash llega el ${f.proximo}` : 'El nuevo Beneficio Flash llega el miércoles'} />
+        <Volver texto={f.proximo ? `El nuevo Beneficio Flash llega el ${f.proximo}` : 'El nuevo Beneficio Flash llega el viernes'} />
       </div>
     ) : (
       <div className="flex flex-1 flex-col justify-center gap-1.5">
         <p className="text-[22px] font-black leading-none text-cafe">Próximamente</p>
-        <p className="text-[12px] font-semibold leading-4 text-cafe">{f.proximo ? `Nuevo Flash el ${f.proximo}` : 'Nuevo Flash el miércoles'}</p>
+        <p className="text-[12px] font-semibold leading-4 text-cafe">{f.proximo ? `Nuevo Flash el ${f.proximo}` : 'Nuevo Flash el viernes'}</p>
       </div>
     )
   ) : grande ? (
@@ -513,7 +515,7 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
         <span className="absolute right-4 top-4 rotate-6 rounded-lg bg-cafe px-3 py-1.5 text-base font-black text-amarillo">¡SE AGOTÓ!</span>
       </div>
       {disfrutando > 0 && <p className="text-sm font-bold text-cafe">{disfrutando} personas lo aprovecharon. Te lo perdiste esta vez.</p>}
-      <Volver texto={f.proximo ? `El próximo Beneficio Flash llega el ${f.proximo}` : 'El próximo Beneficio Flash llega el miércoles'} />
+      <Volver texto={f.proximo ? `El próximo Beneficio Flash llega el ${f.proximo}` : 'El próximo Beneficio Flash llega el viernes'} />
     </div>
   ) : (
     <div className="flex flex-1 flex-col justify-center gap-1.5">
@@ -626,11 +628,11 @@ export function CardCofreVisitante() {
   return (
     <div className="relative flex h-full flex-col overflow-hidden rounded-[24px] bg-[radial-gradient(120%_100%_at_78%_45%,#3D2A08_0%,#211402_62%)] text-n0 lg:min-h-[300px] lg:flex-row">
       <div className="relative flex flex-col items-center gap-1 px-5 pt-4 lg:order-2 lg:flex-1 lg:p-0">
-        <span className="w-fit rounded-md bg-rosa px-2.5 py-1 text-[11px] font-black tracking-[1px] text-cafe lg:hidden">COFRE SORPRESA · CADA MIÉRCOLES</span>
+        <span className="w-fit rounded-md bg-rosa px-2.5 py-1 text-[11px] font-black tracking-[1px] text-cafe lg:hidden">COFRE SORPRESA · CADA JUEVES</span>
         <img src={asset('assets/3d/cofre-3d.webp')} alt="Cofre sorpresa abierto con premios" className="h-[150px] w-auto max-w-full object-contain lg:absolute lg:inset-0 lg:m-auto lg:h-auto lg:max-h-[90%] lg:max-w-[96%]" />
       </div>
       <div className="flex flex-col items-center gap-2 px-5 pb-5 pt-1 text-center lg:order-1 lg:w-[56%] lg:shrink-0 lg:items-start lg:justify-center lg:gap-3 lg:py-6 lg:pl-7 lg:pr-2 lg:text-left">
-        <span className="hidden w-fit rounded-md bg-rosa px-2.5 py-1 text-[11px] font-black tracking-[1px] text-cafe lg:inline-flex">COFRE SORPRESA · CADA MIÉRCOLES</span>
+        <span className="hidden w-fit rounded-md bg-rosa px-2.5 py-1 text-[11px] font-black tracking-[1px] text-cafe lg:inline-flex">COFRE SORPRESA · CADA JUEVES</span>
         <p className="text-[24px] font-black leading-[1.05] lg:text-[34px]">Un cofre nuevo <span className="text-amarillo">cada semana</span></p>
         <p className="text-[13px] leading-[18px] text-n0/85 lg:text-[15px] lg:leading-[21px]">Ábrelo y descubre tu premio: entradas, descuentos o Lanas. Nunca sabes qué sale.</p>
         <button type="button" onClick={() => setHoja(true)} className="mt-1 flex h-12 w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-pill bg-amarillo px-7 text-[15px] font-bold text-cafe lg:w-auto">
@@ -639,7 +641,7 @@ export function CardCofreVisitante() {
       </div>
       <Hoja abierto={hoja} onCerrar={() => setHoja(false)} titulo="Tu cofre está cerrado" subtitulo="Solo los suscriptores pueden abrirlo.">
         <div className="flex justify-center rounded-2xl bg-cafe"><Cofre3D className="h-36" /></div>
-        <p className="text-sm">Esta semana el cofre trae premios como estos. Suscríbete y abre tu cofre cada miércoles:</p>
+        <p className="text-sm">Esta semana el cofre trae premios como estos. Suscríbete y abre tu cofre cada jueves:</p>
         <Entregados lista={cofreSemana.entregadosLista} />
         <Button full onClick={() => navigate('/planes')}>Suscríbete y ábrelo</Button>
       </Hoja>
@@ -669,7 +671,7 @@ export function CardFlashVisitante() {
           <img src={asset('assets/3d/flash-lentes-3d.webp')} alt="Lentes y monturas" className="absolute inset-0 m-auto max-h-full max-w-full object-contain" />
         </div>
       </div>
-      <p className="text-[13px] font-semibold leading-[18px] text-cafe lg:text-sm">Una oferta por pocas horas, cada miércoles. {usados} suscriptores ya lo están usando.</p>
+      <p className="text-[13px] font-semibold leading-[18px] text-cafe lg:text-sm">Una oferta por pocas horas, cada viernes. {usados} suscriptores ya lo están usando.</p>
       <button type="button" onClick={() => navigate('/planes')} className="flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-pill bg-n0 text-[15px] font-bold text-morado lg:h-12">Suscríbete para usarlo<Icon name="chevron" size={16} /></button>
     </div>
   );

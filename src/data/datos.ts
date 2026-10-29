@@ -76,7 +76,9 @@ export function useBeneficios() {
   const r = useRecurso(`beneficios:${logueado ? 'propios' : 'publicos'}`,
     () => (logueado ? beneficiosApi.propios() : beneficiosApi.publicos()),
     null as unknown, null as unknown);
-  const prototipo = M.beneficios.map((b) => ({ id: b.titulo, agotado: false, ...b, foto: b.foto as string | undefined }));
+  const prototipo = M.beneficios.map((b, i) => ({ id: b.titulo, agotado: false, ...b, foto: b.foto as string | undefined,
+    destacado: i < 4, descripcion: `${b.etiqueta} en ${b.comercio}. Se usa con ${b.uso === 'DNI' ? 'tu DNI' : b.uso === 'QR' ? 'QR' : 'código'}.`,
+    desde: '01/10/2026', hasta: '31/12/2026', metodo: b.uso === 'DNI' ? 'IN_PERSON' : b.uso === 'QR' ? 'EXTERNAL' : 'PROMO_CODE' }));
   if (r.ejemplo) return { beneficios: prototipo, categorias: M.categoriasBeneficios };
   return {
     beneficios: r.data ? A.aBeneficios(r.data, cats.data) : mockOVacio(prototipo),
@@ -215,7 +217,7 @@ export function usePlanes() {
   });
 }
 
-export type SeccionBanner = 'BENEFITS_MAIN' | 'RAFFLES_MAIN' | 'PRIZES_LOGGED';
+export type SeccionBanner = 'BENEFITS_MAIN' | 'RAFFLES_MAIN' | 'PRIZES_LOGGED' | 'LANDING_MAIN';
 type BannerApiResp = { autoAdvance?: boolean; intervalSeconds?: number; images?: { id: string; position?: number; desktopUrl?: string; mobileUrl?: string; linkUrl?: string; isExternal?: boolean }[] };
 export function useBanners(secciones: SeccionBanner[]) {
   const clave = `banners:${secciones.join(',')}`;

@@ -82,6 +82,7 @@ export type Beneficio = {
   id: string; name?: string; description?: string; brand?: { name?: string; logo?: string }; categoryId?: string;
   deliveryMethod?: string; highlightLabel?: string; highlightValue?: string; imageUrl?: string;
   isAvailable?: boolean; isExhausted?: boolean; isFeatured?: boolean; usesLeft?: number; endDate?: string;
+  startDate?: string; coverage?: string | null; priority?: number;
 };
 export type Categoria = { id: string; name?: string; isActive?: boolean };
 export type DetalleBeneficio = {

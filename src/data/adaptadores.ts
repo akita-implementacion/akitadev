@@ -156,6 +156,7 @@ const USO: Record<string, string> = {
   PROMO_CODE: 'Código', REDIRECT_LINK: 'Enlace', PROMO_CODE_AND_LINK: 'Código', IN_PERSON: 'En tienda', EXTERNAL: 'Código',
   QR: 'QR', DNI: 'DNI', LINK: 'Enlace',
 };
+const COBERTURA_BENEFICIO: Record<string, string> = { LIMA: 'Lima', PROVINCES: 'Provincias', LIMA_AND_PROVINCES: 'Lima y provincias' };
 export const aBeneficios = (p: unknown, categorias: T.Categoria[]) => {
   const nombreCat = new Map(categorias.map((c) => [c.id, c.name ?? '']));
   return lista<T.Beneficio>(p, 'data').map((b) => ({
@@ -169,6 +170,11 @@ export const aBeneficios = (p: unknown, categorias: T.Categoria[]) => {
     categoria: nombreCat.get(b.categoryId ?? '') ?? '',
     foto: conPrueba(b.imageUrl, 'beneficio', b.id),
     agotado: !!b.isExhausted || b.isAvailable === false,
+    destacado: !!b.isFeatured,
+    descripcion: b.description ?? '',
+    desde: b.startDate ?? '', hasta: b.endDate ?? '',
+    ubicacion: COBERTURA_BENEFICIO[(b.coverage ?? '').toUpperCase()] ?? '',
+    metodo: (b.deliveryMethod ?? '').toUpperCase(),
   }));
 };
 export const aCategorias = (c: unknown) => ['Todos', ...new Set(lista<T.Categoria>(c, 'data').filter((x) => x.isActive !== false).map((x) => x.name ?? '').filter(Boolean))];

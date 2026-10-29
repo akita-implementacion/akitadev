@@ -1,7 +1,9 @@
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { HojaDetalleBeneficio, TarjetaDestacado, vistaDe, type BeneficioVista } from '../components/beneficios/catalogo';
 import { Contenido, EncabezadoSeccion, Hero } from '../components/layout/Hero';
 import {
-  BannerVip, CardBeneficioMini, CardBilletera, CardCofre, CardFlash,
+  BannerVip, CardBilletera, CardCofre, CardFlash,
   CardMision, CardProgresoMisiones, CardSorteoCompacta, CardSorteoDestacado,
 } from '../components/cards/cards';
 import { ButtonCompacto } from '../components/ui/primitives';
@@ -16,6 +18,9 @@ export default function Hoy() {
   const { beneficios } = useBeneficios();
   const misiones = useMisiones();
   const destacada = misiones.find((m) => m.destacada) ?? misiones[0];
+  const siempre = beneficios.slice(0, 4).map(vistaDe);
+  const [abierto, setAbierto] = useState<BeneficioVista | null>(null);
+  const cerrar = useCallback(() => setAbierto(null), []);
   return (
     <>
       <Hero color="#45E586" titulo={<Tx k="hoy.hero.titulo" v={{ nombre: usuario.nombre }} />} bajada={<Tx k="hoy.hero.bajada" />} pose="hoy" />
@@ -32,7 +37,7 @@ export default function Hoy() {
           <Link to="/beneficios" className="shrink-0"><ButtonCompacto variant="outline" iconRight="flecha" className="!h-10 !px-3.5">Ver catálogo</ButtonCompacto></Link>
         </div>
         <FilaAuto className="no-scrollbar -mx-6 flex snap-x gap-3 overflow-x-auto scroll-px-6 px-6 [&>*]:snap-start">
-          {beneficios.slice(0, 4).map((b, i) => <CardBeneficioMini key={`${b.id ?? b.titulo}-${i}`} b={b} i={i} />)}
+          {siempre.map((b, i) => <div key={`${b.id ?? b.titulo}-${i}`} className="w-[78%] max-w-[300px] shrink-0"><TarjetaDestacado b={b} onAbrir={() => setAbierto(b)} /></div>)}
         </FilaAuto>
         <EncabezadoSeccion titulo={tx('hoy.misionDestacada')} accion={<Link to="/misiones"><ButtonCompacto variant="outline" iconRight="flecha">Ver todas</ButtonCompacto></Link>} />
         {destacada && <CardMision m={destacada} />}
@@ -61,11 +66,12 @@ export default function Hoy() {
             </div>
             <Link to="/beneficios"><ButtonCompacto variant="outline" iconRight="flecha">Ver catálogo</ButtonCompacto></Link>
           </div>
-          <div className="flex gap-5">
-            {beneficios.slice(0, 4).map((b, i) => <CardBeneficioMini key={`${b.id ?? b.titulo}-${i}`} b={b} i={i} conCta />)}
+          <div className="grid grid-cols-4 gap-5">
+            {siempre.map((b, i) => <TarjetaDestacado key={`${b.id ?? b.titulo}-${i}`} b={b} onAbrir={() => setAbierto(b)} />)}
           </div>
         </section>
       </Contenido>
+      {abierto && <HojaDetalleBeneficio b={abierto} abierto onCerrar={cerrar} />}
     </>
   );
 }

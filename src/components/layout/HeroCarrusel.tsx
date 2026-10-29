@@ -14,7 +14,7 @@ function destacar(titulo: string, d?: string) {
 
 export type BannerHero = { id: string; desktop: string; movil: string; link?: string; externo?: boolean };
 
-function useBannersQueCargan(banners: BannerHero[]) {
+export function useBannersQueCargan(banners: BannerHero[]) {
   const [listos, setListos] = useState<string[]>([]);
   const claves = banners.map((b) => b.id).join(',');
   useEffect(() => {

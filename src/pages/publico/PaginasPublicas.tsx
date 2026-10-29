@@ -1,6 +1,6 @@
 import { config } from '../../api/config';
 import { BannerApi } from '../../components/layout/BannerApi';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Contenido, Hero } from '../../components/layout/Hero';
 import { CardBeneficioMini, CardPremio, CardSorteoDestacado } from '../../components/cards/cards';
@@ -25,6 +25,7 @@ import {
 import { CERRADO, NOTA_CERRADO, rutaPlanesConPremio, textoCierre, useDetallePremio, usePremioMes } from '../../ref/premio';
 import { usePerfil } from '../../ref/demo';
 import { FuenteSorteosApi, useFuenteSorteos } from '../../ref/sitio';
+import { DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, vistaDe, type BeneficioVista } from '../../components/beneficios/catalogo';
 import { canjesEjemplo, pasos as pasosRef, type Beneficio as BeneficioRef } from '../../ref/publico';
 import { preguntasFaq } from '../../components/publico/Secciones';
 
@@ -134,26 +135,31 @@ export function BeneficiosPublico() {
   const { beneficios, categorias: categoriasBeneficios } = useBeneficios();
   const marcasAliadas = useMarcasAliadas();
   const [cat, setCat] = useState('Todos');
-  const todos = beneficios.map(aBeneficioRef);
-  const lista = cat === 'Todos' ? todos : todos.filter((b) => b.categoria === cat);
+  const [abierto, setAbierto] = useState<BeneficioVista | null>(null);
+  const cerrarDetalle = useCallback(() => setAbierto(null), []);
+  const lista = (cat === 'Todos' ? beneficios : beneficios.filter((b) => b.categoria === cat)).map(vistaDe);
+  const destacados = beneficios.filter((b) => b.destacado).map(vistaDe);
   return (
     <>
       <Hero publico color="#3EB1FF" titulo="Beneficios a diario" bajada="Descuentos en restaurantes, salud, belleza y más. Úsalos desde tu primer mes." imagen="img/oveja-01.webp" />
-      <div className="mx-auto flex max-w-[1366px] flex-col gap-5 px-6 pb-3 pt-8 lg:gap-6 lg:px-16 lg:pb-5 lg:pt-10">
+      <div className="mx-auto flex max-w-[1366px] flex-col gap-6 px-6 pb-3 pt-8 lg:px-16 lg:pb-5 lg:pt-10">
         {!config.usarMock && <BannerApi secciones={['BENEFITS_MAIN']} />}
-        <FiltroCategorias categorias={categoriasBeneficios} activa={cat} onChange={setCat} />
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-          {lista.slice(0, 4).map((b) => <TarjetaBeneficio key={b.id} b={b} apilada />)}
-          {lista.length === 0 && <p className="col-span-2 text-n60">Pronto habrá beneficios en esta categoría.</p>}
-        </div>
+        <DestacadosParaTi items={destacados} onAbrir={(i) => setAbierto(destacados[i])} />
       </div>
 
       <div className="mx-auto flex max-w-[1366px] flex-col gap-10 px-6 pb-10 pt-6 lg:gap-14 lg:px-16 lg:pb-14 lg:pt-10">
-        {lista.length > 4 && (
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-            {lista.slice(4).map((b) => <TarjetaBeneficio key={b.id} b={b} apilada />)}
+        <section className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-[22px] font-black uppercase leading-none text-cafe lg:text-[28px]">Todos los <span className="text-rosa-fuerte">beneficios</span></h2>
+            <p className="text-sm text-n60">{beneficios.length} beneficios · se activan al suscribirte.</p>
           </div>
-        )}
+          <FiltroCategorias categorias={categoriasBeneficios} activa={cat} onChange={setCat} />
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:gap-4 xl:grid-cols-3">
+            {lista.map((b, i) => <FilaBeneficio key={`${b.id}-${i}`} b={b} onAbrir={() => setAbierto(b)} />)}
+          </div>
+          {lista.length === 0 && <p className="text-n60">Pronto habrá beneficios en esta categoría.</p>}
+        </section>
+        {abierto && <HojaDetalleBeneficio b={abierto} abierto onCerrar={cerrarDetalle} />}
 
         <section className="relative flex flex-col gap-4 overflow-hidden rounded-2xl bg-amarillo p-5 sm:flex-row sm:items-center lg:px-5 lg:py-2.5">
           <Nube className="-left-10 -top-10 w-[150px] text-fondo" />
@@ -316,8 +322,8 @@ export function Ganadores() {
 }
 
 const LO_QUE_ENCUENTRAS = [
-  { id: 'cofre', t: 'Cofre sorpresa', d: 'Cada miércoles se abre un cofre nuevo. Ábrelo y elige entre el premio que te tocó o Lanas.' },
-  { id: 'flash', t: 'Beneficio Flash', d: 'Una oferta especial por pocas horas, cada miércoles. Elige el beneficio o Lanas antes de que se agote.' },
+  { id: 'cofre', t: 'Cofre sorpresa', d: 'Cada jueves se abre un cofre nuevo. Ábrelo y elige entre el premio que te tocó o Lanas.' },
+  { id: 'flash', t: 'Beneficio Flash', d: 'Una oferta especial por pocas horas, cada viernes. Elige el beneficio o Lanas antes de que se agote.' },
   { id: 'vip', t: 'Sorteos VIP', d: 'Completa las misiones del mes y elige un sorteo VIP gratis. Los demás sorteos VIP se pagan con Lanas.' },
   { id: 'chances', t: 'Plan y chances', d: 'Tu plan incluye 1, 3 o 5 chances en cada sorteo regular. Se registran hasta las 12:00 del día del sorteo.' },
   { id: 'lanas', t: 'Lanas', d: 'Las ganas con misiones, referidos, el cofre y el Beneficio Flash. 1 Lana = 1 chance. Vencen a los 3 meses.' },
@@ -334,7 +340,7 @@ export function ComoFunciona() {
   }, [ancla]);
   return (
     <>
-      <Hero publico oscuro color="#211402" titulo="¿Cómo funciona AKITÁ?" bajada="Elige tu plan, usa tus beneficios y participa cada miércoles: sorteos en vivo, cofre sorpresa y Beneficio Flash." imagen="img/oveja-05.webp" />
+      <Hero publico oscuro color="#211402" titulo="¿Cómo funciona AKITÁ?" bajada="Elige tu plan, usa tus beneficios y participa cada semana: sorteos en vivo, cofre sorpresa y Beneficio Flash." imagen="img/oveja-05.webp" />
       <div className="mx-auto max-w-[1366px] px-6 pb-8 pt-6 lg:px-16 lg:pb-0 lg:pt-14">
         <PasosRef pasos={pasosRef} conBoton={false} titulo="Paso a paso" />
       </div>
