@@ -12,6 +12,7 @@ export type PremioDetalle = {
   id: string; nombre: string; foto?: string; descripcion: string; specs: string[]; terminos?: string[];
   fecha: Date;
   etiqueta?: string;
+  basesUrl?: string;
 };
 
 export function usePremioMes() {
@@ -20,7 +21,7 @@ export function usePremioMes() {
   const fecha = useMemo(() => fechaPremioMes(), []);
   const cerrado = demo.sorteoMes === 'cerrado' || new Date() > cierreDe(fecha);
   const p: PremioDetalle = { ...premioMes, ...(api?.nombre && { nombre: api.nombre }), ...(api?.foto && { foto: api.foto }),
-    ...(api?.descripcion && { descripcion: api.descripcion }),
+    ...(api?.descripcion && { descripcion: api.descripcion }), ...(api?.basesUrl && { basesUrl: api.basesUrl }),
     ...(api?.nombre && api.nombre !== premioMes.nombre && { specs: [], terminos: undefined }), fecha, etiqueta: 'PREMIO GRANDE DEL MES' };
   return { p, fecha, cerrado, sorteo: fechaCorta(fecha), cierre: `${fechaCorta(fecha)}, 11:59 a. m.` };
 }
@@ -32,7 +33,7 @@ export const NOTA_CERRADO = 'Con tu plan participas en los próximos sorteos.';
 
 export const rutaPlanesConPremio = (p: PremioDetalle) => `/planes?premio=${encodeURIComponent(p.nombre)}&sorteo=${encodeURIComponent(fechaCorta(p.fecha))}`;
 
-function TerminosDesplegables({ terminos }: { terminos: string[] }) {
+function TerminosDesplegables({ terminos, basesUrl }: { terminos: string[]; basesUrl?: string }) {
   const [ver, setVer] = useState(false);
   return (
     <div className="rounded-2xl bg-n0">
@@ -45,6 +46,7 @@ function TerminosDesplegables({ terminos }: { terminos: string[] }) {
           {terminos.map((t) => <li key={t} className="flex gap-2"><span className="mt-[7px] size-1 shrink-0 rounded-pill bg-n60" />{t}</li>)}
         </ul>
       )}
+      {basesUrl && <a href={basesUrl} target="_blank" rel="noreferrer" className="flex w-fit items-center gap-1.5 mx-4 mb-4 text-[13px] font-bold text-cafe underline">Ver bases completas del sorteo (PDF)<Icon name="compartir" size={14} /></a>}
     </div>
   );
 }
@@ -94,7 +96,7 @@ export function DetallePremioPublico({ p, abierto, onCerrar, cerrado }: { p: Pre
               ))}
             </ul>
           </div>
-          {p.terminos && p.terminos.length > 0 && <div className="mx-4"><TerminosDesplegables terminos={p.terminos} /></div>}
+          {p.terminos && p.terminos.length > 0 && <div className="mx-4"><TerminosDesplegables terminos={p.terminos} basesUrl={p.basesUrl} /></div>}
         </div>
         <div className="shrink-0 bg-cafe px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-4">
           <button onClick={ir} className="flex h-14 w-full items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-amarillo px-5 text-[16px] font-bold text-cafe">

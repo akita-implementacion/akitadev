@@ -5,7 +5,7 @@ import { Nube } from '../ui/Brand';
 import { Badge, Barra, Button, ButtonCompacto, Foto, ImagenOpcional, MonedaLana, cx } from '../ui/primitives';
 import { formatoLanas, type Mision } from '../../data/mock';
 import { Tx } from '../../data/revision';
-import { useBilletera, useDesafioVip, useDetalleBeneficio, useReferidos, useSorteoDestacado, useUsuario } from '../../data/datos';
+import { useBilletera, useChancesDe, useDesafioVip, useDetalleBeneficio, useReferidos, useSorteoDestacado, useUsuario } from '../../data/datos';
 import { useSesion } from '../../data/sesion';
 import { beneficiosApi, lanasApi, sorteosApi } from '../../api/servicios';
 import { ApiError, mensajeError } from '../../api/client';
@@ -37,13 +37,12 @@ function useAccion<R>(fn: () => Promise<R>, alTerminar?: (r: R | null) => void, 
 
 function useSorteoParaChances() {
   const s = useSorteoDestacado();
-  const usuario = useUsuario();
-  return { id: s.id, premio: s.premio, fecha: s.fecha.replace(/^Sorteo /, ''), corte: s.corte || s.cierraEn || '', chancesActuales: usuario.chancesPorPlan, puedeComprar: s.puedeComprar };
+  const ch = useChancesDe(s.premio, s.chances);
+  return { id: s.id, premio: s.premio, fecha: s.fecha.replace(/^Sorteo /, ''), corte: s.corte || s.cierraEn || '', chancesActuales: ch.total, puedeComprar: s.puedeComprar };
 }
 
 export function CardSorteoCompacta() {
   const sorteoDestacado = useSorteoDestacado();
-  const usuario = useUsuario();
   const paraChances = useSorteoParaChances();
   const [abierto, setAbierto] = useState(false);
   if (!sorteoDestacado.premio) return null;
@@ -54,7 +53,7 @@ export function CardSorteoCompacta() {
       </Foto>
       <div className="flex flex-1 flex-col gap-1 bg-hero-brand p-3.5">
         <p className="text-[15px] font-black uppercase leading-[18px] text-amarillo">{sorteoDestacado.premio}</p>
-        <p className="text-xs font-medium text-n0/80">Tienes {usuario.chancesPorPlan} chances</p>
+        <p className="text-xs font-medium text-n0/80">Tienes {paraChances.chancesActuales} chances</p>
         <div className="flex-1" />
         <button type="button" onClick={() => setAbierto(true)} className="w-full rounded-pill bg-n0 py-1 pl-3 text-left text-xs font-bold leading-[24px] text-cafe">Sumar chances</button>
       </div>
@@ -65,7 +64,7 @@ export function CardSorteoCompacta() {
 
 export function CardSorteoDestacado({ oscuro, publico, conOveja }: { oscuro?: boolean; publico?: boolean; conOveja?: boolean }) {
   const sorteoDestacado = useSorteoDestacado();
-  const usuario = useUsuario();
+  const ch = useChancesDe(sorteoDestacado.premio, sorteoDestacado.chances);
   const paraChances = useSorteoParaChances();
   const extra = sorteoDestacado as { descripcion?: string; specs?: string[]; terminos?: string[]; terminosUrl?: string };
   const detalle: DetallePremio = { premio: sorteoDestacado.premio, fecha: sorteoDestacado.fecha, foto: sorteoDestacado.foto,
@@ -93,7 +92,7 @@ export function CardSorteoDestacado({ oscuro, publico, conOveja }: { oscuro?: bo
           <p className={cx('text-xs font-semibold', oscuro ? 'text-amarillo' : 'text-cafe')}>Cierre: {sorteoDestacado.corte || sorteoDestacado.cierraEn}</p>
         )}
         <p className={cx('text-[15px] font-bold', oscuro && '[&_span]:text-verde')}>
-          {publico ? 'Participa desde 1 chance con cualquier plan' : <>Tienes <span className="font-extrabold">{usuario.chancesPorPlan} chances</span> por tu plan</>}
+          {publico ? 'Participa desde 1 chance con cualquier plan' : <>Tienes <span className="font-extrabold">{ch.total} chances</span> {ch.extra ? `(${ch.plan} de tu plan + ${ch.extra} sumadas)` : 'por tu plan'}</>}
         </p>
         {publico
           ? <Link to="/planes" className="w-full lg:w-fit"><Button variant={oscuro ? 'primario' : 'blanco'} className="w-full"><Tx k="premios.cta" /></Button></Link>
@@ -111,12 +110,12 @@ export function CardSorteoDestacado({ oscuro, publico, conOveja }: { oscuro?: bo
 
 const FONDO_PREMIO = ['bg-amarillo', 'bg-rosa', 'bg-azul', 'bg-verde'];
 
-export function CardPremio({ p, i, color, className = 'w-[260px] shrink-0 lg:w-auto', conSesion }: { p: { id?: string; categoria: string; premio: string; fecha: string; enDias: string; foto?: string; descripcion?: string; specs?: string[] }; i: number; color?: boolean; className?: string; conSesion?: boolean }) {
-  const usuario = useUsuario();
+export function CardPremio({ p, i, color, className = 'w-[260px] shrink-0 lg:w-auto', conSesion }: { p: { id?: string; categoria: string; premio: string; fecha: string; enDias: string; foto?: string; descripcion?: string; specs?: string[]; chances?: number | null }; i: number; color?: boolean; className?: string; conSesion?: boolean }) {
   const detalle: DetallePremio = { premio: p.premio, fecha: p.fecha, foto: p.foto, descripcion: p.descripcion, specs: p.specs,
     terminos: p.categoria === 'MOVILIDAD' || /moto|camioneta|auto/i.test(p.premio) ? TERMINOS_VEHICULO : undefined };
   const publico = useDetallePublico(detalle);
-  const sesion = usePremioConSesion(detalle, { id: p.id ?? '', premio: p.premio, fecha: p.fecha.replace(/^Sorteo /, ''), corte: '', chancesActuales: usuario.chancesPorPlan });
+  const ch = useChancesDe(p.premio, p.chances);
+  const sesion = usePremioConSesion(detalle, { id: p.id ?? '', premio: p.premio, fecha: p.fecha.replace(/^Sorteo /, ''), corte: '', chancesActuales: ch.total });
   return (
     <article className={cx('flex h-full flex-col overflow-hidden rounded-2xl bg-n0 shadow-card', className)}>
       <button type="button" onClick={conSesion ? sesion.verDetalle : publico.abrir} aria-label={`Ver detalle de ${p.premio}`}
@@ -130,7 +129,7 @@ export function CardPremio({ p, i, color, className = 'w-[260px] shrink-0 lg:w-a
           <div className="flex min-w-0 flex-col gap-1">
             <p className="text-[9px] font-bold tracking-[1px] text-n60">{p.categoria}</p>
             <p className="text-sm font-bold leading-[18px] text-cafe">{p.premio}</p>
-            <p className="text-xs font-medium text-n60">{p.fecha} · tienes {usuario.chancesPorPlan} chances</p>
+            <p className="text-xs font-medium text-n60">{p.fecha} · tienes {ch.total} chances</p>
           </div>
           <div className="mt-auto flex flex-col gap-1.5">
             <button type="button" onClick={sesion.sumarChances} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-pill bg-cafe text-sm font-bold text-fondo"><Icon name="ticket" size={18} />Sumar chances</button>
@@ -190,7 +189,7 @@ export function BannerVip() {
           <Barra valor={hechas} total={total} color="amarillo" fondo="claro" />
           <p className="text-[13px] font-semibold text-amarillo">Llevas {hechas} de {total} misiones VIP</p>
         </div>
-        <Link to="/sorteos" state={{ vista: 'vip' }} className="mt-1 w-full sm:w-fit"><ButtonCompacto variant="amarillo" iconRight="flecha" className="!h-12 w-full whitespace-nowrap"><Tx k="vip.cta" /></ButtonCompacto></Link>
+        <Link to="/misiones" className="mt-1 w-full sm:w-fit"><ButtonCompacto variant="amarillo" iconRight="flecha" className="!h-12 w-full whitespace-nowrap"><Tx k="vip.cta" /></ButtonCompacto></Link>
       </div>
       <div className="relative h-[170px] shrink-0 sm:h-auto sm:w-[40%]">
         <img src={asset('assets/3d/vip-3d.webp')} alt="Premios de sorteos VIP" className="absolute inset-0 m-auto max-h-[92%] max-w-[96%] object-contain" />
@@ -334,7 +333,6 @@ export function CardRequisitosVip() {
             <span className="flex rounded-pill bg-n0/[.12] p-1.5 text-n0"><Icon name={r.icono as IconName} size={16} /></span>
             <span className="flex-1 text-sm font-semibold text-n0">{r.texto}</span>
             <span className="text-[13px] font-bold text-amarillo">{r.estado}</span>
-            <Icon name="chevron" size={18} className="text-n0/70" />
           </li>
         ))}
       </ul>

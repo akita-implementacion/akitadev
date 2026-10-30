@@ -5,6 +5,7 @@ import { FLAGS, PRECIO_CHANCE, soles } from '../../data/reglas';
 import { formatoLanas } from '../../data/mock';
 import { useBilletera } from '../../data/datos';
 import { useSesion } from '../../data/sesion';
+import { useDemoOpcional } from '../../data/revision';
 import { promoApi, sorteosApi } from '../../api/servicios';
 import { tokenizarTarjeta } from '../../api/kushki';
 import { config } from '../../api/config';
@@ -50,6 +51,9 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
   const [totalApi, setTotalApi] = useState<number | null>(null);
+  const demo = useDemoOpcional();
+  const [actuales, setActuales] = useState(sorteo.chancesActuales);
+  const [saldoTras, setSaldoTras] = useState(0);
   const et = erroresTarjeta(tarjeta); const ey = erroresYape(yape);
   const err = (k: string, m?: string) => (tocado[k] ? m : undefined);
   const campoT = (k: keyof DatosTarjeta, fmt: (v: string) => string) => ({
@@ -67,12 +71,15 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
   const costoSoles = cantidad * PRECIO_CHANCE.soles;
   const faltan = Math.max(0, costoLanas - billetera.saldo);
   const regalo = codigo?.regalo ?? 0;
-  const total = totalApi ?? sorteo.chancesActuales + cantidad + regalo;
+  const total = totalApi ?? actuales + cantidad + regalo;
   const limite = sorteo.corte ? `${/^\d/.test(sorteo.corte) ? 'las' : 'el'} ${sorteo.corte}` : '';
 
   useEffect(() => {
+    if (abierto) { setPaso('elegir'); setError(''); setTotalApi(null); setActuales(sorteo.chancesActuales); }
+  }, [abierto]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     if (!abierto) return;
-    setPaso('elegir'); setError(''); setTotalApi(null);
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && onCerrar();
     window.addEventListener('keydown', esc);
     document.body.style.overflow = 'hidden';
@@ -81,11 +88,13 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
 
   const usarLanas = async () => {
     setError('');
-    if (modoMock) { setPaso('listo'); return; }
+    setSaldoTras(Math.max(0, billetera.saldo - costoLanas));
+    if (modoMock) { demo?.sumarChances(sorteo.premio, cantidad + regalo); setPaso('listo'); return; }
     setEnviando(true);
     try {
       const r = await sorteosApi.comprarChancesConLanas(sorteo.id, cantidad);
       if (r?.userChances != null) setTotalApi(r.userChances);
+      if (r?.lanasBalance != null) setSaldoTras(r.lanasBalance);
       invalidar('lanas'); invalidar('sorteos'); invalidar('misiones');
       setPaso('listo');
     } catch (e) { setError(mensajeError(e)); } finally { setEnviando(false); }
@@ -99,7 +108,7 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
       return;
     }
     setError('');
-    if (modoMock) { setPaso('listo'); return; }
+    if (modoMock) { demo?.sumarChances(sorteo.premio, cantidad + regalo); setPaso('listo'); return; }
     setEnviando(true);
     try {
       const promoCode = codigo?.texto;
@@ -158,7 +167,7 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
                 <p className="text-sm font-bold">¿Cuántas chances quieres sumar?</p>
                 <div className="flex items-center justify-between gap-2">
                   <Contador valor={cantidad} onCambio={setCantidad} />
-                  <p className="text-[13px] text-n60">Ya tienes {sorteo.chancesActuales} chances</p>
+                  <p className="text-[13px] text-n60">Ya tienes {actuales} chances</p>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   {SUGERIDOS.map((n) => (
@@ -173,7 +182,7 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
               </div>
 
               {FLAGS.codigoChances && <CodigoPromo codigo={codigo} onCambio={setCodigo} validar={validarCodigo} />}
-              <Total total={total} actuales={sorteo.chancesActuales} cantidad={cantidad} regalo={regalo} />
+              <Total total={total} actuales={actuales} cantidad={cantidad} regalo={regalo} />
 
               <div className="flex flex-col gap-2.5">
                 <p className="text-sm font-bold">¿Cómo quieres sumar tus chances?</p>
@@ -181,16 +190,16 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
                   icono={<Icon name="tarjeta" size={22} />} titulo={`Comprar chances · ${soles(costoSoles)}`} detalle="Tarjeta o Yape" />
                 <Opcion activa={metodo === 'lanas'} onClick={() => !sinPrecioLanas && setMetodo('lanas')} deshabilitada={sinPrecioLanas}
                   icono={<MonedaLana size={22} />} titulo={sinPrecioLanas ? 'Canjear Lanas · no disponible' : `Canjear Lanas · ${formatoLanas(costoLanas)} Lanas`}
-                  detalle={sinPrecioLanas ? 'Pronto podrás sumar chances con tus Lanas.' : `Tu saldo: ${formatoLanas(billetera.saldo)} Lanas`} />
+                  detalle={sinPrecioLanas ? 'Pronto podrás sumar chances con tus Lanas.' : `Tu saldo: ${formatoLanas(billetera.saldo)} Lanas`}
+                  extra={metodo === 'lanas' && billetera.puedeGastar && faltan > 0 ? (
+                    <div className="flex flex-col gap-1.5 rounded-xl bg-error/[.08] px-3 py-2.5">
+                      <p className="flex items-center gap-2 text-[13px] font-semibold text-error"><Icon name="alerta" size={18} className="shrink-0" />Te faltan {formatoLanas(faltan)} Lanas para este canje.</p>
+                      <button onClick={() => setMetodo('soles')} className="self-start pl-[26px] text-[13px] font-bold text-cafe underline">Compra con soles · {soles(costoSoles)}</button>
+                    </div>
+                  ) : undefined} />
               </div>
               {metodo === 'lanas' && !billetera.puedeGastar && (
                 <p className="rounded-2xl bg-rosa-claro p-3.5 text-[13px] font-semibold text-cafe">Necesitas una suscripción vigente para usar tus Lanas. Puedes comprar estas chances con soles.</p>
-              )}
-              {metodo === 'lanas' && billetera.puedeGastar && faltan > 0 && (
-                <div className="flex flex-col gap-1.5 rounded-2xl border border-error/30 bg-error/[.06] p-3.5">
-                  <p className="text-sm font-semibold text-error">Te faltan {formatoLanas(faltan)} Lanas.</p>
-                  <button onClick={() => setMetodo('soles')} className="self-start text-sm font-bold text-cafe underline">Comprar con soles</button>
-                </div>
               )}
               <p className="text-xs text-n60">Precios con IGV incluido. Las chances valen solo para este sorteo.</p>
               {error && <p role="alert" className="text-xs font-semibold text-error">{error}</p>}
@@ -206,7 +215,7 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
               <Bloque>
                 <Fila k="Chances a comprar" v={String(cantidad)} />
                 {codigo && codigo.regalo > 0 && <Fila k={`Código ${codigo.texto}`} v={`+${codigo.regalo} de regalo`} verde />}
-                <Fila k="Ya tienes" v={String(sorteo.chancesActuales)} />
+                <Fila k="Ya tienes" v={String(actuales)} />
                 <div className="border-t border-n10 pt-2">
                   <p className="text-[15px] font-extrabold">Tu total será de {total} chances</p>
                   <p className="text-xs text-n60">Para este premio y sorteo.</p>
@@ -258,7 +267,7 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
                 <p className="text-sm text-n0/80">Para este premio y sorteo.</p>
               </div>
               <Bloque>
-                <Fila k="Ya tenías" v={`${sorteo.chancesActuales} chances`} />
+                <Fila k="Ya tenías" v={`${actuales} chances`} />
                 <Fila k={metodo === 'lanas' ? 'Canjeaste' : 'Compraste'} v={`${cantidad} chances`} />
                 {codigo && codigo.regalo > 0 && <Fila k={`Tu código ${codigo.texto} te dio`} v={`${codigo.regalo} chances de regalo`} verde />}
                 <div className="flex items-center justify-between border-t border-n10 pt-2 text-[15px] font-extrabold"><span>Total ahora</span><span>{total} chances</span></div>
@@ -267,7 +276,7 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
                 {metodo === 'lanas' ? <MonedaLana size={26} /> : <Icon name="tarjeta" size={24} />}
                 <div className="flex flex-col">
                   <p className="text-[15px] font-extrabold">{metodo === 'lanas' ? `Usaste ${formatoLanas(costoLanas)} Lanas` : `Pagaste ${soles(costoSoles)}`}</p>
-                  <p className="text-xs text-n60">{metodo === 'lanas' ? 'Lo ves en tus movimientos de Lanas.' : 'Te enviamos la boleta a tu correo.'}</p>
+                  <p className="text-xs text-n60">{metodo === 'lanas' ? `Te quedan ${formatoLanas(saldoTras)} Lanas.` : 'Te enviamos la boleta a tu correo.'}</p>
                 </div>
               </div>
               <BotonPrincipal onClick={onCerrar}>Listo</BotonPrincipal>
@@ -353,10 +362,10 @@ function Contador({ valor, onCambio }: { valor: number; onCambio: (n: number) =>
   );
 }
 
-function Opcion({ activa, onClick, icono, titulo, detalle, deshabilitada }: { activa: boolean; onClick: () => void; icono: ReactNode; titulo: string; detalle: string; deshabilitada?: boolean }) {
+function Opcion({ activa, onClick, icono, titulo, detalle, deshabilitada, extra }: { activa: boolean; onClick: () => void; icono: ReactNode; titulo: string; detalle: string; deshabilitada?: boolean; extra?: ReactNode }) {
   return (
-    <button onClick={onClick} aria-pressed={activa} disabled={deshabilitada}
-      className={cx('flex items-center gap-3 rounded-2xl border-2 bg-n0 p-3.5 text-left', activa ? 'border-cafe' : 'border-transparent', deshabilitada && 'opacity-60')}>
+    <div className={cx('flex flex-col gap-2 rounded-2xl border-2 bg-n0 p-3.5', activa ? 'border-cafe' : 'border-transparent', deshabilitada && 'opacity-60')}>
+    <button onClick={onClick} aria-pressed={activa} disabled={deshabilitada} className="flex items-center gap-3 text-left">
       <span className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-n5">{icono}</span>
       <span className="flex flex-1 flex-col gap-0.5">
         <span className="text-[15px] font-extrabold">{titulo}</span>
@@ -366,6 +375,8 @@ function Opcion({ activa, onClick, icono, titulo, detalle, deshabilitada }: { ac
         {activa && <span className="size-2 rounded-pill bg-amarillo" />}
       </span>
     </button>
+    {extra}
+    </div>
   );
 }
 

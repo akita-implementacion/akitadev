@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom';
 import { Contenido } from '../components/layout/Hero';
 import { HeroCarrusel } from '../components/layout/HeroCarrusel';
 import { CardBilletera, CardCanje, CardFlash } from '../components/cards/cards';
-import { DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, vistaDe, type BeneficioVista } from '../components/beneficios/catalogo';
-import { ChipFiltro, cx } from '../components/ui/primitives';
+import { DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, SinBeneficios, vistaDe, type BeneficioVista } from '../components/beneficios/catalogo';
+import { ChipFiltro } from '../components/ui/primitives';
 import { FilaAuto } from '../components/ui/Carrusel';
 import { Icon } from '../components/ui/Icon';
 import { misCupones, promosBeneficios, ubicaciones } from '../data/mock';
 import { Tx } from '../data/revision';
-import { useBanners, useBeneficios, useCanjes, useFlash as useFlashApi } from '../data/datos';
+import { useBanners, useBeneficios, useCanjes } from '../data/datos';
 import { useSesion } from '../data/sesion';
 
 const POR_PAGINA = 8;
@@ -20,8 +20,6 @@ export default function Beneficios() {
   const { beneficios, categorias: categoriasBeneficios } = useBeneficios();
   const { data: canjes } = useCanjes();
   const { modoMock } = useSesion();
-  const flashApi = useFlashApi();
-  const dosFlash = modoMock || flashApi.ejemplo;
   const banners = useBanners(['BENEFITS_MAIN']);
   const [cat, setCat] = useState('Todos');
   const [ubicacion, setUbicacion] = useState('Todas');
@@ -46,9 +44,8 @@ export default function Beneficios() {
       <HeroCarrusel color="#3EB1FF" titulo={<Tx k="beneficios.hero.titulo" />} bajada={<Tx k="beneficios.hero.bajada" />} pose="beneficios"
         promos={config.usarMock ? promosBeneficios : []} banners={config.usarMock ? [] : banners.imagenes} />
       <Contenido>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <div className={cx(!dosFlash && 'md:col-span-2 lg:col-span-2')}><CardFlash /></div>
-          {dosFlash && <CardFlash ejemplo2 />}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <CardFlash />
           <div className="hidden lg:block"><CardBilletera etiquetaCanje="Ganar Lanas" conOveja /></div>
         </div>
 
@@ -89,7 +86,7 @@ export default function Beneficios() {
               Ver {restantes} beneficios más<Icon name="chevron-abajo" size={20} />
             </button>
           )}
-          {lista.length === 0 && <p className="text-n60">Pronto habrá beneficios aquí. Prueba con otra categoría o ubicación.</p>}
+          {lista.length === 0 && <SinBeneficios categoria={cat} ubicacion={ubicacion} onLimpiar={() => cambiar(() => { setCat('Todos'); setUbicacion('Todas'); })} />}
         </section>
         {abierto && <HojaDetalleBeneficio b={abierto} abierto onCerrar={cerrar} />}
 

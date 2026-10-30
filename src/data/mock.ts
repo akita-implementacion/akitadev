@@ -149,11 +149,11 @@ export const misiones: Mision[] = [
     descripcion: 'Cada jueves a las 8:00 a. m. hay un cofre nuevo. Ábrelo hasta el miércoles 11:59 p. m.; si se agota, vuelve el jueves.',
     avance: 0, meta: 1, cta: { texto: 'Ir a Hoy', variant: 'link', to: '/' } },
   { id: 'visita', titulo: 'Visita semanal', ciclo: 'SEMANAL', recompensa: '+150',
-    descripcion: 'Entra a AKITÁ una vez por semana (de miércoles a martes). Meta de semanas por definir.',
+    descripcion: 'Entra a AKITÁ una vez por semana durante 4 semanas (de miércoles a martes).',
     avance: 2, meta: 4, cta: { texto: 'Ir a Hoy', variant: 'link', to: '/' } },
   { id: 'perfil', titulo: 'Completa tu perfil', ciclo: 'ÚNICA', recompensa: '+150',
     descripcion: 'Solo falta tu distrito. Complétalo y recibe tus Lanas.',
-    avance: 75, meta: 100, etiquetaAvance: '75 %', cta: { texto: 'Completar perfil', variant: 'link' } },
+    avance: 75, meta: 100, etiquetaAvance: '75 %', cta: { texto: 'Completar perfil', variant: 'link', to: '/mi-cuenta?s=Mi%20perfil' } },
   { id: 'beneficio', titulo: 'Activa un beneficio', ciclo: 'MENSUAL', recompensa: '+100',
     descripcion: 'Genera el código o QR de cualquier beneficio este mes.',
     avance: 0, meta: 1, cta: { texto: 'Ver beneficios', variant: 'oscuro', to: '/beneficios' } },
@@ -217,34 +217,50 @@ export const marcasAliadas = [
 ];
 
 export const movimientosLanas = [
-  { id: 'm1', titulo: 'Cofre de la semana', origen: 'Cofre', fecha: '15 oct 2026', lanas: 200, vence: '15 oct 2027', lotes: 1 },
-  { id: 'm2', titulo: 'Chances para el sorteo KIA Niro EV', origen: 'Chances de sorteo', fecha: '12 oct 2026', lanas: -300, vence: '', lotes: 2 },
-  { id: 'm3', titulo: 'Refiere a un amigo', origen: 'Referidos', fecha: '8 oct 2026', lanas: 500, vence: '8 oct 2027', lotes: 1 },
-  { id: 'm4', titulo: 'Gift card S/ 50', origen: 'Canje', fecha: '2 oct 2026', lanas: -1000, vence: '', lotes: 1 },
-  { id: 'm5', titulo: 'Visita semanal', origen: 'Visita semanal', fecha: '30 nov 2025', lanas: 40, vence: '30 nov 2026', lotes: 1 },
+  { id: 'm1', titulo: 'Chances para Camioneta KIA Niro EV', origen: 'Sumar chances', fecha: '28 oct', lanas: -30, vence: '', lotes: 1, mes: 'Octubre 2026' },
+  { id: 'm2', titulo: 'Cofre de la semana', origen: 'Elegiste Lanas', fecha: '22 oct', lanas: 30, vence: '31 ene 2027', lotes: 1, mes: 'Octubre 2026' },
+  { id: 'm3', titulo: 'Beneficio Flash', origen: 'Elegiste Lanas', fecha: '16 oct', lanas: 40, vence: '31 ene 2027', lotes: 1, mes: 'Octubre 2026' },
+  { id: 'm4', titulo: 'Refiere a un amigo', origen: 'Misión · 3 amigos', fecha: '12 oct', lanas: 500, vence: '31 ene 2027', lotes: 1, mes: 'Octubre 2026' },
+  { id: 'm5', titulo: 'Activa un beneficio', origen: 'Misión', fecha: '8 oct', lanas: 200, vence: '31 ene 2027', lotes: 1, mes: 'Octubre 2026' },
+  { id: 'm6', titulo: 'Chances para iPhone 17 Pro Max', origen: 'Sumar chances', fecha: '29 set', lanas: -30, vence: '', lotes: 1, mes: 'Setiembre 2026' },
+  { id: 'm7', titulo: 'Cofre de la semana', origen: 'Elegiste Lanas', fecha: '24 set', lanas: 30, vence: '31 dic 2026', lotes: 1, mes: 'Setiembre 2026' },
+  { id: 'm8', titulo: 'Completa tus datos', origen: 'Misión', fecha: '15 set', lanas: 150, vence: '31 dic 2026', lotes: 1, mes: 'Setiembre 2026' },
+  { id: 'm9', titulo: 'Visita AKITÁ cada semana', origen: 'Misión', fecha: '10 set', lanas: 100, vence: '31 dic 2026', lotes: 1, mes: 'Setiembre 2026' },
+  { id: 'm10', titulo: 'Bienvenida al rebaño', origen: 'Al suscribirte', fecha: '1 set', lanas: 250, vence: '31 dic 2026', lotes: 1, mes: 'Setiembre 2026' },
 ];
 
 export const cuponesUsuario = [
-  { id: 'c1', titulo: 'Gift card S/ 50 · Jockey Plaza', codigo: 'JP50-7KQ2-XM4A', instrucciones: 'Muestra el código en caja de cualquier tienda afiliada.', fecha: '2 oct 2026', vence: '2 ene 2027', lanas: 1000, conLanas: true },
-  { id: 'c2', titulo: '30% en Menú ejecutivo · Restaurante Andes', codigo: 'ANDES30', instrucciones: 'Dicta el código al mozo antes de pedir la cuenta.', fecha: '28 set 2026', vence: '31 oct 2026', lanas: 0, conLanas: false },
-  { id: 'c3', titulo: '50% OFF en Cinépolis', codigo: 'CINE-50-QR81', instrucciones: 'Presenta el QR en boletería.', fecha: '20 set 2026', vence: '20 dic 2026', lanas: 300, conLanas: true },
+  { id: 'c1', titulo: '2x1 en entradas de cine', comercio: 'Cinemark', logo: 'assets/marcas/cinemark.webp', origen: 'Cofre', codigo: 'CINE-2X1-7K', instrucciones: 'Escríbenos por WhatsApp al 934 123 456 con este código y tu DNI, y te enviamos tus entradas. Tienes hasta el miércoles 11 nov para canjearlo.', fecha: '22 oct 2026', vence: '15 nov 2026', lanas: 0, conLanas: false, estado: 'disponible' as const, tipo: 'codigo' as const },
+  { id: 'c2', titulo: '90% OFF en lentes y monturas', comercio: 'Arthur & Sons', logo: 'assets/marcas/arthur-sons.webp', origen: 'Beneficio Flash', codigo: 'AKT-LENTES90', instrucciones: '', fecha: '16 oct 2026', vence: '30 nov 2026', lanas: 0, conLanas: false, estado: 'disponible' as const, tipo: 'codigo' as const },
+  { id: 'c3', titulo: '25% en combos', comercio: 'Hollyfood', logo: 'assets/marcas/hollyfood.webp', origen: 'Beneficio', codigo: 'HOLLY25', enlace: 'https://example.com', instrucciones: '', fecha: '10 oct 2026', vence: '31 dic 2026', lanas: 0, conLanas: false, estado: 'disponible' as const, tipo: 'enlace' as const },
+  { id: 'c4', titulo: 'Gift card S/ 50', comercio: 'Jockey Plaza', origen: 'Canje', codigo: 'JP-GC50-9Q2M', instrucciones: 'Muestra el código en caja de cualquier tienda afiliada.', fecha: '2 oct 2026', vence: '31 ene 2027', lanas: 1000, conLanas: true, estado: 'disponible' as const, tipo: 'codigo' as const },
+  { id: 'c5', titulo: '30% en el menú ejecutivo', comercio: 'Franklin', logo: 'assets/marcas/franklin.webp', origen: 'Beneficio', codigo: 'MENU30', instrucciones: '', fecha: '14 oct 2026', vence: '31 dic 2026', lanas: 0, conLanas: false, estado: 'usado' as const, tipo: 'codigo' as const },
+  { id: 'c6', titulo: '65% en consulta dermatológica', comercio: 'Dermohelp', logo: 'assets/marcas/dermohelp.webp', origen: 'Beneficio', codigo: '', instrucciones: 'Muestra tu DNI en el comercio para usarlo.', fecha: '2 oct 2026', vence: '31 dic 2026', lanas: 0, conLanas: false, estado: 'usado' as const, tipo: 'dni' as const },
+  { id: 'c7', titulo: '40% en corte y barba', comercio: 'Barba Negra', logo: 'assets/marcas/barba-negra.webp', origen: 'Beneficio Flash', codigo: 'BARBA40', instrucciones: '', fecha: '18 set 2026', vence: '30 set 2026', lanas: 0, conLanas: false, estado: 'vencido' as const, tipo: 'codigo' as const },
 ];
 
 export const recompensasUsuario = [
-  { id: 'r1', titulo: 'Abriste tu cofre de la semana', origen: 'Cofre', fecha: '15 oct 2026', lanas: 200, vence: '15 oct 2027' },
-  { id: 'r2', titulo: '3 amigos se suscribieron con tu código', origen: 'Referidos', fecha: '8 oct 2026', lanas: 500, vence: '8 oct 2027' },
-  { id: 'r3', titulo: '20% en Smart Fit (cofre)', origen: 'Cofre', fecha: '1 oct 2026', lanas: 0, vence: '31 oct 2026' },
+  { id: 'r1', titulo: '30 Lanas', origen: 'Cofre', fecha: 'jue 22 oct', lanas: 30, vence: '31 ene 2027' },
+  { id: 'r2', titulo: '40 Lanas', origen: 'Beneficio Flash', fecha: 'vie 16 oct', lanas: 40, vence: '31 ene 2027' },
+  { id: 'r3', titulo: '2x1 en entradas de cine · Cinemark', origen: 'Cofre', fecha: 'jue 15 oct', lanas: 0, vence: '15 nov 2026' },
+  { id: 'r4', titulo: '90% OFF en lentes · Arthur & Sons', origen: 'Beneficio Flash', fecha: 'vie 9 oct', lanas: 0, vence: '30 nov 2026' },
+  { id: 'r5', titulo: '3 amigos se suscribieron con tu código', origen: 'Referidos', fecha: '8 oct 2026', lanas: 500, vence: '31 ene 2027' },
+  { id: 'r6', titulo: '30 Lanas', origen: 'Cofre', fecha: 'jue 1 oct', lanas: 30, vence: '31 dic 2026' },
 ];
 
 export const participacionesActivas = [
-  { fecha: 'mié 21 oct', sorteos: [
-    { id: 's1', premio: 'Camioneta KIA Niro EV', chances: 6, ganador: false, renovacion: true, detalle: '3 plan · 3 con Lanas' },
-    { id: 's2', premio: 'iPhone 17 Pro', chances: 3, ganador: false, renovacion: true, detalle: '3 plan' },
+  { fecha: 'mié 4 nov', sorteos: [
+    { id: 's2', premio: 'iPhone 17 Pro Max', chances: 3, ganador: false, renovacion: true, detalle: '3 plan', plan: 3, sumadas: 0, regalo: 0 },
+    { id: 's3', premio: 'PlayStation 5', chances: 23, ganador: false, renovacion: true, detalle: '3 plan · 10 compradas · 10 promo', plan: 3, sumadas: 10, regalo: 10 },
+  ] },
+  { fecha: 'mié 25 nov', sorteos: [
+    { id: 's1', premio: 'Camioneta KIA Niro EV', chances: 33, ganador: false, renovacion: true, detalle: '3 plan · 30 con Lanas', plan: 3, sumadas: 30, regalo: 0 },
   ] },
 ];
 export const participacionesHistoricas = [
-  { fecha: 'mié 14 oct', sorteos: [{ id: 'h1', premio: 'PlayStation 5', chances: 3, ganador: false, renovacion: false, detalle: '3 plan' }] },
-  { fecha: 'mié 7 oct', sorteos: [{ id: 'h2', premio: 'Scooter eléctrico', chances: 4, ganador: true, renovacion: false, detalle: '3 plan · 1 promo' }] },
+  { fecha: 'mié 28 oct', sorteos: [{ id: 'h1', premio: 'Moto Honda Navi', chances: 3, ganador: false, renovacion: false, detalle: '3 plan', plan: 3, sumadas: 0, regalo: 0 }] },
+  { fecha: 'mié 21 oct', sorteos: [{ id: 'h2', premio: 'Gift card S/ 200', chances: 8, ganador: true, renovacion: false, detalle: '3 plan · 5 con Lanas', plan: 3, sumadas: 5, regalo: 0 }] },
+  { fecha: 'mié 30 set', sorteos: [{ id: 'h3', premio: 'Camioneta KIA Niro EV', chances: 33, ganador: false, renovacion: false, detalle: '3 plan · 30 con Lanas', plan: 3, sumadas: 30, regalo: 0 }] },
 ];
 
 export const perfilEditable = {
@@ -295,6 +311,7 @@ export const cofreSemana = {
   ] as [string, string][],
   usoCorto: 'Úsalo hasta el 15 nov · 11:59 p. m. en Franklin · Miraflores.',
   codigo: 'AKT-7Q4M',
+  instrucciones: 'Escríbenos por WhatsApp al 934 123 456 con este código y tu DNI, y te confirmamos tu reserva. Tienes hasta el miércoles 11 nov para canjearlo.',
 };
 
 export const flashSemana = {

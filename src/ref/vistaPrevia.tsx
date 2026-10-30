@@ -80,8 +80,8 @@ function HojaCofreVistaPrevia({ abierto, onCerrar }: { abierto: boolean; onCerra
   const quedanP = cofre.premio.quedan; const quedanL = cofre.alternativa.quedan;
   const mensaje = stockCofre === 'agotado'
     ? null
-    : sinPremio ? `El premio ya se agotó. Aún puedes elegir ${lanas} Lanas. ¡Quedan ${quedanL} cupos!`
-      : sinLanas ? `Las Lanas ya se agotaron. Aún puedes elegir ${premio}. ¡Quedan ${quedanP} disponibles!`
+    : sinPremio ? `El premio ya se agotó. Aún puedes elegir ${lanas} Lanas. Hasta agotar stock.`
+      : sinLanas ? `Las Lanas ya se agotaron. Aún puedes elegir ${premio}. Hasta agotar stock.`
         : `${premio} o ${lanas} Lanas: tú eliges. Activa tu plan y elige una opción antes de que se agote.`;
   return (
     <Hoja abierto={abierto} onCerrar={onCerrar} titulo={stockCofre === 'agotado' ? '¡El Cofre de esta semana se agotó!' : '¡Que no se te escape!'}>
@@ -91,11 +91,11 @@ function HojaCofreVistaPrevia({ abierto, onCerrar }: { abierto: boolean; onCerra
         : <p className="text-[15px] leading-[22px]">El próximo abre en <b className="whitespace-nowrap">{formatoRestante(proximoMiercoles8().getTime() - ahora)}</b>. Suscríbete y prepárate para elegir tu próxima recompensa.</p>}
       <div className="flex flex-col gap-2.5">
         <Opcion icono={<LogoMarca marca={cofre.premio.marca} tamano="sm" />} titulo={premio}
-          lineas={['Salas Cinemark de todo el Perú', 'Se usa con QR en boletería. De lunes a jueves, salas tradicionales. Un uso por persona.']}
-          stock={`Quedan ${quedanP} disponibles`} agotada={sinPremio} terminos={cofre.premio.terminos} />
+          lineas={['Salas Cinemark de todo el Perú', 'Recibes un código y lo canjeas por WhatsApp. De lunes a jueves, salas tradicionales. Un uso por persona.']}
+          stock="Hasta agotar stock" agotada={sinPremio} terminos={cofre.premio.terminos} />
         <Opcion icono={<MonedaLana size={34} />} titulo={`${lanas} Lanas`}
           lineas={['Van a tu billetera al elegirlas', 'Canjéalas por chances o beneficios']}
-          stock={`Quedan ${quedanL} cupos de ${lanas} Lanas`} agotada={sinLanas} />
+          stock="Hasta agotar stock" agotada={sinLanas} />
       </div>
       <p className="text-[13px] leading-[18px] text-n60">
         {stockCofre === 'agotado' ? 'Con tu plan accedes a los próximos cofres. ' : ''}Necesitas un plan activo para elegir tu recompensa. Las recompensas están sujetas a stock.
@@ -148,7 +148,7 @@ export function CardFlashVisitante() {
         <p className="text-[13px] font-semibold leading-[18px] lg:text-sm">Con tu suscripción, elige este beneficio o {flash.lanas} Lanas. ¡Cupos limitados!</p>
         {st.finalizado ? <p className="text-[13px] font-bold leading-[18px] lg:text-sm">Llega un nuevo Flash el próximo viernes.</p>
           : <div className="mt-1 flex flex-wrap gap-1.5">
-              {[[st.sinBeneficio, 'Beneficio agotado', `Quedan ${st.quedanB} beneficios`], [st.sinLanas, 'Lanas agotadas', `Quedan ${st.quedanL} cupos de ${flash.lanas} Lanas`]].map(([agot, t1, t2]) => (
+              {(st.sinBeneficio || st.sinLanas ? [[st.sinBeneficio, 'Beneficio agotado', 'Beneficio: hasta agotar stock'], [st.sinLanas, 'Lanas agotadas', 'Lanas: hasta agotar stock']] : [[false, '', 'Hasta agotar stock']]).map(([agot, t1, t2]) => (
                 <span key={String(t2)} className={cx('inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-[12px] font-extrabold', agot ? 'bg-n0/60 text-n60 line-through' : 'bg-n0 text-cafe')}>
                   {!agot && <span className="size-2 rounded-full bg-rosa-fuerte" />}{agot ? t1 : t2}</span>))}
             </div>}
@@ -166,32 +166,30 @@ function HojaFlashVistaPrevia({ abierto, onCerrar }: { abierto: boolean; onCerra
   const fin = finFlash();
   const sinNada = st.finalizado || st.agotado;
   const titulo = st.finalizado ? 'Flash finalizado' : st.agotado ? '¡Este Flash se agotó!' : '¡Que no se te pase este Flash!';
-  const proximo = 'mié 4 nov, 8:00 a. m.';
+  const proximo = 'vie 6 nov, 8:00 a. m.';
   return (
     <Hoja abierto={abierto} onCerrar={onCerrar} titulo={titulo}>
       <span className="-mt-2 w-fit rounded-pill bg-cafe px-3 py-1 text-[11px] font-bold tracking-[0.8px] text-amarillo">⚡ BENEFICIO FLASH DE ESTA SEMANA</span>
       {!st.finalizado && (
-        <div className="flex flex-col gap-2 rounded-2xl bg-n0 p-3.5">
+        <div className="flex flex-col gap-2 rounded-2xl border-2 border-amarillo bg-amarillo/35 p-3.5">
           <p className="flex items-start gap-2.5 text-[14px] leading-5"><Icon name="reloj" size={20} className="shrink-0" />
             <span><b>Disponible para elegir hasta</b> hoy, 11:59 p. m.{!sinNada && <> · quedan <b className="whitespace-nowrap">{formatoRestante(fin.getTime() - ahora)}</b></>}</span></p>
           <p className="flex items-start gap-2.5 text-[14px] leading-5"><Icon name="calendario" size={20} className="shrink-0" />
-            <span><b>Puedes usar el beneficio hasta</b> el dom 30 nov, 11:59 p. m.</span></p>
+            <span><b>Puedes usar el beneficio hasta</b> el lun 30 nov, 11:59 p. m.</span></p>
         </div>
       )}
       {sinNada
         ? <p className="text-[15px] leading-[22px]">{st.finalizado ? 'Terminó el plazo para elegir este Flash.' : 'Se agotaron el beneficio y las Lanas.'} Llega un nuevo Flash el <b>{proximo}</b> Suscríbete y no te pierdas el próximo.</p>
-        : <p className="text-[15px] font-bold leading-[22px]">
-            {st.sinBeneficio ? `El beneficio ya se agotó. ¡Quedan ${st.quedanL} cupos de ${flash.lanas} Lanas!`
-              : st.sinLanas ? `Las Lanas ya se agotaron. ¡Quedan ${st.quedanB} beneficios!`
-                : `¡Quedan ${st.quedanB} beneficios! ¡Quedan ${st.quedanL} cupos de ${flash.lanas} Lanas!`}
+        : (st.sinBeneficio || st.sinLanas) && <p className="text-[15px] font-bold leading-[22px]">
+            {st.sinBeneficio ? `El beneficio ya se agotó. Aún puedes elegir ${flash.lanas} Lanas.` : 'Las Lanas ya se agotaron. Aún puedes elegir el beneficio.'}
           </p>}
       <div className="flex flex-col gap-2.5">
         <Opcion icono={<LogoMarca marca={flash.marca} tamano="sm" />} titulo={`${flash.descuento} OFF ${flash.detalle}`}
           lineas={['Tiendas Arthur & Sons de Lima', 'Se usa con código en caja. Un uso por persona. No acumulable con otras promociones.']}
-          stock={`Quedan ${st.quedanB} beneficios`} agotada={st.sinBeneficio || st.finalizado} terminos={flash.terminos} />
+          stock="Hasta agotar stock" agotada={st.sinBeneficio || st.finalizado} terminos={flash.terminos} />
         <Opcion icono={<MonedaLana size={34} />} titulo={`${flash.lanas} Lanas`}
           lineas={['Van a tu billetera al elegirlas', 'Canjéalas por chances o beneficios']}
-          stock={`Quedan ${st.quedanL} cupos de ${flash.lanas} Lanas`} agotada={st.sinLanas || st.finalizado} />
+          stock="Hasta agotar stock" agotada={st.sinLanas || st.finalizado} />
       </div>
       <p className="text-[13px] leading-[18px] text-n60">{sinNada ? 'Con tu plan accedes a los próximos Beneficios Flash. ' : ''}Necesitas un plan activo para elegir. Sujeto a stock.</p>
       <AccionPlan onIr={() => { onCerrar(); navigate('/planes'); }} />

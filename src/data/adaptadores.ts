@@ -121,12 +121,14 @@ export const aSorteoDestacado = (sorteos: T.Sorteo[]) => {
     puedeComprar: !!s?.canBuy && !s?.isLive,
     descripcion: s?.description || undefined,
     terminosUrl: s?.termAndConditionsUrl ?? s?.termsAndConditionsUrl ?? undefined,
+    chances: s?.userChances ?? null,
   };
 };
 
 export const aProximos = (sorteos: T.Sorteo[]) => sorteos.map((s) => ({
   id: s.id, categoria: '', premio: s.name ?? '', fecha: `Sorteo ${diaSemana(s.drawDate)}`, enDias: enDias(s.drawDate), foto: conPrueba(s.imageUrl, 'premio', s.id),
   fechaIso: s.drawDate ? new Date(s.drawDate).toLocaleDateString('en-CA', { timeZone: TZ }) : '',
+  chances: s.userChances ?? null,
 }));
 
 export const aFechas = (fechas: unknown) =>
@@ -235,8 +237,8 @@ export const aApertura = (a: T.AperturaCofre) => ({
 const CICLO: Record<string, Ciclo> = { ONE_TIME: 'ÚNICA', ONCE: 'ÚNICA', UNIQUE: 'ÚNICA', WEEKLY: 'SEMANAL', MONTHLY: 'MENSUAL', ALWAYS: 'SIEMPRE' };
 const CTA: Record<string, Mision['cta']> = {
   REFERRAL: { texto: 'Copiar mi código', variant: 'link' },
-  PROFILE_COMPLETION: { texto: 'Completar perfil', variant: 'link', to: '/mi-cuenta' },
-  PROFILE: { texto: 'Completar perfil', variant: 'link', to: '/mi-cuenta' },
+  PROFILE_COMPLETION: { texto: 'Completar perfil', variant: 'link', to: '/mi-cuenta?s=Mi%20perfil' },
+  PROFILE: { texto: 'Completar perfil', variant: 'link', to: '/mi-cuenta?s=Mi%20perfil' },
   CHEST_OPENING: { texto: 'Ir a Hoy', variant: 'link', to: '/' },
   CHEST: { texto: 'Ir a Hoy', variant: 'link', to: '/' },
   WEEKLY_VISIT: { texto: 'Ir a Hoy', variant: 'link', to: '/' },
@@ -297,6 +299,11 @@ const ORIGEN: Record<string, string> = {
 };
 const origen = (s?: string) => ORIGEN[(s ?? '').toUpperCase()] ?? (s ? s.charAt(0) + s.slice(1).toLowerCase().replace(/_/g, ' ') : '');
 
+const mesAnio = (iso?: string) => {
+  const t = fecha(iso, { month: 'long', year: 'numeric' }).replace(' de ', ' ');
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+
 export const aMovimientos = (p: T.Paginado<T.MovimientoLana>) => ({
   items: lista<T.MovimientoLana>(p, 'data', 'items').map((m) => {
     const credito = (m.type ?? '').toUpperCase() === 'CREDIT';
@@ -309,6 +316,7 @@ export const aMovimientos = (p: T.Paginado<T.MovimientoLana>) => ({
       lanas: (credito ? 1 : -1) * Math.abs(m.amount ?? 0),
       vence: credito && vence ? fecha(vence) : '',
       lotes: (m.allocations ?? []).length,
+      mes: mesAnio(m.createdAt),
     };
   }),
   hayMas: (p.meta?.currentPage ?? 1) < (p.meta?.lastPage ?? 1),
@@ -316,6 +324,20 @@ export const aMovimientos = (p: T.Paginado<T.MovimientoLana>) => ({
 export type Movimiento = ReturnType<typeof aMovimientos>['items'][number];
 
 const ORIGEN_CUPON: Record<string, string> = { BENEFIT: 'Beneficio', MARKETPLACE: 'Canje', CHEST: 'Cofre', FLASH_BENEFIT: 'Beneficio Flash' };
+const estadoCupon = (c: T.CuponMio): 'disponible' | 'usado' | 'vencido' => {
+  const st = (c.status ?? '').toUpperCase();
+  if (/USED|CONSUMED/.test(st)) return 'usado';
+  if (/EXPIRED/.test(st) || (c.expiresAt && new Date(c.expiresAt).getTime() < Date.now())) return 'vencido';
+  return 'disponible';
+};
+const tipoCupon = (c: T.CuponMio): 'codigo' | 'qr' | 'dni' | 'enlace' | 'contacto' => {
+  const m = (c.deliveryMode ?? c.discountDeliveryMode ?? '').toUpperCase();
+  if (m === 'DNI' || m === 'IN_PERSON') return 'dni';
+  if (/CONTACT/.test(m)) return 'contacto';
+  if (c.redirectUrl) return 'enlace';
+  if (c.qrUrl || /QR/.test(m)) return 'qr';
+  return 'codigo';
+};
 export const aCupones = (r: unknown) => lista<T.CuponMio>(r, 'items', 'data').map((c) => ({
   id: c.id,
   titulo: c.title ?? c.benefitName ?? c.itemName ?? c.name ?? (c.rewardType ? origen(c.rewardType) : 'Cupón'),
@@ -330,6 +352,8 @@ export const aCupones = (r: unknown) => lista<T.CuponMio>(r, 'items', 'data').ma
   vence: fecha(c.expiresAt),
   lanas: c.lanasSpent ?? 0,
   conLanas: (c.lanasSpent ?? 0) > 0,
+  estado: estadoCupon(c),
+  tipo: tipoCupon(c),
 }));
 export type Cupon = ReturnType<typeof aCupones>[number];
 
@@ -354,6 +378,9 @@ export const aParticipaciones = (r: unknown) => lista<T.GrupoParticipaciones>(r,
     chances: Math.round(s.totalChances ?? 0),
     ganador: !!s.isWinner,
     renovacion: !!s.subjectToRenewal,
+    plan: Math.round(s.breakdown?.subscription ?? 0),
+    sumadas: Math.round((s.breakdown?.purchased ?? 0) + (s.breakdown?.wallet ?? 0)),
+    regalo: Math.round(s.breakdown?.promo ?? 0),
     detalle: ORIGEN_CHANCES.map(([k, t]) => [Math.round(s.breakdown?.[k] ?? 0), t] as const).filter(([n]) => n > 0).map(([n, t]) => `${n} ${t}`).join(' · '),
   })),
 }));

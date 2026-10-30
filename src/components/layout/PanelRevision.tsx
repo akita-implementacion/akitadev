@@ -36,6 +36,7 @@ export function PanelRevision() {
           </div>
           <Grupo titulo="Cofre semanal" valor={d.cofre} opciones={estadosCofre} onChange={d.setCofre} />
           <Grupo titulo="Beneficio Flash" valor={d.flash} opciones={estadosFlash} onChange={d.setFlash} />
+          {sesion.modoMock && <Grupo titulo="Saldo de Lanas" valor={d.saldoLanas} opciones={[{ id: 'normal', t: '1.240 Lanas' }, { id: 'poco', t: '20 Lanas' }, { id: 'cero', t: '0 Lanas (lanzamiento)' }]} onChange={d.setSaldoLanas} />}
         </div>
       )}
       <button onClick={() => setAbierto(!abierto)}

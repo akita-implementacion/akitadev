@@ -38,7 +38,7 @@ export function HojaPremio({ p, abierto, onCerrar, accion, nota }: { p: DetalleP
         </ul>
       </Bloque>
       {p.terminos && p.terminos.length > 0 && <TerminosPremio terminos={p.terminos} />}
-      {p.terminosUrl && <a href={p.terminosUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 self-start text-sm font-bold underline"><Icon name="info" size={18} />Bases del sorteo</a>}
+      {p.terminosUrl && <a href={p.terminosUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 self-start text-sm font-bold underline"><Icon name="info" size={18} />Ver bases completas del sorteo (PDF)</a>}
       {accion}
       {nota && <p className="text-center text-[13px] text-n60">{nota}</p>}
     </Hoja>

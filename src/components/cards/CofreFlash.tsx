@@ -35,7 +35,7 @@ export function Modal({ abierto, onCerrar, children, blanco }: { abierto: boolea
 
 const agotada = (o: OpcionRecompensa) => o.quedan !== null && o.quedan <= 0;
 const punto = (t: string) => (t.endsWith('.') ? t : `${t}.`);
-const quedanTexto = (o: OpcionRecompensa) => (o.quedan === null ? '' : o.total ? `Quedan ${o.quedan} de ${o.total}` : `Quedan ${o.quedan}`);
+const quedanTexto = (o: OpcionRecompensa) => (o.quedan === null ? '' : 'Hasta agotar stock');
 
 function Aviso({ titulo, detalle }: { titulo: string; detalle: string }) {
   return (
@@ -100,7 +100,7 @@ function Entregados({ lista }: { lista: { titulo: string; logo?: string; cantida
 }
 
 type Resultado = 'ok' | 'agotada' | 'error';
-type Obtenido = { opcion: OpcionRecompensa; codigo?: string | null };
+type Obtenido = { opcion: OpcionRecompensa; codigo?: string | null; instrucciones?: string | null };
 
 type Recompensa = {
   oculto: boolean;
@@ -152,7 +152,7 @@ function Eleccion({ r, textoOpcion, detalleOpcion, nota, intro, pie, logo }: {
   );
 }
 
-let aperturaEnCurso: (ReturnType<typeof aApertura> & { codigo?: string }) | null = null;
+let aperturaEnCurso: (ReturnType<typeof aApertura> & { codigo?: string; instrucciones?: string }) | null = null;
 let cofreAbiertoDemo = false;
 
 function useCofre() {
@@ -172,7 +172,7 @@ function useCofre() {
       estado: elegida ? 'elegido' : demo.cofre === 'agotado' ? 'agotado' : cofreAbiertoDemo ? 'abierto' : 'disponible',
       opciones,
       detalles: cofreSemana.detalles,
-      obtenido: elegida ? { opcion: elegida, codigo: elegida.id === 'premio' ? cofreSemana.codigo : null } : null,
+      obtenido: elegida ? { opcion: elegida, codigo: elegida.id === 'premio' ? cofreSemana.codigo : null, instrucciones: elegida.id === 'premio' ? cofreSemana.instrucciones : null } : null,
       confirmar: async (id) => { demo.setEleccionCofre(id as Eleccion); return 'ok'; },
       enviando: false, error: '',
     };
@@ -203,12 +203,12 @@ function useCofre() {
     estado: elegida ? 'elegido' : ap ? 'abierto' : c?.agotado ? 'agotado' : 'disponible',
     opciones,
     detalles: ap?.detalle ? [['Úsalo hasta', ap.detalle.replace(/^Vence /, '')]] : [],
-    obtenido: elegida ? { opcion: elegida, codigo: aperturaEnCurso?.codigo ?? null } : null,
+    obtenido: elegida ? { opcion: elegida, codigo: aperturaEnCurso?.codigo ?? null, instrucciones: aperturaEnCurso?.instrucciones ?? null } : null,
     confirmar: (id) => conError(async () => {
       if (!ap?.id) throw new Error('Sin apertura');
       if (id === 'premio') {
         const res = await cofreApi.aplicar(ap.id);
-        aperturaEnCurso = { ...ap, estado: 'APPLIED', codigo: res.shownCode ?? res.instructions ?? undefined };
+        aperturaEnCurso = { ...ap, estado: 'APPLIED', codigo: res.shownCode ?? undefined, instrucciones: res.instructions ?? undefined };
       } else {
         await cofreApi.cambiarPorLanas(ap.id);
         aperturaEnCurso = { ...ap, estado: 'EXCHANGED' };
@@ -246,7 +246,7 @@ export function CardCofre({ variante = 'normal' }: { variante?: 'normal' | 'comp
   const linea = agotado ? `Se agotaron los premios de esta semana.${info.proximo ? ` Nuevo cofre el ${punto(info.proximo)}` : ''}`
     : listo ? `Ya abriste tu cofre.${info.proximo ? ` Nuevo cofre el ${punto(info.proximo)}` : ''}`
       : r.estado === 'abierto' ? 'Ya abriste tu cofre: elige con qué te quedas.'
-        : `${info.quedan !== null && info.total ? `Quedan ${info.quedan} de ${info.total} premios` : 'Nunca sabes qué sale'}${info.cierra ? ` · hasta el ${info.cierra}` : ''}`;
+        : `Hasta agotar stock${info.cierra ? ` · ábrelo hasta el ${info.cierra}` : ''}`;
   const onBoton = async () => { if (r.estado === 'disponible') { if (await abrir()) setHoja(true); } else setHoja(true); };
   const ilustracion = (clase: string) => <Cofre3D vacio={agotado} abierto={r.estado !== 'disponible' && !agotado} className={clase} />;
   const hojaCofre = <HojaCofre r={r} info={info} abierto={hoja} onCerrar={() => setHoja(false)} />;
@@ -258,7 +258,7 @@ export function CardCofre({ variante = 'normal' }: { variante?: 'normal' | 'comp
         {ilustracion('h-[86px]')}
         <p className="text-center text-[15px] font-extrabold leading-[18px] text-amarillo">{agotado ? '¡Se agotó!' : 'Tu cofre de la semana'}</p>
         <p className="text-center text-[11px] font-medium leading-[14px] text-n0/80">
-          {agotado || listo ? (info.proximo ? `Nuevo: ${info.proximo}` : 'Vuelve el jueves') : info.quedan !== null && info.total ? <>Quedan {info.quedan} de {info.total}{info.cierra && <span className="block">hasta el {info.cierra.split(' ')[0]}</span>}</> : 'Nunca sabes qué sale'}
+          {agotado || listo ? (info.proximo ? `Nuevo: ${info.proximo}` : 'Vuelve el jueves') : <>Hasta agotar stock{info.cierra && <span className="block">hasta el {info.cierra.split(' ')[0]}</span>}</>}
         </p>
         <div className="flex-1" />
         <button type="button" disabled={r.enviando} onClick={onBoton} className="w-full whitespace-nowrap rounded-pill bg-n0 py-[9px] text-[13px] font-bold text-cafe">
@@ -292,6 +292,15 @@ export function CardCofre({ variante = 'normal' }: { variante?: 'normal' | 'comp
   );
 }
 
+function ComoCanjearlo({ texto }: { texto: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border-2 border-amarillo bg-amarillo/25 p-3.5">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-pill bg-amarillo"><Icon name="info" size={18} /></span>
+      <div className="flex flex-col gap-0.5"><p className="text-[14px] font-extrabold">Cómo canjearlo</p><p className="text-[13.5px] leading-5">{texto}</p></div>
+    </div>
+  );
+}
+
 function HojaCofre({ r, info, abierto, onCerrar }: { r: Recompensa; info: ReturnType<typeof useCofre>['info']; abierto: boolean; onCerrar: () => void }) {
   const hayAlternativa = r.opciones.some((o) => o.id === 'lanas');
   const premio = r.opciones.find((o) => o.id === 'premio');
@@ -316,6 +325,7 @@ function HojaCofre({ r, info, abierto, onCerrar }: { r: Recompensa; info: Return
               </div>
               {info.uso && <p className="text-[13px] text-n60">{info.uso}</p>}
               {r.obtenido.codigo && <CodigoCopiable codigo={r.obtenido.codigo} />}
+              {r.obtenido.instrucciones && <ComoCanjearlo texto={r.obtenido.instrucciones} />}
               <p className="text-[13px] text-n60">Tu premio también está en Mis Cupones.</p>
             </Bloque>
           )}
@@ -431,8 +441,6 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
   const beneficio = r.opciones.find((o) => o.id === 'premio');
   const lanas = r.opciones.find((o) => o.id === 'lanas');
   const total = r.opciones.reduce((n, o) => n + (o.total ?? 0), 0);
-  const quedanTodas = r.opciones.reduce((n, o) => n + (o.quedan ?? 0), 0);
-  const disfrutando = total ? total - quedanTodas : 0;
   const agotado = !proximamente && r.estado === 'agotado';
   const elegido = r.estado === 'elegido' && r.obtenido;
   const volver = f.proximo ? `Vuelve el ${f.proximo}: llega un nuevo Beneficio Flash.` : 'Vuelve el viernes: llega un nuevo Beneficio Flash.';
@@ -469,13 +477,8 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
   );
 
   const stockBarra = total > 0 && (
-    <div className="flex flex-col gap-1.5">
-      <div className="h-1.5 overflow-hidden rounded-pill bg-n0/40"><div className="h-full rounded-pill bg-success" style={{ width: `${Math.min(100, (disfrutando / total) * 100)}%` }} /></div>
-      <p className="text-xs font-medium text-cafe">{disfrutando} personas ya lo disfrutan</p>
-      <div className="flex flex-wrap gap-1.5">
-        <span className="inline-flex items-center gap-1 rounded-pill bg-n0 px-2.5 py-1 text-[12px] font-extrabold text-cafe"><span className="size-2 rounded-full bg-rosa-fuerte" />Quedan {beneficio?.quedan ?? 0} beneficios</span>
-        {lanas && <span className="inline-flex items-center gap-1 rounded-pill bg-n0 px-2.5 py-1 text-[12px] font-extrabold text-cafe"><span className="size-2 rounded-full bg-rosa-fuerte" />Quedan {lanas.quedan ?? 0} cupos de {lanas.titulo.replace(/^\+/, '')}</span>}
-      </div>
+    <div className="flex flex-wrap gap-1.5">
+      <span className="inline-flex items-center gap-1 rounded-pill bg-n0 px-2.5 py-1 text-[12px] font-extrabold text-cafe"><span className="size-2 rounded-full bg-rosa-fuerte" />Hasta agotar stock</span>
     </div>
   );
 
@@ -514,14 +517,14 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
         <p className="text-base font-bold text-cafe/60">{f.oferta}</p>
         <span className="absolute right-4 top-4 rotate-6 rounded-lg bg-cafe px-3 py-1.5 text-base font-black text-amarillo">¡SE AGOTÓ!</span>
       </div>
-      {disfrutando > 0 && <p className="text-sm font-bold text-cafe">{disfrutando} personas lo aprovecharon. Te lo perdiste esta vez.</p>}
+      <p className="text-sm font-bold text-cafe">Se agotó. Te lo perdiste esta vez.</p>
       <Volver texto={f.proximo ? `El próximo Beneficio Flash llega el ${f.proximo}` : 'El próximo Beneficio Flash llega el viernes'} />
     </div>
   ) : (
     <div className="flex flex-1 flex-col justify-center gap-1.5">
       <span className="w-fit -rotate-3 rounded-md bg-cafe px-2 py-1 text-[12px] font-black text-amarillo">¡SE AGOTÓ!</span>
       <p className="text-[24px] font-black leading-none text-cafe/40 line-through">{f.descuento}</p>
-      <p className="text-[11px] font-semibold leading-4 text-cafe">{disfrutando > 0 ? `${disfrutando} lo aprovecharon. ` : ''}{f.proximo ? `Próximo: ${f.proximo}` : 'Vuelve el miércoles'}</p>
+      <p className="text-[11px] font-semibold leading-4 text-cafe">Se agotó. {f.proximo ? `Próximo: ${f.proximo}` : 'Próximo: viernes'}</p>
     </div>
   );
 
@@ -543,7 +546,7 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
               <p className="text-[34px] font-black leading-9 tracking-[-1.5px] text-cafe">{f.descuento}</p>
               <p className="line-clamp-2 text-[14px] font-extrabold leading-[17px] text-cafe">{corto}</p>
               <p className="truncate text-[11px] font-medium text-cafe">{lanas ? `o ${lanas.titulo}` : f.marca}</p>
-              {beneficio?.quedan != null && <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-pill bg-n0 px-2 py-0.5 text-[11px] font-extrabold text-cafe"><span className="size-1.5 rounded-full bg-rosa-fuerte" />Quedan {beneficio.quedan}</span>}
+              {beneficio?.quedan != null && <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-pill bg-n0 px-2 py-0.5 text-[11px] font-extrabold text-cafe"><span className="size-1.5 rounded-full bg-rosa-fuerte" />Hasta agotar stock</span>}
               <div className="flex-1" />
             </>
           )}
@@ -651,7 +654,6 @@ export function CardCofreVisitante() {
 
 export function CardFlashVisitante() {
   const navigate = useNavigate();
-  const usados = flashSemana.opciones.reduce((n, o) => n + ((o.total ?? 0) - (o.quedan ?? 0)), 0);
   return (
     <div className="flex h-full flex-col gap-2.5 overflow-hidden rounded-[24px] p-3.5 lg:gap-3 lg:p-6" style={FONDO_FLASH}>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -671,7 +673,7 @@ export function CardFlashVisitante() {
           <img src={asset('assets/3d/flash-lentes-3d.webp')} alt="Lentes y monturas" className="absolute inset-0 m-auto max-h-full max-w-full object-contain" />
         </div>
       </div>
-      <p className="text-[13px] font-semibold leading-[18px] text-cafe lg:text-sm">Una oferta por pocas horas, cada viernes. {usados} suscriptores ya lo están usando.</p>
+      <p className="text-[13px] font-semibold leading-[18px] text-cafe lg:text-sm">Una oferta por pocas horas, cada viernes. ¡Hasta agotar stock!</p>
       <button type="button" onClick={() => navigate('/planes')} className="flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-pill bg-n0 text-[15px] font-bold text-morado lg:h-12">Suscríbete para usarlo<Icon name="chevron" size={16} /></button>
     </div>
   );

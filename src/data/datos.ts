@@ -6,6 +6,7 @@ import * as A from './adaptadores';
 import * as M from './mock';
 import { useRecurso } from './recurso';
 import { useSesion } from './sesion';
+import { useDemoOpcional } from './revision';
 import { conPrueba, sinImagen } from './imagenesPrueba';
 
 const conSesion = () => useSesion().logueado;
@@ -22,6 +23,8 @@ export function useUsuario() {
 export function useBilletera() {
   const r = useRecurso('lanas:me', () => lanasApi.resumen().then(A.aBilletera),
     { ...M.billetera, puedeGastar: true, bloqueadas: 0, precioChance: null as number | null }, { saldo: 0, porVencer: { lanas: 0, fecha: '' }, puedeGastar: false, bloqueadas: 0, precioChance: null as number | null }, conSesion());
+  const demo = useDemoOpcional();
+  if (config.usarMock && demo && demo.saldoLanas !== 'normal') return { ...r.data, saldo: demo.saldoLanas === 'poco' ? 20 : 0 };
   return r.data;
 }
 
@@ -38,7 +41,15 @@ function useListaSorteos() {
 
 export function useSorteoDestacado() {
   const { data, ejemplo } = useListaSorteos();
-  return config.usarMock || ejemplo ? { ...M.sorteoDestacado, id: '', puedeComprar: true } : A.aSorteoDestacado(data);
+  return config.usarMock || ejemplo ? { ...M.sorteoDestacado, id: '', puedeComprar: true, chances: null as number | null, terminosUrl: undefined as string | undefined } : A.aSorteoDestacado(data);
+}
+
+export function useChancesDe(premio: string, deApi?: number | null) {
+  const plan = useUsuario().chancesPorPlan;
+  const demo = useDemoOpcional();
+  if (deApi != null) return { plan, extra: Math.max(0, deApi - plan), total: deApi };
+  const extra = config.usarMock ? demo?.sumadas[premio] ?? 0 : 0;
+  return { plan, extra, total: plan + extra };
 }
 
 export function useProximosSorteos() {
@@ -127,7 +138,7 @@ export function useMovimientosLanas(page = 1) {
 export function useMisCupones() {
   const pedir = () => lanasApi.misCupones().catch((e) => { if (e instanceof ApiError && e.status === 404) return lanasApi.misCanjes(); throw e; }).then(A.aCupones);
   return useRecurso('lanas:cupones', pedir,
-    M.cuponesUsuario.map((c) => ({ comercio: '', logo: undefined as string | undefined, enlace: undefined as string | undefined, qr: undefined as string | undefined, origen: '', ...c })), [], conSesion());
+    M.cuponesUsuario.map((c) => ({ logo: undefined as string | undefined, enlace: undefined as string | undefined, qr: undefined as string | undefined, ...c })), [], conSesion());
 }
 
 export function useRecompensas() {

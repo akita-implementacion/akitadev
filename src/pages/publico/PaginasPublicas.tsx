@@ -25,7 +25,7 @@ import {
 import { CERRADO, NOTA_CERRADO, rutaPlanesConPremio, textoCierre, useDetallePremio, usePremioMes } from '../../ref/premio';
 import { usePerfil } from '../../ref/demo';
 import { FuenteSorteosApi, useFuenteSorteos } from '../../ref/sitio';
-import { DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, vistaDe, type BeneficioVista } from '../../components/beneficios/catalogo';
+import { DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, SinBeneficios, vistaDe, type BeneficioVista } from '../../components/beneficios/catalogo';
 import { canjesEjemplo, pasos as pasosRef, type Beneficio as BeneficioRef } from '../../ref/publico';
 import { preguntas as preguntasRef } from '../../ref/publico';
 
@@ -135,9 +135,11 @@ export function BeneficiosPublico() {
   const { beneficios, categorias: categoriasBeneficios } = useBeneficios();
   const marcasAliadas = useMarcasAliadas();
   const [cat, setCat] = useState('Todos');
+  const [ubicacion, setUbicacion] = useState<'Todas' | 'Lima' | 'Provincias'>('Todas');
   const [abierto, setAbierto] = useState<BeneficioVista | null>(null);
   const cerrarDetalle = useCallback(() => setAbierto(null), []);
-  const lista = (cat === 'Todos' ? beneficios : beneficios.filter((b) => b.categoria === cat)).map(vistaDe);
+  const lista = beneficios.filter((b) => cat === 'Todos' || b.categoria === cat).map(vistaDe)
+    .filter((b) => ubicacion === 'Todas' || (ubicacion === 'Lima' ? /lima/i.test(b.ubicacion) : /provincia|perú/i.test(b.ubicacion)));
   const destacados = beneficios.filter((b) => b.destacado).map(vistaDe);
   return (
     <>
@@ -154,10 +156,16 @@ export function BeneficiosPublico() {
             <p className="text-sm text-n60">{beneficios.length} beneficios · se activan al suscribirte.</p>
           </div>
           <FiltroCategorias categorias={categoriasBeneficios} activa={cat} onChange={setCat} />
+          <label className="flex w-fit items-center gap-2 text-sm font-semibold text-cafe">
+            Ubicación
+            <select value={ubicacion} onChange={(e) => setUbicacion(e.target.value as typeof ubicacion)} className="h-10 rounded-pill border border-n10 bg-n0 px-3 text-sm font-semibold">
+              {['Todas', 'Lima', 'Provincias'].map((u) => <option key={u}>{u}</option>)}
+            </select>
+          </label>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:gap-4 xl:grid-cols-3">
             {lista.map((b, i) => <FilaBeneficio key={`${b.id}-${i}`} b={b} onAbrir={() => setAbierto(b)} />)}
           </div>
-          {lista.length === 0 && <p className="text-n60">Pronto habrá beneficios en esta categoría.</p>}
+          {lista.length === 0 && <SinBeneficios categoria={cat} ubicacion={ubicacion} onLimpiar={() => { setCat('Todos'); setUbicacion('Todas'); }} />}
         </section>
         {abierto && <HojaDetalleBeneficio b={abierto} abierto onCerrar={cerrarDetalle} />}
 

@@ -11,8 +11,11 @@ type Demo = {
   flash: EstadoFlash; setFlash: (v: EstadoFlash) => void;
   eleccionCofre: Eleccion; setEleccionCofre: (v: Eleccion) => void;
   eleccionFlash: Eleccion; setEleccionFlash: (v: Eleccion) => void;
+  saldoLanas: SaldoLanas; setSaldoLanas: (v: SaldoLanas) => void;
+  sumadas: Record<string, number>; sumarChances: (premio: string, n: number) => void;
 };
 export type Eleccion = null | 'premio' | 'lanas';
+export type SaldoLanas = 'normal' | 'poco' | 'cero';
 
 const Ctx = createContext<Demo | null>(null);
 
@@ -22,12 +25,18 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [flash, setFlash] = useState<EstadoFlash>((initRevision?.flash as EstadoFlash) ?? 'disponible');
   const [eleccionCofre, setEleccionCofre] = useState<Eleccion>(null);
   const [eleccionFlash, setEleccionFlash] = useState<Eleccion>(null);
+  const [saldoLanas, setSaldoLanas] = useState<SaldoLanas>('normal');
+  const [sumadas, setSumadas] = useState<Record<string, number>>({});
+  const sumarChances = (premio: string, n: number) => setSumadas((s) => ({ ...s, [premio]: (s[premio] ?? 0) + n }));
   return (
-    <Ctx.Provider value={{ revision, setRevision, cofre, setCofre: (v) => { setCofre(v); setEleccionCofre(null); }, flash, setFlash: (v) => { setFlash(v); setEleccionFlash(null); }, eleccionCofre, setEleccionCofre, eleccionFlash, setEleccionFlash }}>
+    <Ctx.Provider value={{ revision, setRevision, cofre, setCofre: (v) => { setCofre(v); setEleccionCofre(null); }, flash, setFlash: (v) => { setFlash(v); setEleccionFlash(null); }, eleccionCofre, setEleccionCofre, eleccionFlash, setEleccionFlash,
+      saldoLanas, setSaldoLanas, sumadas, sumarChances }}>
       {children}
     </Ctx.Provider>
   );
 }
+
+export function useDemoOpcional() { return useContext(Ctx); }
 
 export function useDemo() {
   const c = useContext(Ctx);

@@ -21,7 +21,7 @@ export default function Sorteos() {
   type Vista = 'premios' | 'exclusivos' | 'ganadores';
   const pedida = (useLocation().state as { vista?: 'vip' | Vista } | null)?.vista;
   const [vista, setVista] = useState<Vista>(pedida === 'vip' ? 'exclusivos' : pedida ?? 'premios');
-  const pestanas = ([['premios', 'Premios'], ['exclusivos', 'Exclusivos'], ['ganadores', 'Ganadores']] as const)
+  const pestanas = ([['premios', 'Premios'], ['exclusivos', 'VIP'], ['ganadores', 'Ganadores']] as const)
     .filter(([id]) => id !== 'exclusivos' || usuario.tieneSuscripcion);
   const todasLasFechas = useFechasSorteo();
   const hoy = iso(new Date());

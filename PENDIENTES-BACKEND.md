@@ -1,6 +1,22 @@
 # AKITÁ · Pendientes de backend (29/10/2026)
 
-Actualizado con la revisión UX del 29/10. Debajo siguen los pendientes del 28/10.
+Actualizado con los cambios para desarrollo del 29/10 (sección 0) y la revisión UX del 29/10. Debajo siguen los pendientes del 28/10.
+
+## 0. Cambios para desarrollo del 29/10: qué falta de backend
+
+| # | Dato | Para qué |
+|---|---|---|
+| 1 | **`userChances` por sorteo en `GET /v1/raffles`** (plan + compradas + canjeadas + regalo) | «Tienes N chances» en Hoy, Sorteos y el detalle del premio. Si no llega, se muestran solo las del plan. |
+| 2 | **URL de las bases (PDF) por premio** | «Ver bases completas del sorteo». Hoy se usa `termAndConditionsUrl` del sorteo. Es condición para la salida en premios a nombre del ganador (auto, crucero). |
+| 3 | **`instructions` en el premio del Cofre, del Flash y del beneficio** | Recuadro «Cómo canjearlo» (p. ej. canje por WhatsApp). La apertura del Cofre ya trae `instructions`. Falta definir el plazo (72 h o hasta el miércoles). |
+| 4 | **`status` del cupón en `GET /v1/coupons/me`** (disponible, usado o vencido) y **`deliveryMode`** con `CONTACT` | Pestañas de Mis Cupones y «Ver cupón». Hoy, «vencido» se deduce de `expiresAt`. |
+| 5 | **Cupón ya generado en el detalle del beneficio** (`activation` con código, QR y fecha) | «Ver mi cupón» con el mismo cupón y la fecha en que se generó. |
+| 6 | **Formato del código de referido** | El front valida «YK-» o «AK-» + 12 letras o números (`REFERIDO` en `src/data/reglas.ts`). Confirmar que `publicId` sigue ese formato y cuántas Lanas recibe el invitado (hoy +100, de ejemplo). |
+| 7 | **Ganador en las participaciones pasadas** | «Ganó X. ¡El próximo puede ser tuyo!». Hoy solo se sabe si ganó el usuario (`isWinner`). |
+| 8 | **Códigos de cada chance por sorteo** | «Ver mis códigos» en Mis participaciones. |
+| 9 | **Preferencias de comunicación** (`GET` / `PATCH` en el usuario) | Interruptores de Mi perfil (correo, marcas aliadas y WhatsApp). |
+
+---
 
 ## 1. Revisión UX del 29/10: qué falta de backend
 

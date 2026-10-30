@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Contenido, Hero } from '../components/layout/Hero';
 import { CardBilletera, CardProgresoMisiones, CodigoReferido } from '../components/cards/cards';
 import { Badge, Barra, ButtonCompacto, ChipFiltro, ImagenOpcional, MonedaLana, cx } from '../components/ui/primitives';
-import { Icon } from '../components/ui/Icon';
+import { Icon, type IconName } from '../components/ui/Icon';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { formatoLanas, menuCuenta, miAnio } from '../data/mock';
 import { Tx } from '../data/revision';
@@ -19,7 +19,11 @@ import { usuarioApi } from '../api/servicios';
 import { MiPlanYPagos, TarjetaPlanActual } from '../components/cuenta/MiPlanYPagos';
 import { limpiar, validar } from '../data/validacion';
 import { GENEROS, type Genero, type PerfilOpcionalDTO } from '../api/tipos';
-import type { Cupon, GrupoParticipacion, PerfilEditable } from '../data/adaptadores';
+import type { Cupon, Movimiento, PerfilEditable } from '../data/adaptadores';
+import { Hoja } from '../components/ui/Hoja';
+import { EntregaPremio, tituloResultado } from '../components/cards/entrega';
+import { LogoComercio } from '../components/beneficios/catalogo';
+import { asset } from '../data/assets';
 
 const SECCIONES = ['Mi plan y pagos', 'Mis Lanas', 'Mis Cupones', 'Historial de recompensas', 'Mis participaciones', 'Mi perfil'] as const;
 type Seccion = (typeof SECCIONES)[number];
@@ -123,30 +127,6 @@ function useAccion<R>(fn: () => Promise<R>, simulado: R) {
   return { ejecutar, enviando, error };
 }
 
-function PaginaMovimientos({ page, ultima, onMas }: { page: number; ultima: boolean; onMas: () => void }) {
-  const r = useMovimientosLanas(page);
-  if (page === 1 && !r.data.items.length) return <Estado cargando={r.cargando} error={r.error} recargar={r.recargar} vacio="Aún no tienes movimientos de Lanas." />;
-  return (
-    <>
-      {r.data.items.map((m, i) => (
-        <Fila key={`${m.id}-${i}`}>
-          <span className={cx('flex size-10 shrink-0 items-center justify-center rounded-pill', m.lanas < 0 ? 'bg-n5' : 'bg-amarillo')}>
-            <Icon name={m.lanas < 0 ? 'ticket' : 'regalo'} size={18} />
-          </span>
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <p className="truncate text-[15px] font-bold">{m.titulo}</p>
-            <p className="text-xs text-n60">{[m.origen !== m.titulo && m.origen, m.fecha].filter(Boolean).join(' · ')}</p>
-            {m.vence && <p className="text-xs font-semibold text-n60">Vence el {m.vence}{m.lotes > 1 ? ` · ${m.lotes} lotes` : ''}</p>}
-          </div>
-          <CantidadLanas n={m.lanas} />
-        </Fila>
-      ))}
-      {ultima && (r.cargando ? <Fila><p className="text-sm text-n60">Cargando…</p></Fila>
-        : r.data.hayMas && <Fila className="justify-center"><ButtonCompacto variant="link" onClick={onMas}>Ver más movimientos</ButtonCompacto></Fila>)}
-    </>
-  );
-}
-
 function BloqueLanas({ onMovimientos }: { onMovimientos: () => void }) {
   const billetera = useBilletera();
   return (
@@ -181,118 +161,180 @@ function BloqueLanas({ onMovimientos }: { onMovimientos: () => void }) {
   );
 }
 
-function MisLanas() {
-  const billetera = useBilletera();
-  const [paginas, setPaginas] = useState(1);
+function Pestanas<T extends string>({ opciones, activa, onCambio }: { opciones: [T, string][]; activa: T; onCambio: (v: T) => void }) {
   return (
-    <div className="flex flex-col gap-4 lg:gap-6">
-      <div className="grid items-start gap-4 lg:grid-cols-2 lg:gap-6">
-        <CardBilletera />
-        <div className="flex flex-col gap-2 rounded-2xl bg-n0 p-5 text-sm lg:rounded-[24px] lg:p-6">
-          <p className="text-[10px] font-bold tracking-[1.4px] text-n60">CÓMO VENCEN</p>
-          <p className="leading-5">Las Lanas vencen 3 meses después de recibirlas (al cierre de ese mes). Al usarlas, se descuentan primero las que vencen antes.</p>
-          {billetera.porVencer.lanas > 0 && <p className="font-bold">Próximo vencimiento: {formatoLanas(billetera.porVencer.lanas)} Lanas el {billetera.porVencer.fecha}</p>}
-        </div>
-      </div>
-      <h3 className="text-xl font-extrabold lg:text-2xl">Movimientos</h3>
-      <Lista>
-        {Array.from({ length: paginas }, (_, i) => (
-          <PaginaMovimientos key={i} page={i + 1} ultima={i + 1 === paginas} onMas={() => setPaginas(paginas + 1)} />
-        ))}
-      </Lista>
+    <div className="no-scrollbar -mx-6 flex gap-2 overflow-x-auto px-6 lg:mx-0 lg:px-0">
+      {opciones.map(([v, t]) => <ChipFiltro key={v} activo={activa === v} onClick={() => onCambio(v)}>{t}</ChipFiltro>)}
     </div>
   );
 }
 
-function CardCupon({ c }: { c: Cupon }) {
-  const [copiado, setCopiado] = useState(false);
+function Vacio({ titulo, texto, accion }: { titulo: string; texto: string; accion?: ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-n0 p-5 lg:rounded-[24px]">
-      <div className="flex items-start justify-between gap-3">
-        {c.logo && <ImagenOpcional src={c.logo} alt={c.comercio} className="size-10 shrink-0 rounded-xl bg-n5 object-contain p-1" />}
-        <div className="flex min-w-0 flex-1 flex-col"><p className="text-base font-extrabold leading-5">{c.titulo}</p>{c.comercio && <p className="text-xs text-n60">{c.comercio}</p>}</div>
-        {c.conLanas ? <Badge small>Canjeado con {formatoLanas(c.lanas)} Lanas</Badge> : <Badge small tone="base">Beneficio</Badge>}
-      </div>
-      {c.codigo && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-cafe/30 bg-crema px-4 py-3">
-          <span className="truncate font-mono text-[15px] font-bold tracking-wide">{c.codigo}</span>
-          <ButtonCompacto variant="link" icon="copiar" className="h-auto"
-            onClick={() => { navigator.clipboard?.writeText(c.codigo).catch(() => {}); setCopiado(true); }}>
-            {copiado ? 'Copiado' : 'Copiar'}
-          </ButtonCompacto>
-        </div>
-      )}
-      {c.qr && <img src={c.qr} alt={`Código QR de ${c.titulo}`} className="size-36 self-center rounded-xl bg-n0 p-2" />}
-      {c.instrucciones && <p className="text-xs leading-[17px] text-n60">{c.instrucciones}</p>}
-      {c.enlace && <a href={c.enlace} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 self-start text-sm font-bold text-cafe underline">Ir al comercio <Icon name="flecha" size={14} /></a>}
-      <p className="text-xs font-semibold text-n60">{[c.fecha && `Obtenido el ${c.fecha}`, c.vence && `vence el ${c.vence}`].filter(Boolean).join(' · ')}</p>
+    <div className="flex flex-col items-center gap-2 rounded-2xl bg-n0 px-6 py-8 text-center">
+      <ImagenOpcional src="img/oveja-preguntas.webp" className="h-24 w-auto object-contain" />
+      <p className="text-[17px] font-extrabold">{titulo}</p>
+      <p className="max-w-[320px] text-sm text-n60">{texto}</p>
+      {accion}
     </div>
+  );
+}
+
+const Chip = ({ children, tono = 'n5' }: { children: ReactNode; tono?: 'n5' | 'amarillo' | 'verde' | 'rosa' | 'error' }) => (
+  <span className={cx('w-fit rounded-pill px-2.5 py-0.5 text-[12px] font-bold', {
+    n5: 'bg-n5 text-n60', amarillo: 'bg-amarillo text-cafe', verde: 'bg-verde/30 text-verde-texto', rosa: 'bg-rosa text-cafe', error: 'bg-error/10 text-error',
+  }[tono])}>{children}</span>
+);
+
+const iconoMovimiento = (m: Movimiento): IconName =>
+  m.lanas < 0 ? 'ticket' : /cofre/i.test(m.titulo + m.origen) ? 'cofre' : /flash/i.test(m.titulo + m.origen) ? 'rayo' : /misi|refer|visita|perfil|datos/i.test(m.titulo + m.origen) ? 'misiones' : 'regalo';
+
+function PaginaMovimientos({ page, ultima, filtro, onMas }: { page: number; ultima: boolean; filtro: 'todos' | 'ganadas' | 'usadas'; onMas: () => void }) {
+  const r = useMovimientosLanas(page);
+  const anterior = useMovimientosLanas(Math.max(1, page - 1));
+  const mesPrevio = page > 1 ? anterior.data.items[anterior.data.items.length - 1]?.mes : undefined;
+  if (page === 1 && !r.data.items.length) return <Estado cargando={r.cargando} error={r.error} recargar={r.recargar} vacio="Aún no tienes movimientos de Lanas." />;
+  const items = r.data.items.filter((m) => filtro === 'todos' || (filtro === 'ganadas' ? m.lanas > 0 : m.lanas < 0));
+  const grupos: { mes: string; items: Movimiento[] }[] = [];
+  items.forEach((m) => { const g = grupos[grupos.length - 1]; if (g && g.mes === m.mes) g.items.push(m); else grupos.push({ mes: m.mes, items: [m] }); });
+  return (
+    <>
+      {grupos.map((g, gi) => (
+        <section key={`${g.mes}-${gi}`} className="flex flex-col gap-2">
+          {!(gi === 0 && g.mes === mesPrevio) && g.mes && <p className="text-[13px] font-bold text-n60">{g.mes}</p>}
+          <ul className="overflow-hidden rounded-2xl bg-n0">
+            {g.items.map((m, i) => (
+              <li key={`${m.id}-${i}`} className="flex items-center gap-3 border-b border-n10 px-4 py-3 last:border-0">
+                <span className={cx('flex size-10 shrink-0 items-center justify-center rounded-pill', m.lanas > 0 ? 'bg-amarillo' : 'bg-n5')}><Icon name={iconoMovimiento(m)} size={18} /></span>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <p className="truncate text-[14px] font-bold">{m.titulo}</p>
+                  <p className="text-[12px] text-n60">{[m.origen !== m.titulo && m.origen, m.fecha, m.vence && `vence ${m.vence}`].filter(Boolean).join(' · ')}</p>
+                </div>
+                <span className={cx('shrink-0 text-[15px] font-black tabular-nums', m.lanas > 0 ? 'text-verde-texto' : 'text-cafe')}>{m.lanas > 0 ? '+' : '−'}{formatoLanas(Math.abs(m.lanas))}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+      {ultima && (r.cargando ? <p className="text-sm text-n60">Cargando…</p>
+        : r.data.hayMas && <ButtonCompacto variant="link" className="self-center" onClick={onMas}>Ver más movimientos</ButtonCompacto>)}
+    </>
+  );
+}
+
+function MisLanas() {
+  const billetera = useBilletera();
+  const primera = useMovimientosLanas(1);
+  const [paginas, setPaginas] = useState(1);
+  const [filtro, setFiltro] = useState<'todos' | 'ganadas' | 'usadas'>('todos');
+  const sinLanas = billetera.saldo === 0 && !primera.cargando && !primera.data.items.length;
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 rounded-2xl bg-hero-brand p-5 text-n0 lg:rounded-[24px] lg:p-6">
+        <p className="text-[11px] font-bold tracking-[1.4px] text-n0/80">TU SALDO</p>
+        <div className="flex items-center gap-3"><MonedaLana size={42} /><p className="text-[44px] font-black leading-none text-amarillo">{formatoLanas(billetera.saldo)}</p></div>
+        <p className="text-sm text-n0/85">1 Lana = 1 chance en cualquier sorteo.</p>
+        {billetera.porVencer.lanas > 0 && (
+          <p className="flex items-center gap-2 rounded-xl bg-n0/10 px-3 py-2 text-[13px]"><Icon name="reloj" size={16} />{formatoLanas(billetera.porVencer.lanas)} Lanas vencen el {billetera.porVencer.fecha}. Usamos primero las que vencen antes.</p>
+        )}
+        {!billetera.puedeGastar && <p className="text-xs font-semibold text-amarillo">Reactiva tu plan para usar tus Lanas.</p>}
+        <Link to="/sorteos" className="inline-flex h-11 w-fit items-center gap-1.5 rounded-pill bg-n0 px-5 text-sm font-bold text-cafe"><Icon name="ticket" size={16} />Úsalas en un sorteo</Link>
+      </div>
+      {sinLanas ? (
+        <Vacio titulo="Aún no tienes Lanas" texto="Gánalas con tus misiones, el Cofre de cada jueves y el Flash de cada viernes. Aquí verás cada movimiento."
+          accion={<Link to="/misiones" className="mt-1 text-sm font-bold underline">Ver mis misiones</Link>} />
+      ) : (
+        <>
+          <Pestanas opciones={[['todos', 'Todos'], ['ganadas', 'Ganadas'], ['usadas', 'Usadas']]} activa={filtro} onCambio={setFiltro} />
+          {Array.from({ length: paginas }, (_, i) => (
+            <PaginaMovimientos key={i} page={i + 1} ultima={i + 1 === paginas} filtro={filtro} onMas={() => setPaginas(paginas + 1)} />
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+function HojaCupon({ c, onCerrar }: { c: Cupon; onCerrar: () => void }) {
+  const entrega = { tipo: c.tipo, codigo: c.codigo || undefined, enlace: c.enlace, qrUrl: c.qr, instrucciones: c.tipo === 'dni' ? undefined : c.instrucciones || undefined };
+  return (
+    <Hoja abierto onCerrar={onCerrar} titulo={tituloResultado(c.tipo)} subtitulo={[c.titulo, c.comercio].filter(Boolean).join(' · ')}
+      pie={<button onClick={onCerrar} className="inline-flex h-14 w-full items-center justify-center rounded-pill bg-amarillo text-[16px] font-extrabold text-cafe">Listo</button>}>
+      <EntregaPremio entrega={entrega} comercio={c.comercio || 'el comercio'} hasta={c.vence} />
+    </Hoja>
   );
 }
 
 function MisCupones() {
   const r = useMisCupones();
-  const [filtro, setFiltro] = useState<'Todos' | 'Canjeados con Lanas' | 'Beneficios'>('Todos');
-  const lista = r.data.filter((c) => filtro === 'Todos' || (filtro === 'Canjeados con Lanas') === c.conLanas);
+  const [tab, setTab] = useState<Cupon['estado']>('disponible');
+  const [ver, setVer] = useState<Cupon | null>(null);
+  const lista = r.data.filter((c) => c.estado === tab);
+  const cuenta = (e: Cupon['estado']) => r.data.filter((c) => c.estado === e).length;
+  const tono = (o: string) => (/cofre|flash/i.test(o) ? 'rosa' : /canje/i.test(o) ? 'amarillo' : 'n5') as 'rosa' | 'amarillo' | 'n5';
+  if (!r.data.length && (r.cargando || r.error)) return <Estado cargando={r.cargando} error={r.error} recargar={r.recargar} vacio="" />;
   return (
     <div className="flex flex-col gap-4">
-      <div className="no-scrollbar -mx-6 flex gap-2 overflow-x-auto px-6 lg:mx-0 lg:px-0">
-        {(['Todos', 'Canjeados con Lanas', 'Beneficios'] as const).map((f) => <ChipFiltro key={f} activo={filtro === f} onClick={() => setFiltro(f)}>{f}</ChipFiltro>)}
-      </div>
-      {lista.length ? (
-        <div className="grid items-start gap-4 lg:grid-cols-2 lg:gap-6">{lista.map((c, i) => <CardCupon key={`${c.id}-${i}`} c={c} />)}</div>
-      ) : (
-        <Estado cargando={r.cargando} error={r.error} recargar={r.recargar}
-          vacio={filtro === 'Todos' ? 'Aún no tienes cupones. Canjea tus Lanas o usa un beneficio para verlos aquí.' : 'No hay cupones en este filtro.'} />
+      <Pestanas opciones={[['disponible', `Disponibles (${cuenta('disponible')})`], ['usado', `Usados (${cuenta('usado')})`], ['vencido', `Vencidos (${cuenta('vencido')})`]]} activa={tab} onCambio={setTab} />
+      {!lista.length ? <Vacio titulo="No tienes cupones aquí" texto="Lo que obtengas en el Cofre, el Flash, los beneficios y los canjes de Lanas aparecerá en esta sección." /> : (
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {lista.map((c, i) => (
+            <article key={`${c.id}-${i}`} className={cx('flex flex-col gap-3 rounded-2xl bg-n0 p-4', c.estado !== 'disponible' && 'opacity-75')}>
+              <div className="flex items-start gap-3">
+                {c.logo ? <LogoComercio logo={asset(c.logo)} nombre={c.comercio || c.titulo} tamano="sm" className="!shadow-none ring-1 ring-n10" />
+                  : <span className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-amarillo"><Icon name="regalo" size={20} /></span>}
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <p className="text-[15px] font-extrabold leading-5">{c.titulo}</p>
+                  {c.comercio && <p className="text-[12.5px] text-n60">{c.comercio}</p>}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {(c.origen || c.conLanas) && <Chip tono={tono(c.origen || 'Canje')}>{c.conLanas ? `Canje de ${formatoLanas(c.lanas)} Lanas` : c.origen}</Chip>}
+                {c.vence && <Chip tono={c.estado === 'vencido' ? 'error' : 'n5'}>{c.estado === 'vencido' ? `Venció el ${c.vence}` : c.estado === 'usado' ? `Usado${c.fecha ? ` · obtenido el ${c.fecha}` : ''}` : `Vence el ${c.vence}`}</Chip>}
+              </div>
+              {c.estado === 'disponible' && (
+                <button onClick={() => setVer(c)} className="inline-flex h-11 items-center justify-center gap-1.5 rounded-pill bg-cafe text-sm font-bold text-n0"><Icon name="cupon" size={16} />Ver cupón</button>
+              )}
+            </article>
+          ))}
+        </div>
       )}
+      {ver && <HojaCupon c={ver} onCerrar={() => setVer(null)} />}
     </div>
   );
 }
 
-function HistorialRecompensas() {
+function HistorialRecompensas({ onCupones }: { onCupones: () => void }) {
   const r = useRecompensas();
-  if (!r.data.length) return <Estado cargando={r.cargando} error={r.error} recargar={r.recargar} vacio="Aún no tienes recompensas. Completa misiones y abre tu cofre para ganarlas." />;
-  return (
-    <Lista>
-      {r.data.map((x, i) => (
-        <Fila key={`${x.id}-${i}`}>
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-rosa-claro"><Icon name="trofeo" size={18} /></span>
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <p className="text-[15px] font-bold leading-5">{x.titulo}</p>
-            <p className="text-xs text-n60">{[x.origen, x.fecha].filter(Boolean).join(' · ')}</p>
-            {x.vence && <p className="text-xs font-semibold text-n60">Vence el {x.vence}</p>}
-          </div>
-          {x.lanas > 0 ? <CantidadLanas n={x.lanas} /> : <Badge small tone="rosa">Premio</Badge>}
-        </Fila>
-      ))}
-    </Lista>
-  );
-}
-
-function GruposParticipacion({ grupos }: { grupos: GrupoParticipacion[] }) {
+  const [tab, setTab] = useState<'todos' | 'Cofre' | 'Flash'>('todos');
+  if (!r.data.length) return <Estado cargando={r.cargando} error={r.error} recargar={r.recargar} vacio="Aún no tienes recompensas. Abre tu cofre del jueves y elige tu Flash del viernes." />;
+  const tipo = (o: string) => (/cofre/i.test(o) ? 'Cofre' : /flash/i.test(o) ? 'Flash' : '');
+  const lista = r.data.filter((h) => tab === 'todos' || tipo(h.origen) === tab);
   return (
     <div className="flex flex-col gap-4">
-      {grupos.map((g, gi) => (
-        <div key={`${g.fecha}-${gi}`} className="flex flex-col gap-2">
-          <p className="text-[10px] font-bold tracking-[1.4px] text-n60">SORTEO {g.fecha.toUpperCase()}</p>
-          <Lista>
-            {g.sorteos.map((s, i) => (
-              <Fila key={`${s.id}-${i}`}>
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-azul/30"><Icon name="sorteos" size={18} /></span>
+      <Pestanas opciones={[['todos', 'Todo'], ['Cofre', 'Cofre'], ['Flash', 'Flash']]} activa={tab} onCambio={setTab} />
+      {!lista.length ? <Vacio titulo="Nada por aquí todavía" texto="Cuando elijas un premio o Lanas en el Cofre o el Flash, lo verás en esta lista." /> : (
+        <ul className="overflow-hidden rounded-2xl bg-n0">
+          {lista.map((h, i) => {
+            const t = tipo(h.origen);
+            return (
+              <li key={`${h.id}-${i}`} className="flex items-start gap-3 border-b border-n10 px-4 py-3.5 last:border-0">
+                <span className={cx('flex size-10 shrink-0 items-center justify-center rounded-pill', t === 'Cofre' ? 'bg-cafe text-amarillo' : t === 'Flash' ? 'bg-rosa text-cafe' : 'bg-amarillo text-cafe')}>
+                  <Icon name={t === 'Cofre' ? 'cofre' : t === 'Flash' ? 'rayo' : 'misiones'} size={18} />
+                </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <p className="text-[15px] font-bold leading-5">{s.premio}</p>
-                  {s.detalle && <p className="text-xs text-n60">{s.detalle}</p>}
-                  {s.renovacion && <p className="text-xs font-semibold text-n60">Sujeto a la renovación de tu plan</p>}
+                  <p className="text-[12px] font-bold text-n60">{[h.origen, h.fecha].filter(Boolean).join(' · ')}</p>
+                  <p className="text-[14px] font-extrabold">{h.titulo}</p>
+                  <p className="text-[12.5px] text-n60">{h.lanas > 0 ? `Se sumaron a tu billetera${h.vence ? ` · vencen el ${h.vence}` : ''}.` : 'Está en Mis Cupones.'}</p>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className="text-base font-extrabold">{s.chances} {s.chances === 1 ? 'chance' : 'chances'}</span>
-                  {s.ganador && <Badge small tone="verde">¡Ganaste!</Badge>}
-                </div>
-              </Fila>
-            ))}
-          </Lista>
-        </div>
-      ))}
+                {h.lanas > 0 ? <span className="shrink-0 self-center"><MonedaLana size={22} /></span>
+                  : <button onClick={onCupones} className="shrink-0 self-center text-[13px] font-bold underline">Ver cupón</button>}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <p className="text-[12.5px] text-n60">El Cofre llega cada jueves y el Flash cada viernes. En cada uno eliges un premio o Lanas.</p>
     </div>
   );
 }
@@ -300,16 +342,53 @@ function GruposParticipacion({ grupos }: { grupos: GrupoParticipacion[] }) {
 function MisParticipaciones() {
   const [tipo, setTipo] = useState<'activas' | 'historicas'>('activas');
   const r = useParticipaciones(tipo);
+  const proximos = useParticipaciones('activas');
+  const sorteos = r.data.flatMap((g) => g.sorteos.map((s) => ({ ...s, fecha: g.fecha })));
+  const nProximos = proximos.data.reduce((n, g) => n + g.sorteos.length, 0);
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-2">
-        <ChipFiltro activo={tipo === 'activas'} onClick={() => setTipo('activas')}>Próximos sorteos</ChipFiltro>
-        <ChipFiltro activo={tipo === 'historicas'} onClick={() => setTipo('historicas')}>Historial</ChipFiltro>
-      </div>
-      {r.data.length ? <GruposParticipacion grupos={r.data} /> : (
-        <Estado cargando={r.cargando} error={r.error} recargar={r.recargar}
-          vacio={tipo === 'activas' ? 'No participas en próximos sorteos. Activa un plan o suma chances con tus Lanas.' : 'Aún no tienes sorteos pasados.'} />
-      )}
+      <Pestanas opciones={[['activas', `Próximos${nProximos ? ` (${nProximos})` : ''}`], ['historicas', 'Sorteos pasados']]} activa={tipo} onCambio={setTipo} />
+      {!sorteos.length ? (
+        r.cargando || r.error ? <Estado cargando={r.cargando} error={r.error} recargar={r.recargar} vacio="" />
+          : <Vacio titulo={tipo === 'activas' ? 'Aún no participas en próximos sorteos' : 'Aún no tienes sorteos pasados'}
+              texto={tipo === 'activas' ? 'Con tu plan activo participas cada miércoles. También puedes sumar chances con tus Lanas.' : 'Aquí verás el resultado de cada sorteo en el que participaste.'}
+              accion={<Link to="/sorteos" className="mt-1 text-sm font-bold underline">Ver sorteos</Link>} />
+      ) : tipo === 'activas' ? sorteos.map((s, i) => (
+        <article key={`${s.id}-${i}`} className="flex flex-col gap-3 rounded-2xl bg-n0 p-4">
+          <div className="flex items-center gap-3.5">
+            <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-amarillo/40"><Icon name="premios" size={26} /></span>
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <p className="text-[16px] font-extrabold leading-5">{s.premio}</p>
+              <p className="flex items-center gap-1 text-[12.5px] text-n60"><Icon name="calendario" size={14} />Sorteo {s.fecha}</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-xl bg-cafe px-4 py-3 text-n0">
+            <div className="flex flex-col">
+              <span className="text-[12px] text-n0/75">Tienes</span>
+              <span className="text-[24px] font-black leading-none text-amarillo">{s.chances} {s.chances === 1 ? 'chance' : 'chances'}</span>
+            </div>
+            {(s.plan > 0 || s.sumadas > 0 || s.regalo > 0) && (
+              <span className="text-right text-[12px] leading-4 text-n0/80">{s.plan} de tu plan{s.sumadas ? <><br />{s.sumadas} sumadas</> : null}{s.regalo ? <><br />{s.regalo} de regalo</> : null}</span>
+            )}
+          </div>
+          {s.renovacion && <p className="text-[12.5px] text-n60">Las chances de tu plan están sujetas a la renovación.</p>}
+          <div className="flex justify-end">
+            <Link to="/sorteos" className="inline-flex h-10 items-center gap-1.5 rounded-pill bg-cafe px-4 text-[13px] font-bold text-n0"><Icon name="ticket" size={16} />Sumar chances</Link>
+          </div>
+        </article>
+      )) : sorteos.map((s, i) => (
+        <article key={`${s.id}-${i}`} className={cx('flex flex-col gap-2 rounded-2xl p-4', s.ganador ? 'bg-amarillo' : 'bg-n0')}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-0.5">
+              <p className="text-[15px] font-extrabold">{s.premio}</p>
+              <p className="text-[12.5px] text-n60">Sorteo del {s.fecha} · participaste con {s.chances} {s.chances === 1 ? 'chance' : 'chances'}</p>
+            </div>
+            {s.ganador ? <Chip tono="verde">¡Ganaste!</Chip> : <Chip>No ganaste</Chip>}
+          </div>
+          <p className="text-[13px]">{s.ganador ? 'Te contactamos por correo y WhatsApp para coordinar la entrega de tu premio.' : '¡El próximo puede ser tuyo!'}</p>
+          <Link to="/sorteos" state={{ vista: 'ganadores' }} className="w-fit text-[13px] font-bold underline">Ver ganadores y transmisión</Link>
+        </article>
+      ))}
     </div>
   );
 }
@@ -355,7 +434,7 @@ function SelectorDistrito({ valor, onChange }: { valor: string; onChange: (codig
 }
 
 function MisionDistrito({ distritoActual }: { distritoActual: string }) {
-  const mision = useMisiones().find((m) => m.id === 'perfil' || m.cta.to === '/mi-cuenta');
+  const mision = useMisiones().find((m) => m.id === 'perfil' || !!m.cta.to?.startsWith('/mi-cuenta'));
   const [distrito, setDistrito] = useState(distritoActual);
   const [lanas, setLanas] = useState<number | null>(null);
   const recompensa = Number((mision?.recompensa ?? '').replace(/\D/g, '')) || 0;
@@ -379,7 +458,7 @@ function MisionDistrito({ distritoActual }: { distritoActual: string }) {
         {mision.recompensa && <Badge small>{mision.recompensa} Lanas</Badge>}
       </div>
       {lanas !== null ? (
-        <p className="text-base font-extrabold">¡Listo! Confirmaste tu distrito{lanas ? ` y ganaste ${formatoLanas(lanas)} Lanas` : ''}.</p>
+        <p role="status" className="flex items-center gap-2 text-[14px] font-bold text-verde-texto"><Icon name="check" size={18} />¡Listo! Completaste tu perfil{lanas ? ` y ganaste +${formatoLanas(lanas)} Lanas` : ''}.</p>
       ) : (
         <>
           <div className="flex flex-col gap-1">
@@ -406,6 +485,7 @@ const aDTO = (p: PerfilEditable): PerfilOpcionalDTO => ({
 
 function MiPerfil() {
   const { perfil, cargando } = usePerfilEditable();
+  const usuario = useUsuario();
   const [form, setForm] = useState(perfil);
   const [guardado, setGuardado] = useState(false);
   const firma = JSON.stringify(perfil);
@@ -426,6 +506,10 @@ function MiPerfil() {
   };
   return (
     <div className="flex flex-col gap-4 lg:gap-6">
+      <div className="flex flex-col gap-2 rounded-2xl bg-n0 p-4 lg:rounded-[24px] lg:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[15px] font-extrabold">Tu perfil está al {usuario.perfilPct} %</p>{usuario.perfilPct < 100 && <Chip tono="amarillo">Falta tu distrito · +150 Lanas</Chip>}</div>
+        <Barra valor={usuario.perfilPct} total={100} />
+      </div>
       <MisionDistrito distritoActual={perfil.distrito} />
 
       <div className="flex flex-col gap-4 rounded-2xl bg-n0 p-5 lg:rounded-[24px] lg:p-6">
@@ -466,12 +550,12 @@ function MiPerfil() {
   );
 }
 
-function ContenidoSeccion({ s }: { s: Seccion }) {
+function ContenidoSeccion({ s, onAbrir }: { s: Seccion; onAbrir: (s: Seccion) => void }) {
   switch (s) {
     case 'Mi plan y pagos': return <MiPlanYPagos />;
     case 'Mis Lanas': return <MisLanas />;
     case 'Mis Cupones': return <MisCupones />;
-    case 'Historial de recompensas': return <HistorialRecompensas />;
+    case 'Historial de recompensas': return <HistorialRecompensas onCupones={() => onAbrir('Mis Cupones')} />;
     case 'Mis participaciones': return <MisParticipaciones />;
     case 'Mi perfil': return <MiPerfil />;
   }
@@ -480,7 +564,7 @@ function ContenidoSeccion({ s }: { s: Seccion }) {
 export default function MiCuenta() {
   const navigate = useNavigate();
   const location = useLocation();
-  const pedida = (location.state as { seccion?: unknown } | null)?.seccion;
+  const pedida = (location.state as { seccion?: unknown } | null)?.seccion ?? new URLSearchParams(location.search).get('s');
   const seccion = esSeccion(pedida) ? pedida : null;
   const { cerrar } = useSesion();
   const billetera = useBilletera();
@@ -511,7 +595,7 @@ export default function MiCuenta() {
             </button>
             <h2 className="text-2xl font-black">{seccion}</h2>
           </div>
-          <ContenidoSeccion s={seccion} />
+          <ContenidoSeccion s={seccion} onAbrir={(x) => abrir(x)} />
         </Contenido>
       ) : (
         <Contenido className="lg:hidden">
@@ -560,7 +644,7 @@ export default function MiCuenta() {
         </aside>
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <h2 className="text-[40px] font-black leading-none">{activo}</h2>
-          {seccion ? <ContenidoSeccion s={seccion} /> : (
+          {seccion ? <ContenidoSeccion s={seccion} onAbrir={(x) => abrir(x, true)} /> : (
             <>
               <TarjetaPlanActual />
               <BloqueLanas onMovimientos={() => abrir('Mis Lanas', true)} />

@@ -57,10 +57,10 @@ export const textos = {
   'sorteos.ganadores.bajada': { t: 'Mié 23 set · transmitido en vivo · nombres protegidos', estado: 'final' },
   'sorteos.ganadores.cta': { t: 'Ver todos los ganadores', estado: 'final' },
 
-  'vip.badge': { t: 'SORTEOS EXCLUSIVOS', estado: 'final' },
-  'vip.titulo': { t: 'Entra a los sorteos VIP', estado: 'final' },
-  'vip.bajada': { t: 'Completa las misiones VIP del mes y elige un sorteo VIP gratis. Necesitas tu plan vigente el día del sorteo.', estado: 'final', ref: 'T09' },
-  'vip.cta': { t: 'Ver sorteos VIP', estado: 'final' },
+  'vip.badge': { t: 'PRÓXIMAMENTE · DICIEMBRE', estado: 'final' },
+  'vip.titulo': { t: 'Llegan los sorteos VIP', estado: 'final' },
+  'vip.bajada': { t: 'En diciembre se abren los sorteos VIP. Las misiones VIP de noviembre y diciembre ya cuentan: complétalas y elige un sorteo VIP gratis. Necesitas tu plan vigente el día del sorteo.', estado: 'final', ref: 'T09' },
+  'vip.cta': { t: 'Ver mis misiones VIP', estado: 'final' },
 
   'beneficios.hero.titulo': { t: 'Beneficios a diario', estado: 'final' },
   'beneficios.hero.bajada': { t: 'Ganes o no el sorteo, esto ya es tuyo.', estado: 'provisional', ref: 'Por página · p10 (ejemplo de Renato)' },

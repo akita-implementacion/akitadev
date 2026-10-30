@@ -5,6 +5,7 @@ import { Hoja } from '../../components/ui/Hoja';
 import { Icon } from '../../components/ui/Icon';
 import { cx } from '../../components/ui/primitives';
 import { BENEFICIOS_COMUNES, PERIODOS, PLANES, ahorro, chancesTexto, planPorId, soles, type Periodo } from '../../ref/planes';
+import { REFERIDO } from '../../data/reglas';
 import { usePerfil } from '../../ref/demo';
 import { fechaNum, sumarMeses } from '../../ref/sorteos';
 import { useSesion } from '../../data/sesion';
@@ -150,7 +151,8 @@ function Contenedor({ children }: { children: ReactNode }) {
 
 const Aviso = ({ children }: { children: ReactNode }) => <p role="alert" className="rounded-xl bg-rosa-claro px-3.5 py-2.5 text-[13px] font-semibold text-cafe">{children}</p>;
 
-const codigoValido = (c: string) => /^[A-Z0-9-]{4,20}$/i.test(c.trim());
+const codigoValido = (c: string) => new RegExp(`^(${REFERIDO.prefijos.join('|')})-[A-Z0-9]{${REFERIDO.largo}}$`, 'i').test(c.trim());
+const formatoReferido = (v: string) => { const t = v.toUpperCase().replace(/[^A-Z0-9]/g, ''); return (t.length > 2 ? `${t.slice(0, 2)}-${t.slice(2)}` : t).slice(0, 3 + REFERIDO.largo); };
 function BloqueReferido({ enPago }: { enPago?: boolean }) {
   const { suscripcion: s, actualizar, logueado, modoMock } = useSesion();
   const [abierto, setAbierto] = useState(!enPago || !!s.referido);
@@ -160,7 +162,7 @@ function BloqueReferido({ enPago }: { enPago?: boolean }) {
     <div className="flex flex-col gap-1 rounded-2xl bg-amarillo/20 px-4 py-3">
       <p className="flex items-center justify-between gap-2 text-[14px] font-bold text-cafe"><span className="flex items-center gap-2"><Icon name="check" size={18} />{enPago ? `Referido aplicado: ${s.referido}` : 'Código aplicado'}</span>
         <button onClick={() => actualizar({ referido: '', referidoAplicado: false })} className="text-[13px] font-semibold underline">Quitar</button></p>
-      <p className="text-[13px] leading-[18px] text-cafe/80">{enPago ? 'Tú y quien te invitó recibirán la recompensa cuando actives tu plan.' : 'Activa tu plan para que ambos reciban la recompensa.'}</p>
+      <p className="text-[13px] leading-[18px] text-cafe/80">{`Recibirás +${REFERIDO.lanasInvitado} Lanas cuando actives tu plan.`}</p>
     </div>
   );
   if (!abierto) return <button onClick={() => setAbierto(true)} className="self-start text-[14px] font-bold text-cafe underline underline-offset-2">¿Tienes un código de referido?</button>;
@@ -179,11 +181,12 @@ function BloqueReferido({ enPago }: { enPago?: boolean }) {
     <div className="flex flex-col gap-2.5 rounded-2xl bg-amarillo/20 px-4 py-3.5">
       <p className="text-[15px] font-extrabold text-cafe">¿Te invitó alguien?</p>
       <div className="flex items-start gap-2">
-        <Campo label="Código de referido (opcional)" placeholder="YK-…" autoCapitalize="characters" maxLength={20} value={s.referido} error={error || undefined}
-          onChange={(e) => actualizar({ referido: e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''), referidoAplicado: false })} />
+        <Campo label="Código de referido (opcional)" placeholder={`YK-${'X'.repeat(REFERIDO.largo)}`} autoCapitalize="characters" maxLength={3 + REFERIDO.largo} value={s.referido} error={error || undefined}
+          ayuda={`Empieza con YK- y tiene ${REFERIDO.largo} letras o números.`}
+          onChange={(e) => actualizar({ referido: formatoReferido(e.target.value), referidoAplicado: false })} />
         <button onClick={aplicar} disabled={revisando} className="mt-[27px] h-14 shrink-0 rounded-2xl bg-cafe px-4 text-sm font-bold text-fondo disabled:opacity-60">{revisando ? '…' : 'Aplicar'}</button>
       </div>
-      <p className="text-[13px] leading-[18px] text-cafe/80">Tú y quien te invitó recibirán la recompensa cuando actives tu plan.</p>
+      <p className="text-[13px] leading-[18px] text-cafe/80">Recibirás <b>+{REFERIDO.lanasInvitado} Lanas</b> cuando actives tu plan, y quien te invitó suma a su rebaño.</p>
     </div>
   );
 }
@@ -687,7 +690,7 @@ export function Confirmar() {
           <img src={asset(c.plan.imagen)} alt="" className="size-14 object-contain" />
           <div className="min-w-0 flex-1"><p className="text-[17px] font-extrabold text-cafe">{c.plan.nombre} · {c.per.label}</p>
             <p className="text-[13px] text-n60">{chancesTexto(c.plan.chances)}</p></div>
-          <CambiarPlan etiqueta="Editar" />
+          <CambiarPlan etiqueta="Cambiar" />
         </div>
         {fila('Método', metodoTxt, <Link to="/suscribirse/pago" className="text-[14px] font-bold text-cafe underline">Editar</Link>)}
         {c.metodo === 'yape' && fila('Tipo de pago', 'Único')}
@@ -695,7 +698,7 @@ export function Confirmar() {
         {fila('Renovación', c.s.periodo === 'mensual' ? 'Automática cada mes' : c.recurrente ? `Automática cada ${c.meses}` : 'Sin renovación automática')}
         {c.recurrente ? fila('Próxima renovación', `${fechaNum(c.vence)} · ${c.total}`) : fila('Activo hasta', fechaNum(c.vence))}
         {c.s.promoTexto && fila('Promoción', c.s.promoDetalle ? `${c.s.promoTexto}: ${c.s.promoDetalle}` : c.s.promoTexto)}
-        {c.s.referidoAplicado && c.s.referido && fila('Referido', c.s.referido)}
+        {c.s.referidoAplicado && c.s.referido && fila('Referido', `${c.s.referido} · +${REFERIDO.lanasInvitado} Lanas para ti`)}
         <div className="flex items-center justify-between pt-3"><span className="text-[15px] font-bold text-cafe">Total a pagar hoy</span><span className="text-2xl font-black text-cafe">{c.total}</span></div>
       </div>
 

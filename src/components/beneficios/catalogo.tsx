@@ -17,6 +17,8 @@ export type BeneficioVista = {
 };
 
 const url = (f?: string) => (f ? asset(f) : undefined);
+const hoyTexto = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; };
+const generados = new Map<string, { entrega: Entrega; fecha: string }>();
 export function vistaDe(b: { id?: string; titulo: string; comercio: string; logo?: string; etiqueta: string; foto?: string; uso: string; ubicacion?: string; agotado?: boolean;
   descripcion?: string; hasta?: string; desde?: string; metodo?: string; destacado?: boolean }): BeneficioVista {
   return {
@@ -124,6 +126,7 @@ export function HojaDetalleBeneficio({ b, abierto, onCerrar }: { b: BeneficioVis
   const [error, setError] = useState('');
   const [soloSuscriptores, setSoloSuscriptores] = useState(false);
   const cerrar = useCallback(() => { setListo(null); setError(''); onCerrar(); }, [onCerrar]);
+  const clave = b.id ?? `${b.comercio}·${b.titulo}`;
 
   const metodo = dt?.metodo || b.metodo || '';
   const yaActivo = dt?.activado ?? null;
@@ -135,11 +138,14 @@ export function HojaDetalleBeneficio({ b, abierto, onCerrar }: { b: BeneficioVis
   const pasos = pasosPorDefecto(tipo, b.comercio, !esEnlace || conCodigo);
   const visitante = !logueado || (!usuario.tieneSuscripcion && !yaActivo) || soloSuscriptores;
   const noDisponible = (dt && !dt.disponible) || (b.agotado && !yaActivo);
+  const generado = generados.get(clave) ?? (yaActivo?.codigo && tipo !== 'enlace' ? { entrega: { tipo, codigo: yaActivo.codigo, enlace: yaActivo.enlace }, fecha: '' } : undefined);
+  const mostrar = (e: Entrega) => { if (e.tipo !== 'dni' && e.tipo !== 'contacto') generados.set(clave, { entrega: e, fecha: generados.get(clave)?.fecha ?? hoyTexto() }); setListo(e); };
 
   const usar = async () => {
     setError('');
+    if (generado) { setListo(generado.entrega); return; }
     if (modoMock || !b.id) {
-      setListo({ tipo, codigo: tipo === 'dni' || tipo === 'contacto' ? undefined : `AKT-${b.comercio.slice(0, 4).toUpperCase()}`, enlace: esEnlace ? 'https://example.com' : undefined });
+      mostrar({ tipo, codigo: tipo === 'dni' || tipo === 'contacto' ? undefined : `AKT-${b.comercio.slice(0, 4).toUpperCase()}`, enlace: esEnlace ? 'https://example.com' : undefined });
       return;
     }
     setEnviando(true);
@@ -154,7 +160,7 @@ export function HojaDetalleBeneficio({ b, abierto, onCerrar }: { b: BeneficioVis
         if (esEnlace && r?.redirectUrl && !r.promoCode) { window.open(r.redirectUrl, '_blank', 'noopener'); }
       }
       invalidar('misiones'); invalidar(`beneficio:${b.id}`); invalidar('lanas:cupones');
-      setListo(e);
+      mostrar(e);
     } catch (err) {
       if (err instanceof ApiError && err.code === 'BENEFIT_ACTIVATION_SUBSCRIBERS_ONLY') setSoloSuscriptores(true);
       else setError(mensajeError(err));
@@ -164,7 +170,8 @@ export function HojaDetalleBeneficio({ b, abierto, onCerrar }: { b: BeneficioVis
   if (listo) return (
     <Hoja abierto={abierto} onCerrar={cerrar} titulo={tituloResultado(listo.tipo)} subtitulo={`${b.etiqueta ? `${b.etiqueta} · ` : ''}${b.titulo} · ${b.comercio}`}
       pie={<button onClick={cerrar} className="inline-flex h-14 w-full items-center justify-center rounded-pill bg-amarillo text-[16px] font-extrabold text-cafe">Listo</button>}>
-      <EntregaPremio entrega={listo} comercio={b.comercio} desde={desde} hasta={hasta} />
+      {generado?.fecha && <p className="-mt-2 flex items-center gap-2 rounded-xl bg-n5 px-3 py-2 text-[13px] text-n60"><Icon name="check" size={16} />Lo generaste el {generado.fecha}. Es el mismo cupón cada vez que entres.</p>}
+      <EntregaPremio entrega={listo} comercio={b.comercio} desde={generado?.fecha || desde} hasta={hasta} />
     </Hoja>
   );
 
@@ -176,8 +183,8 @@ export function HojaDetalleBeneficio({ b, abierto, onCerrar }: { b: BeneficioVis
   ) : (
     <>
       {error && <p role="alert" className="text-center text-xs font-semibold text-error">{error}</p>}
-      <button onClick={usar} disabled={enviando || !!noDisponible} className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-pill bg-amarillo text-[16px] font-extrabold text-cafe disabled:opacity-40">
-        {noDisponible ? 'No disponible' : enviando ? 'Generando…' : accionEntrega(tipo, b.comercio, conCodigo)}{esEnlace && !conCodigo && !noDisponible && !enviando && <Icon name="flecha" size={18} />}
+      <button onClick={usar} disabled={enviando || (!!noDisponible && !generado)} className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-pill bg-amarillo text-[16px] font-extrabold text-cafe disabled:opacity-40">
+        {generado ? 'Ver mi cupón' : noDisponible ? 'No disponible' : enviando ? 'Generando…' : accionEntrega(tipo, b.comercio, conCodigo)}{esEnlace && !conCodigo && !noDisponible && !enviando && <Icon name="flecha" size={18} />}
       </button>
       {esEnlace && !conCodigo && <p className="text-center text-[12px] text-n60">Se abre la web de {b.comercio} en otra pestaña.</p>}
     </>
@@ -235,5 +242,18 @@ export function HojaDetalleBeneficio({ b, abierto, onCerrar }: { b: BeneficioVis
         </div>
       </div>
     </Hoja>
+  );
+}
+
+export function SinBeneficios({ categoria, ubicacion, onLimpiar }: { categoria: string; ubicacion: string; onLimpiar: () => void }) {
+  const que = categoria !== 'Todos' ? categoria.toLowerCase() : '';
+  const donde = ubicacion !== 'Todas' ? ` en ${ubicacion}` : '';
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-2xl bg-n0 px-6 py-8 text-center">
+      <img src={asset('img/oveja-preguntas.webp')} alt="" className="h-24 w-auto object-contain" />
+      <p className="text-[17px] font-extrabold">Aún no tenemos beneficios{que ? ` de ${que}` : ''}{donde}</p>
+      <p className="max-w-[340px] text-sm text-n60">Estamos sumando nuevas marcas al rebaño. ¡Vuelve pronto! Mientras tanto, mira los demás beneficios.</p>
+      <button onClick={onLimpiar} className="mt-1 inline-flex h-11 items-center rounded-pill bg-cafe px-5 text-sm font-bold text-n0">Ver todos los beneficios</button>
+    </div>
   );
 }

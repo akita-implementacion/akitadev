@@ -4,7 +4,7 @@ import { Icon } from '../ui/Icon';
 import { cx } from '../ui/primitives';
 
 export type TipoEntrega = 'codigo' | 'qr' | 'dni' | 'enlace' | 'contacto';
-export type Entrega = { tipo: TipoEntrega; codigo?: string; enlace?: string; qrUrl?: string };
+export type Entrega = { tipo: TipoEntrega; codigo?: string; enlace?: string; qrUrl?: string; instrucciones?: string };
 
 export function tipoDeMetodo(metodo?: string, conCodigo?: boolean): TipoEntrega {
   switch ((metodo ?? '').toUpperCase()) {
@@ -102,7 +102,7 @@ export const tituloResultado = (t: TipoEntrega) => esCupon(t) || t === 'enlace' 
 export function EntregaPremio({ entrega, comercio, desde, hasta, dni, className }: {
   entrega: Entrega; comercio: string; desde?: string; hasta?: string; dni?: string; className?: string;
 }) {
-  const { tipo, codigo, enlace, qrUrl } = entrega;
+  const { tipo, codigo, enlace, qrUrl, instrucciones } = entrega;
   const qr = useRef<HTMLDivElement>(null);
   const conQr = !!qrUrl || config.usarMock;
   const vigencia = (desde || hasta) && (
@@ -113,7 +113,14 @@ export function EntregaPremio({ entrega, comercio, desde, hasta, dni, className 
   );
   return (
     <div className={cx('flex flex-col gap-3 rounded-2xl bg-n0 p-4', className)}>
-      {esCupon(tipo) && (
+      {esCupon(tipo) && instrucciones && (
+        <>
+          <p className="text-center text-[14px] leading-5">Este es tu código. Sigue las instrucciones para canjearlo.</p>
+          {codigo && <CodigoParaCopiar codigo={codigo} />}
+          {vigencia}
+        </>
+      )}
+      {esCupon(tipo) && !instrucciones && (
         <>
           <p className="text-center text-[14px] leading-5">Muéstralo en <b>{comercio}</b> para usar tu beneficio.</p>
           {conQr && (
@@ -153,6 +160,12 @@ export function EntregaPremio({ entrega, comercio, desde, hasta, dni, className 
         <div className="flex items-start gap-3 rounded-2xl bg-amarillo/30 p-3.5">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-amarillo"><Icon name="info" size={20} /></span>
           <p className="text-[14px] leading-5"><b>Jockey Plaza te contactará en los próximos 5 días hábiles</b> por correo o WhatsApp para coordinar la entrega de tu beneficio de {comercio}.</p>
+        </div>
+      )}
+      {instrucciones && (
+        <div className="flex items-start gap-3 rounded-2xl border-2 border-amarillo bg-amarillo/25 p-3.5">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-pill bg-amarillo"><Icon name="info" size={18} /></span>
+          <div className="flex flex-col gap-0.5"><p className="text-[14px] font-extrabold">Cómo canjearlo</p><p className="text-[13.5px] leading-5">{instrucciones}</p></div>
         </div>
       )}
       <p className="text-center text-[12px] text-n60">También lo encuentras en Mis Cupones.</p>

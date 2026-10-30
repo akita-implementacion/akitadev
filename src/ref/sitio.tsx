@@ -7,7 +7,7 @@ import { mesesSorteos, premiosDeFecha, type MesSorteo, type Premio } from './pub
 export type FuenteSorteos = {
   meses: MesSorteo[];
   premiosDe: (m: MesSorteo, dia: number) => Premio[];
-  mes?: { nombre?: string; foto?: string; descripcion?: string };
+  mes?: { nombre?: string; foto?: string; descripcion?: string; basesUrl?: string };
 };
 
 const REFERENCIA: FuenteSorteos = { meses: mesesSorteos, premiosDe: premiosDeFecha };
@@ -49,7 +49,7 @@ function useFuenteApi(): FuenteSorteos {
       fechaSorteo: `Sorteo mié ${dia} ${m.corto}`, enDias: enDias(fecha), fecha, foto: p.foto ? asset(p.foto) : '',
     }));
   };
-  const mes = destacado.id ? { nombre: destacado.premio || undefined, foto: destacado.foto ? asset(destacado.foto) : undefined, descripcion: destacado.descripcion } : undefined;
+  const mes = destacado.id ? { nombre: destacado.premio || undefined, foto: destacado.foto ? asset(destacado.foto) : undefined, descripcion: destacado.descripcion, basesUrl: destacado.terminosUrl } : undefined;
   return { meses, premiosDe, mes };
 }
 
