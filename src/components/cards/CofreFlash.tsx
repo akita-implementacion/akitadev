@@ -6,7 +6,7 @@ import { LogoMarca } from '../ui/LogoMarca';
 import { Bloque, CodigoCopiable, Hoja, OpcionElegible, TerminosPremio } from '../ui/Hoja';
 import { cofreSemana, flashSemana, flashSemana2, formatoLanas, type OpcionRecompensa } from '../../data/mock';
 import { useDemo, type Eleccion } from '../../data/revision';
-import { useBilletera, useCofreApi, useFlash as useFlashApi } from '../../data/datos';
+import { useBilletera, useCofreApi, useFlash as useFlashApi, useUsuario } from '../../data/datos';
 import { useSesion } from '../../data/sesion';
 import { ApiError, mensajeError } from '../../api/client';
 import { beneficiosApi, cofreApi } from '../../api/servicios';
@@ -179,7 +179,7 @@ function useCofre() {
     return {
       r, abrir: async () => { cofreAbiertoDemo = true; refrescar((n) => n + 1); return true; },
       info: { cierra: 'mié 11:59 p. m.', proximo: cofreSemana.proximo, quedan: premio.quedan, total: premio.total, uso: cofreSemana.usoCorto, logo: cofreSemana.logo as string | undefined, entregados: cofreSemana.entregadosLista,
-        terminos: 'Válido de lunes a jueves en salas tradicionales de Cinemark de todo el Perú. No válido en estrenos, 3D, XD ni salas premium. Un uso por persona. Sujeto a stock.' as string | undefined },
+        terminos: cofreSemana.terminos as string | string[] | undefined },
     };
   }
 
@@ -232,7 +232,7 @@ function useCofre() {
       });
       return res === 'ok';
     },
-    info: { cierra: c?.cierra ?? '', proximo: c?.abre ?? '', quedan: c?.quedan ?? null, total: c?.premios.cupo || null, uso: ap?.detalle ?? '', logo: ap?.logo, entregados: [] as { titulo: string; logo?: string; cantidad: number }[], terminos: undefined as string | undefined },
+    info: { cierra: c?.cierra ?? '', proximo: c?.abre ?? '', quedan: c?.quedan ?? null, total: c?.premios.cupo || null, uso: ap?.detalle ?? '', logo: ap?.logo, entregados: [] as { titulo: string; logo?: string; cantidad: number }[], terminos: undefined as string | string[] | undefined },
   };
 }
 
@@ -304,6 +304,7 @@ function ComoCanjearlo({ texto }: { texto: string }) {
 function HojaCofre({ r, info, abierto, onCerrar }: { r: Recompensa; info: ReturnType<typeof useCofre>['info']; abierto: boolean; onCerrar: () => void }) {
   const hayAlternativa = r.opciones.some((o) => o.id === 'lanas');
   const premio = r.opciones.find((o) => o.id === 'premio');
+  const idUsuario = useUsuario().idUsuario;
   const agotado = r.estado === 'agotado';
   const volver = info.proximo ? `Vuelve el ${info.proximo}: tu nuevo cofre te espera.` : 'Vuelve el jueves: tu nuevo cofre te espera.';
   const titulo = agotado ? 'Se agotaron los premios' : r.estado === 'elegido' ? 'Tu cofre de esta semana' : premio?.etiqueta === 'LANAS' ? '¡Te tocaron Lanas!' : '¡Te tocó un premio!';
@@ -320,15 +321,19 @@ function HojaCofre({ r, info, abierto, onCerrar }: { r: Recompensa; info: Return
           {r.obtenido.opcion.id === 'lanas' || r.obtenido.opcion.etiqueta === 'LANAS' ? <LanasObtenidas lanas={r.obtenido.opcion.titulo} /> : (
             <Bloque>
               <div className="flex items-center gap-3">
-                <LogoMarca src={info.logo} nombre={r.obtenido.opcion.titulo} />
+                {info.logo && <LogoMarca src={info.logo} nombre={r.obtenido.opcion.titulo} />}
                 <p className="flex-1 text-[15px] font-extrabold">{r.obtenido.opcion.titulo}</p>
               </div>
               {info.uso && <p className="text-[13px] text-n60">{info.uso}</p>}
               {r.obtenido.codigo && <CodigoCopiable codigo={r.obtenido.codigo} />}
+              {r.obtenido.instrucciones && idUsuario && (
+                <div className="flex flex-col gap-1"><p className="text-[12px] font-bold uppercase tracking-wide text-n60">Tu ID de usuario</p><CodigoCopiable codigo={idUsuario} /></div>
+              )}
               {r.obtenido.instrucciones && <ComoCanjearlo texto={r.obtenido.instrucciones} />}
               <p className="text-[13px] text-n60">Tu premio también está en Mis Cupones.</p>
             </Bloque>
           )}
+          {info.terminos && r.obtenido.opcion.id !== 'lanas' && r.obtenido.opcion.etiqueta !== 'LANAS' && <TerminosPremio texto={info.terminos} />}
           <Volver texto={volver} />
           <Button full onClick={onCerrar}>Listo</Button>
         </>
@@ -670,7 +675,7 @@ export function CardFlashVisitante() {
           <p className="text-[15px] font-extrabold leading-5 text-cafe lg:text-lg">{flashSemana.oferta.replace(/^OFF /, '')}</p>
         </div>
         <div className="relative h-[104px] w-[38%] max-w-[150px] shrink-0 lg:h-auto lg:max-w-[230px] lg:self-stretch">
-          <img src={asset('assets/3d/flash-lentes-3d.webp')} alt="Lentes y monturas" className="absolute inset-0 m-auto max-h-full max-w-full object-contain" />
+          <img src={asset('assets/3d/flash-farmacia-3d.webp')} alt="Productos de farmacia" className="absolute inset-0 m-auto max-h-full max-w-full object-contain" />
         </div>
       </div>
       <p className="text-[13px] font-semibold leading-[18px] text-cafe lg:text-sm">Una oferta por pocas horas, cada viernes. ¡Hasta agotar stock!</p>

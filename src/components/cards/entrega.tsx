@@ -4,7 +4,8 @@ import { Icon } from '../ui/Icon';
 import { cx } from '../ui/primitives';
 
 export type TipoEntrega = 'codigo' | 'qr' | 'dni' | 'enlace' | 'contacto';
-export type Entrega = { tipo: TipoEntrega; codigo?: string; enlace?: string; qrUrl?: string; instrucciones?: string };
+export type Entrega = { tipo: TipoEntrega; codigo?: string; enlace?: string; qrUrl?: string; instrucciones?: string;
+  idUsuario?: string };
 
 export function tipoDeMetodo(metodo?: string, conCodigo?: boolean): TipoEntrega {
   switch ((metodo ?? '').toUpperCase()) {
@@ -102,7 +103,7 @@ export const tituloResultado = (t: TipoEntrega) => esCupon(t) || t === 'enlace' 
 export function EntregaPremio({ entrega, comercio, desde, hasta, dni, className }: {
   entrega: Entrega; comercio: string; desde?: string; hasta?: string; dni?: string; className?: string;
 }) {
-  const { tipo, codigo, enlace, qrUrl, instrucciones } = entrega;
+  const { tipo, codigo, enlace, qrUrl, instrucciones, idUsuario } = entrega;
   const qr = useRef<HTMLDivElement>(null);
   const conQr = !!qrUrl || config.usarMock;
   const vigencia = (desde || hasta) && (
@@ -117,6 +118,12 @@ export function EntregaPremio({ entrega, comercio, desde, hasta, dni, className 
         <>
           <p className="text-center text-[14px] leading-5">Este es tu código. Sigue las instrucciones para canjearlo.</p>
           {codigo && <CodigoParaCopiar codigo={codigo} />}
+          {idUsuario && (
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-[12px] font-bold uppercase tracking-wide text-n60">Tu ID de usuario</p>
+              <CodigoParaCopiar codigo={idUsuario} />
+            </div>
+          )}
           {vigencia}
         </>
       )}

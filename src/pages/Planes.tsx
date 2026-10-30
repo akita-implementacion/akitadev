@@ -43,7 +43,7 @@ export default function Planes() {
             <h1 className="text-[25px] font-black uppercase leading-[0.98] text-cafe lg:text-[56px]"><span className="block whitespace-nowrap">Elige tu plan</span><span className="block whitespace-nowrap">y vive ganando</span></h1>
             <p className="max-w-[230px] text-[14px] leading-5 text-cafe/90 lg:max-w-none lg:text-lg">Todos incluyen sorteos, beneficios y recompensas.</p>
           </div>
-          <img src={img('oveja-03.webp')} alt="" className="relative z-10 h-[104px] w-auto shrink-0 drop-shadow-[0_12px_10px_rgba(33,20,2,0.25)] lg:h-[220px]" />
+          <img src={img('planes-hero.webp')} alt="" className="relative z-10 h-[104px] w-auto shrink-0 drop-shadow-[0_12px_10px_rgba(33,20,2,0.25)] lg:h-[220px]" />
         </div>
       </section>
 

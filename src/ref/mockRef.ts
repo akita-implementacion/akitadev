@@ -1,12 +1,12 @@
 import type { MarcaId } from './LogoMarca';
 
 export const flash = {
-  imagen: 'img/3d/flash-lentes-3d.webp' as string | undefined,
-  descuento: '90%',
-  detalle: 'en lentes y monturas',
-  detalleCorto: 'OFF en lentes',
-  comercio: 'Arthur & Sons',
-  marca: 'arthur-sons' as MarcaId,
+  imagen: 'img/3d/flash-farmacia-3d.webp' as string | undefined,
+  descuento: '40%',
+  detalle: 'en tu farmacia',
+  detalleCorto: 'OFF en farmacia',
+  comercio: 'Botica Bienestar',
+  marca: 'botica' as MarcaId,
   proximo: 'vie 6 nov · 8:00 a. m.',
   vence: 'vence hoy a las 11:59 p. m.',
   terminaEn: '04:54:26',
@@ -15,8 +15,8 @@ export const flash = {
   lanas: 40,
   lanasStock: 64,
   lanasTotal: 100,
-  codigo: 'AKT-90OFF',
-  terminos: 'Válido en tiendas Arthur & Sons. Un uso por persona. No acumulable con otras promociones.',
+  codigo: 'AKT-FARMA40',
+  terminos: 'Válido en medicamentos de venta libre, vitaminas y cuidado personal en locales de Lima. No aplica a productos con receta médica ni a leches infantiles. Un uso por persona. No acumulable con otras promociones.',
 };
 
 export const flash2: typeof flash = {
@@ -25,17 +25,49 @@ export const flash2: typeof flash = {
   lanas: 25, lanasStock: 30, lanasTotal: 60, codigo: 'AKT-CINE2X1', terminos: 'Válido de lunes a jueves en salas tradicionales de Cinemark. Un uso por persona.',
 };
 
+const PLAZO_COFRE = 'mié 11 nov · 11:59 p. m.';
+const WHATSAPP_COFRE = '934 123 456';
+
+export const premiosCofre = {
+  cinemark: {
+    titulo: 'Entradas para Cinemark', comercio: 'Cinemark', marca: 'cinemark' as MarcaId, vence: PLAZO_COFRE, codigo: 'CINE-7K2M', quedan: 21,
+    instrucciones: `Envíanos por WhatsApp al ${WHATSAPP_COFRE} este código junto con tu ID de usuario hasta el miércoles 11 nov y te enviamos tus entradas. Si no lo envías a tiempo, pierdes el premio.`,
+    terminos: [
+      'Válido a nivel nacional, de lunes a domingo, incluidos feriados.',
+      'No aplica la primera semana de estreno o el tiempo que indique el distribuidor.',
+      'No válido para salas 3D, XD, Mega Pantalla, butacas D-BOX ni salas Confort.',
+      'No válido para contenido alternativo.',
+      'Válido para canje presencial o virtual (incluye la comisión de canje virtual).',
+      'Vigencia de 3 a 4 meses. Las entradas no son renovables.',
+      'Hasta agotar stock.',
+      'Tienes hasta el miércoles siguiente a la apertura del cofre para enviarnos por WhatsApp el código junto con tu ID de usuario. Si no lo envías a tiempo, pierdes el premio.',
+    ],
+  },
+  trattoria: {
+    titulo: 'Almuerzo hasta S/ 70', comercio: 'La Bodega de la Trattoria', marca: 'trattoria' as MarcaId, vence: PLAZO_COFRE, codigo: 'TRAT-4P9X', quedan: 9,
+    instrucciones: `Envíanos por WhatsApp al ${WHATSAPP_COFRE} este código junto con tu ID de usuario hasta el miércoles 11 nov. Luego recoge tu vale en el Jockey Plaza y preséntalo en físico con tu DNI en el local. Si no lo envías a tiempo, pierdes el premio.`,
+    terminos: [
+      'Hasta S/ 70 de consumo. Si el consumo es mayor, pagas la diferencia.',
+      'Válido solo en el local del Jockey Plaza.',
+      'El vale es válido hasta el 1 de diciembre de 2026.',
+      'No aplica con otras promociones ni descuentos.',
+      'Recoge tu vale en el Jockey Plaza. Para usarlo, presenta tu DNI y el vale en físico.',
+      'Hasta agotar stock.',
+      'Tienes hasta el miércoles siguiente a la apertura del cofre para enviarnos por WhatsApp el código junto con tu ID de usuario. Si no lo envías a tiempo, pierdes el premio.',
+    ],
+  },
+};
+
 export const cofre = {
   disponibleHasta: 'mié 11:59 p. m.',
   proximo: 'jue 8:00 a. m.',
   quedan: 38,
   total: 120,
-  premio: { titulo: '2x1 en entradas de cine', comercio: 'Cinemark', marca: 'cinemark' as MarcaId, vence: 'dom 15 nov · 11:59 p. m.', codigo: 'CINE-2X1-7K', quedan: 21,
-    terminos: 'Válido de lunes a jueves en salas tradicionales de Cinemark de todo el Perú. No válido en estrenos, 3D, XD ni salas premium. Un uso por persona. Sujeto a stock.' },
+  premio: premiosCofre.cinemark,
   alternativa: { lanas: 30, quedan: 12 },
   entregados: [
-    { titulo: '2x1 en entradas de cine', marca: 'cinemark' as MarcaId, cantidad: 60 },
+    { titulo: 'Entradas para Cinemark', marca: 'cinemark' as MarcaId, cantidad: 60 },
     { titulo: '30 Lanas', cantidad: 40 },
-    { titulo: '20% OFF en tu cena', marca: 'franklin' as MarcaId, cantidad: 20 },
+    { titulo: 'Almuerzo hasta S/ 70', marca: 'trattoria' as MarcaId, cantidad: 20 },
   ],
 };

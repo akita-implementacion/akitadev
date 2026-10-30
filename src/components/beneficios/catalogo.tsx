@@ -62,12 +62,13 @@ export function TarjetaDestacado({ b, onAbrir }: { b: BeneficioVista; onAbrir: (
   return (
     <button onClick={onAbrir} className="flex h-full w-full flex-col overflow-hidden rounded-[20px] bg-n0 text-left shadow-card">
       <div className={cx('relative h-[150px] shrink-0 lg:h-[170px]', !b.foto && 'flex items-center justify-center bg-rosa-claro')}>
-        {b.foto ? <img src={b.foto} alt={b.titulo} className="absolute inset-0 size-full object-cover" loading="lazy" />
+        {b.foto ? <img src={b.foto} alt={b.titulo} className="absolute inset-0 size-full object-cover object-top" decoding="async" />
           : <LogoComercio logo={b.logo} nombre={b.comercio} tamano="lg" className="!shadow-none" />}
         <span className="absolute left-3 top-3"><Etiqueta texto={b.etiqueta} /></span>
       </div>
       <div className="relative flex flex-1 flex-col gap-1.5 px-4 pb-4 pt-3">
-        {b.foto && <LogoComercio logo={b.logo} nombre={b.comercio} tamano="sm" className="mb-0.5 !shadow-none ring-1 ring-n10" />}
+        {b.foto && b.logo && <LogoComercio logo={b.logo} nombre={b.comercio} tamano="sm" className="mb-0.5 !shadow-none ring-1 ring-n10" />}
+        {b.foto && !b.logo && <p className="text-[12px] font-bold text-n60">{b.comercio}</p>}
         <p className="text-[16px] font-extrabold leading-5 text-cafe">{b.titulo}</p>
         <p className="line-clamp-2 text-[12.5px] leading-[17px] text-n60">{b.descripcion}</p>
         <div className="mt-auto flex items-end justify-between gap-2 pt-1">
@@ -83,7 +84,7 @@ export function FilaBeneficio({ b, onAbrir }: { b: BeneficioVista; onAbrir: () =
   return (
     <button onClick={onAbrir} className="flex w-full items-stretch gap-3 rounded-2xl bg-n0 p-2.5 text-left shadow-card">
       <div className={cx('relative min-h-[104px] w-[104px] shrink-0 overflow-hidden rounded-xl sm:w-[124px]', !b.foto && 'flex items-center justify-center bg-rosa-claro')}>
-        {b.foto ? <img src={b.foto} alt={b.titulo} className="absolute inset-0 size-full object-cover" loading="lazy" />
+        {b.foto ? <img src={b.foto} alt={b.titulo} className="absolute inset-0 size-full object-cover object-top" decoding="async" />
           : <LogoComercio logo={b.logo} nombre={b.comercio} tamano="sm" className="!shadow-none" />}
         <span className="absolute left-1.5 top-1.5"><Etiqueta texto={b.etiqueta} chica /></span>
       </div>
@@ -194,7 +195,7 @@ export function HojaDetalleBeneficio({ b, abierto, onCerrar }: { b: BeneficioVis
     <Hoja abierto={abierto} onCerrar={cerrar} titulo={b.titulo} subtitulo={b.comercio} amplia pie={pie}>
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:items-start lg:gap-6">
         <div className={cx('relative h-[170px] shrink-0 overflow-hidden rounded-2xl lg:sticky lg:top-0 lg:h-[340px]', !(dt?.imagen || b.foto) && 'flex items-center justify-center bg-rosa-claro')}>
-          {dt?.imagen || b.foto ? <img src={dt?.imagen || b.foto} alt={b.titulo} className="absolute inset-0 size-full object-cover" />
+          {dt?.imagen || b.foto ? <img src={dt?.imagen || b.foto} alt={b.titulo} className="absolute inset-0 size-full object-cover object-top" />
             : <LogoComercio logo={b.logo} nombre={b.comercio} tamano="lg" className="!shadow-none" />}
           <span className="absolute left-3 top-3"><Etiqueta texto={b.etiqueta} /></span>
           {hasta && <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-pill bg-cafe/85 px-2.5 py-1 text-[12px] font-bold text-n0"><Icon name="calendario" size={13} />Hasta {hasta}</span>}

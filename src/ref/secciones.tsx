@@ -381,20 +381,20 @@ export function TarjetaPlan({ plan, periodo, compacta, apretada, extra = '' }: {
         if (apretada) return (
           <>
             <div className="flex items-start gap-2"><div className="min-w-0 flex-1">{cabecera}</div>
-              <img src={`${base}${plan.imagen}`} alt="" className="mt-6 size-[76px] shrink-0 object-contain" loading="lazy" draggable={false} /></div>
+              <img src={`${base}${plan.imagen}`} alt="" className="mt-4 size-[92px] shrink-0 object-contain" loading="lazy" draggable={false} /></div>
             {lista}
           </>
         );
         return compacta ? (
           <div className="flex items-stretch gap-1">
             <div className="flex min-w-0 flex-1 flex-col gap-2.5 lg:gap-[clamp(5px,1dvh,12px)]">{cabecera}{lista}</div>
-            <img src={`${base}${plan.imagen}`} alt="" className="size-[96px] shrink-0 self-end object-contain lg:size-[clamp(84px,11dvh,118px)]" loading="lazy" draggable={false} />
+            <img src={`${base}${plan.imagen}`} alt="" className="size-[116px] shrink-0 self-end object-contain lg:size-[clamp(104px,14dvh,148px)]" loading="lazy" draggable={false} />
           </div>
         ) : (
           <>
             <div className="flex items-start gap-2">
               <div className="flex-1">{cabecera}</div>
-              <img src={`${base}${plan.imagen}`} alt="" className="size-[110px] shrink-0 object-contain lg:size-[136px]" loading="lazy" draggable={false} />
+              <img src={`${base}${plan.imagen}`} alt="" className="size-[132px] shrink-0 object-contain lg:size-[clamp(120px,12vw,164px)]" loading="lazy" draggable={false} />
             </div>
             {lista}
           </>
@@ -444,7 +444,7 @@ export function BandaPlanes({ titulo = 'Elige tu plan' }: { titulo?: string; con
       <div className="relative mx-auto flex w-full max-w-[1238px] flex-col gap-3 lg:gap-[clamp(6px,1.2dvh,18px)]">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4 lg:gap-6">
-            <img src={img('oveja-planes-titulo.webp')} alt="" className="hidden w-[96px] shrink-0 lg:block lg:w-[clamp(84px,14dvh,150px)]" />
+            <img src={img('planes-titulo.webp')} alt="" className="hidden w-[110px] shrink-0 lg:block lg:w-[clamp(100px,16dvh,172px)]" />
             <div className="flex w-full items-end justify-between gap-3 lg:block">
               <div>
                 <h2 className="text-[24px] font-black uppercase leading-[1.05] text-cafe lg:max-w-[620px] lg:text-[clamp(26px,5dvh,44px)]">{titulo}</h2>
@@ -538,7 +538,7 @@ export function TarjetaBeneficio({ b, compacta, apilada }: { b: Beneficio; compa
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-n0">
       <div className={cx('relative overflow-hidden', compacta ? 'h-[clamp(76px,11svh,150px)] lg:h-[clamp(96px,calc(var(--alto-vista)*0.2),180px)]' : apilada ? 'h-[118px] sm:h-[160px] lg:h-[clamp(128px,calc(var(--alto-vista)*0.22),180px)]' : 'h-[180px]')}>
-        {b.foto ? <img src={b.foto} alt={b.titulo} className="size-full object-cover" loading="lazy" draggable={false} />
+        {b.foto ? <img src={b.foto} alt={b.titulo} className="size-full object-cover object-top" decoding="async" draggable={false} />
           : <div className="flex size-full items-center justify-center bg-rosa-claro p-6"><img src={b.logo} alt={b.comercio} className="max-h-[60%] max-w-[70%] object-contain" loading="lazy" draggable={false} /></div>}
         <span className="absolute left-2 top-2 rounded-lg bg-cafe px-2 py-1 text-[13px] font-black text-amarillo shadow-[0_2px_6px_rgba(33,20,2,0.25)]">{b.etiqueta}</span>
       </div>
@@ -614,6 +614,7 @@ export function CanjesConLanas({ canjes }: { canjes: Canje[] }) {
     </div>
   );
 }
+
 
 export function TarjetaGanador({ g, compacta }: { g: Ganador; compacta?: boolean }) {
   return (
@@ -746,7 +747,7 @@ export function CierreSuscripcion() {
   const { eligeTuPlan } = usePerfil();
   return (
     <section className="relative flex items-center gap-3 overflow-hidden rounded-[24px] bg-yellow-cta p-4 sm:gap-6 sm:px-8 sm:py-5">
-      <img src={img('oveja-cta.webp')} alt="" className="h-[96px] w-auto shrink-0 object-contain sm:h-[120px]" />
+      <img src={img('premios-cta.webp')} alt="" className="h-[96px] w-auto shrink-0 object-contain sm:h-[120px]" />
       <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-8">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-cafe">
           <p className="text-[19px] font-extrabold leading-[23px] lg:text-[28px] lg:leading-tight">Empieza a vivir ganando</p>

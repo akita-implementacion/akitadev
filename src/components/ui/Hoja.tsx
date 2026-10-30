@@ -43,14 +43,18 @@ export function Bloque({ children, className = '' }: { children: ReactNode; clas
   return <div className={cx('flex flex-col gap-3 rounded-2xl bg-n0 p-4', className)}>{children}</div>;
 }
 
-export function TerminosPremio({ texto, etiqueta = 'Términos y condiciones del premio' }: { texto: string; etiqueta?: string }) {
+export function TerminosPremio({ texto, etiqueta = 'Términos y condiciones del premio' }: { texto: string | string[]; etiqueta?: string }) {
   const [ver, setVer] = useState(false);
   return (
     <div className="flex flex-col gap-1.5">
       <button type="button" onClick={(e) => { e.stopPropagation(); setVer((v) => !v); }} aria-expanded={ver} className="flex items-center gap-1.5 self-start text-left text-[13px] font-bold underline">
         <Icon name="info" size={16} />{etiqueta}
       </button>
-      {ver && <p className="rounded-xl bg-n5 p-3 text-[13px] leading-[19px] text-n60">{texto}</p>}
+      {ver && (Array.isArray(texto)
+        ? <ul className="flex flex-col gap-1.5 rounded-xl bg-n5 p-3 text-[13px] leading-[19px] text-n60">
+            {texto.map((t) => <li key={t} className="flex gap-2"><span className="mt-[7px] size-1 shrink-0 rounded-pill bg-n60" />{t}</li>)}
+          </ul>
+        : <p className="rounded-xl bg-n5 p-3 text-[13px] leading-[19px] text-n60">{texto}</p>)}
     </div>
   );
 }

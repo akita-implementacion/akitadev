@@ -70,17 +70,17 @@ function Premios() {
             </h1>
             <p className="max-w-[230px] text-[15px] leading-5 text-cafe/90 lg:max-w-none lg:text-lg">Activa tu plan y participa cada miércoles.</p>
           </div>
-          <img src={asset('img/oveja-01.webp')} alt="" className="relative z-10 h-[112px] w-auto shrink-0 drop-shadow-[0_12px_10px_rgba(33,20,2,0.25)] lg:h-[210px]" />
+          <img src={asset('img/premios-hero.webp')} alt="" className="relative z-10 h-[112px] w-auto shrink-0 drop-shadow-[0_12px_10px_rgba(33,20,2,0.25)] lg:h-[210px]" />
         </div>
       </section>
 
       <div className="mx-auto flex max-w-[1366px] flex-col gap-8 px-6 pb-6 pt-1 lg:gap-12 lg:px-16 lg:pb-12">
-        <section className="-mt-5 overflow-hidden rounded-[24px] bg-cafe shadow-card lg:-mt-8 lg:flex">
+        <section className="relative z-20 -mt-5 overflow-hidden rounded-[24px] bg-cafe shadow-card lg:-mt-8 lg:flex">
           <div className="relative h-[190px] overflow-hidden bg-amarillo lg:h-auto lg:min-h-[300px] lg:w-[48%]">
             <Nube className="-right-12 bottom-[-80px] w-[220px] text-n0/50" />
             {mes.p.foto && <img src={mes.p.foto} alt={mes.p.nombre} className="absolute inset-0 z-10 m-auto max-h-[94%] max-w-[94%] object-contain" />}
           </div>
-          <div className="flex flex-1 flex-col items-start gap-1.5 p-5 lg:justify-center lg:gap-2.5 lg:px-10 lg:py-8">
+          <div className="flex flex-1 flex-col items-start gap-1.5 p-5 pt-6 lg:justify-center lg:gap-2.5 lg:px-10 lg:py-10">
             <span className="rounded-pill bg-amarillo px-3 py-1 text-[11px] font-bold tracking-[0.6px] text-cafe">PREMIO GRANDE DEL MES</span>
             <h2 className="text-[24px] font-black leading-tight text-n0 lg:text-[36px]">{mes.p.nombre}</h2>
             <p className="text-[15px] font-semibold text-n0">Sorteo: {mes.sorteo} · en vivo</p>
@@ -118,7 +118,7 @@ function Premios() {
             <p className="text-[13px] leading-[18px] text-n0/85 lg:max-w-[560px] lg:text-[15px] lg:leading-[22px]">Activa tu plan, completa las misiones VIP del mes y participa sin costo adicional.</p>
             <Link to="/como-funciona" state={{ ancla: 'vip' }} className="mt-1 inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-pill border-[1.5px] border-amarillo px-4 text-[13px] font-bold text-amarillo lg:h-11 lg:text-sm">Conoce los sorteos VIP <Icon name="flecha" size={16} /></Link>
           </div>
-          <img src={asset('img/oveja-vip.webp')} alt="" className="h-[124px] w-auto shrink-0 object-contain lg:h-[190px]" />
+          <img src={asset('img/premios-vip.webp')} alt="" className="h-[124px] w-auto shrink-0 object-contain lg:h-[190px]" />
         </section>
 
         {ganadores.length > 0 && (
@@ -143,7 +143,7 @@ export function BeneficiosPublico() {
   const destacados = beneficios.filter((b) => b.destacado).map(vistaDe);
   return (
     <>
-      <Hero publico color="#3EB1FF" titulo="Beneficios a diario" bajada="Descuentos en restaurantes, salud, belleza y más. Úsalos desde tu primer mes." imagen="img/oveja-01.webp" />
+      <Hero publico color="#3EB1FF" titulo="Beneficios a diario" bajada="Descuentos en restaurantes, salud, belleza y más. Úsalos desde tu primer mes." imagen="img/beneficios-hero.webp" />
       <div className="mx-auto flex max-w-[1366px] flex-col gap-6 px-6 pb-3 pt-8 lg:px-16 lg:pb-5 lg:pt-10">
         {!config.usarMock && <BannerApi secciones={['BENEFITS_MAIN']} />}
         <DestacadosParaTi items={destacados} onAbrir={(i) => setAbierto(destacados[i])} />
@@ -171,7 +171,7 @@ export function BeneficiosPublico() {
 
         <section className="relative flex flex-col gap-4 overflow-hidden rounded-2xl bg-amarillo p-5 sm:flex-row sm:items-center lg:px-5 lg:py-2.5">
           <Nube className="-left-10 -top-10 w-[150px] text-fondo" />
-          <img src={asset('img/oveja-beneficios-titulo.webp')} alt="" className="relative z-10 hidden size-[84px] object-contain sm:block" />
+          <img src={asset('img/beneficios-titulo.webp')} alt="" className="relative z-10 hidden size-[84px] object-contain sm:block" />
           <div className="relative flex-1 rounded-2xl px-1 py-1 sm:px-4 sm:py-3">
             <p className="text-[15px] font-bold text-cafe">Se activan al suscribirte</p>
             <p className="text-[13px] text-cafe">Con precio de lista y precio AKITÁ. Los usas con código, QR o tu DNI.</p>
@@ -184,7 +184,7 @@ export function BeneficiosPublico() {
 
       <div className="mx-auto flex max-w-[1366px] flex-col gap-6 px-6 pb-8 pt-4 lg:gap-8 lg:px-16 lg:pb-[clamp(24px,4dvh,48px)] lg:pt-[clamp(24px,4dvh,48px)]">
         {marcasAliadas.length > 0 && <MarcasRef marcas={marcasAliadas.filter((m) => m.logo).map((m) => ({ nombre: m.nombre.toLowerCase(), logo: asset(m.logo!) }))} />}
-        <CardCtaRef titulo="Beneficios desde tu primer mes" bajada="Descuentos a diario, ganes o no el sorteo." boton="Ver planes" imagen={asset('img/oveja-cta-2.webp')} />
+        <CardCtaRef titulo="Beneficios desde tu primer mes" bajada="Descuentos a diario, ganes o no el sorteo." boton="Ver planes" imagen={asset('img/beneficios-cta.webp')} />
       </div>
     </>
   );

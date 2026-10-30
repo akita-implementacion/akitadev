@@ -2,6 +2,16 @@
 
 Actualizado con los cambios para desarrollo del 29/10 (sección 0) y la revisión UX del 29/10. Debajo siguen los pendientes del 28/10.
 
+## 0a. Paquete del 30/10: qué falta de backend
+
+| # | Dato | Para qué |
+|---|---|---|
+| 1 | **ID de usuario** | El canje del premio del Cofre por WhatsApp pide el código y el ID de usuario. Hoy se muestra `publicId` (el mismo del código de referido): confirmar qué campo es. |
+| 2 | **T&C del premio del Cofre como lista** (`terms[]` o un término por línea) | «Términos y condiciones del premio» en la elección, el resultado y la vista previa. |
+| 3 | **Número oficial de WhatsApp y plazo del canje** (el miércoles siguiente a la apertura) | Instrucciones del premio. Hoy el número es de ejemplo. |
+
+---
+
 ## 0. Cambios para desarrollo del 29/10: qué falta de backend
 
 | # | Dato | Para qué |

@@ -256,7 +256,9 @@ function MisLanas() {
 }
 
 function HojaCupon({ c, onCerrar }: { c: Cupon; onCerrar: () => void }) {
-  const entrega = { tipo: c.tipo, codigo: c.codigo || undefined, enlace: c.enlace, qrUrl: c.qr, instrucciones: c.tipo === 'dni' ? undefined : c.instrucciones || undefined };
+  const idUsuario = useUsuario().idUsuario;
+  const entrega = { tipo: c.tipo, codigo: c.codigo || undefined, enlace: c.enlace, qrUrl: c.qr, instrucciones: c.tipo === 'dni' ? undefined : c.instrucciones || undefined,
+    idUsuario: /cofre/i.test(c.origen) && c.instrucciones ? idUsuario || undefined : undefined };
   return (
     <Hoja abierto onCerrar={onCerrar} titulo={tituloResultado(c.tipo)} subtitulo={[c.titulo, c.comercio].filter(Boolean).join(' · ')}
       pie={<button onClick={onCerrar} className="inline-flex h-14 w-full items-center justify-center rounded-pill bg-amarillo text-[16px] font-extrabold text-cafe">Listo</button>}>
@@ -515,11 +517,11 @@ function MiPerfil() {
       <div className="flex flex-col gap-4 rounded-2xl bg-n0 p-5 lg:rounded-[24px] lg:p-6">
         <p className="text-[10px] font-bold tracking-[1.4px] text-n60">DATOS PERSONALES</p>
         <dl className="grid gap-3 text-sm lg:grid-cols-2">
-          {([['Nombre', perfil.nombre], ['Documento', perfil.documento], ['Correo', perfil.correo], ['Celular', perfil.telefono]] as const).map(([t, v]) => (
+          {([['Nombre', perfil.nombre], ['ID de usuario', usuario.idUsuario], ['Documento', perfil.documento], ['Correo', perfil.correo], ['Celular', perfil.telefono]] as const).map(([t, v]) => (
             <div key={t} className="flex flex-col gap-0.5"><dt className="text-xs font-bold text-n60">{t}</dt><dd className="font-semibold">{v || (cargando ? '…' : '—')}</dd></div>
           ))}
         </dl>
-        <p className="text-xs text-n60">Para cambiar estos datos escríbenos desde Ayuda.</p>
+        <p className="text-xs text-n60">Tu ID de usuario lo pedimos junto con el código para canjear los premios del Cofre. Para cambiar tus datos escríbenos desde Ayuda.</p>
       </div>
 
       <form className="flex flex-col gap-4 rounded-2xl bg-n0 p-5 lg:rounded-[24px] lg:p-6" onSubmit={(e) => { e.preventDefault(); enviar(); }}>

@@ -8,6 +8,7 @@ export const usuario = {
   chancesPorPlan: 3,
   codigoReferido: 'YK-7K2M9QX4A1B2',
   perfilPct: 75,
+  idUsuario: 'AK-102938',
 };
 
 export const billetera = {
@@ -230,7 +231,7 @@ export const movimientosLanas = [
 ];
 
 export const cuponesUsuario = [
-  { id: 'c1', titulo: '2x1 en entradas de cine', comercio: 'Cinemark', logo: 'assets/marcas/cinemark.webp', origen: 'Cofre', codigo: 'CINE-2X1-7K', instrucciones: 'Escríbenos por WhatsApp al 934 123 456 con este código y tu DNI, y te enviamos tus entradas. Tienes hasta el miércoles 11 nov para canjearlo.', fecha: '22 oct 2026', vence: '15 nov 2026', lanas: 0, conLanas: false, estado: 'disponible' as const, tipo: 'codigo' as const },
+  { id: 'c1', titulo: 'Entradas para Cinemark', comercio: 'Cinemark', logo: 'assets/marcas/cinemark.webp', origen: 'Cofre', codigo: 'CINE-7K2M', instrucciones: 'Envíanos por WhatsApp al 934 123 456 este código junto con tu ID de usuario hasta el miércoles 11 nov y te enviamos tus entradas. Si no lo envías a tiempo, pierdes el premio.', fecha: '22 oct 2026', vence: '11 nov 2026', lanas: 0, conLanas: false, estado: 'disponible' as const, tipo: 'codigo' as const },
   { id: 'c2', titulo: '90% OFF en lentes y monturas', comercio: 'Arthur & Sons', logo: 'assets/marcas/arthur-sons.webp', origen: 'Beneficio Flash', codigo: 'AKT-LENTES90', instrucciones: '', fecha: '16 oct 2026', vence: '30 nov 2026', lanas: 0, conLanas: false, estado: 'disponible' as const, tipo: 'codigo' as const },
   { id: 'c3', titulo: '25% en combos', comercio: 'Hollyfood', logo: 'assets/marcas/hollyfood.webp', origen: 'Beneficio', codigo: 'HOLLY25', enlace: 'https://example.com', instrucciones: '', fecha: '10 oct 2026', vence: '31 dic 2026', lanas: 0, conLanas: false, estado: 'disponible' as const, tipo: 'enlace' as const },
   { id: 'c4', titulo: 'Gift card S/ 50', comercio: 'Jockey Plaza', origen: 'Canje', codigo: 'JP-GC50-9Q2M', instrucciones: 'Muestra el código en caja de cualquier tienda afiliada.', fecha: '2 oct 2026', vence: '31 ene 2027', lanas: 1000, conLanas: true, estado: 'disponible' as const, tipo: 'codigo' as const },
@@ -242,7 +243,7 @@ export const cuponesUsuario = [
 export const recompensasUsuario = [
   { id: 'r1', titulo: '30 Lanas', origen: 'Cofre', fecha: 'jue 22 oct', lanas: 30, vence: '31 ene 2027' },
   { id: 'r2', titulo: '40 Lanas', origen: 'Beneficio Flash', fecha: 'vie 16 oct', lanas: 40, vence: '31 ene 2027' },
-  { id: 'r3', titulo: '2x1 en entradas de cine · Cinemark', origen: 'Cofre', fecha: 'jue 15 oct', lanas: 0, vence: '15 nov 2026' },
+  { id: 'r3', titulo: 'Entradas para Cinemark · Cinemark', origen: 'Cofre', fecha: 'jue 15 oct', lanas: 0, vence: '15 nov 2026' },
   { id: 'r4', titulo: '90% OFF en lentes · Arthur & Sons', origen: 'Beneficio Flash', fecha: 'vie 9 oct', lanas: 0, vence: '30 nov 2026' },
   { id: 'r5', titulo: '3 amigos se suscribieron con tu código', origen: 'Referidos', fecha: '8 oct 2026', lanas: 500, vence: '31 ene 2027' },
   { id: 'r6', titulo: '30 Lanas', origen: 'Cofre', fecha: 'jue 1 oct', lanas: 30, vence: '31 dic 2026' },
@@ -287,13 +288,14 @@ export type OpcionRecompensa = {
   lanas?: number;
 };
 
+const PLAZO_COFRE = 'mié 11 nov · 11:59 p. m.';
 export const cofreSemana = {
   entregadosLista: [
-    { titulo: 'Cena para dos', logo: 'assets/marcas/franklin.webp', cantidad: 40 },
-    { titulo: '+50 Lanas', cantidad: 200 },
-    { titulo: '2x1 en Cinemark', logo: 'assets/marcas/cinemark.webp', cantidad: 60 },
+    { titulo: 'Entradas para Cinemark', logo: 'assets/marcas/cinemark.webp', cantidad: 60 },
+    { titulo: '+30 Lanas', cantidad: 40 },
+    { titulo: 'Almuerzo hasta S/ 70 · La Bodega de la Trattoria', cantidad: 20 },
   ],
-  logo: 'assets/marcas/franklin.webp',
+  logo: 'assets/marcas/cinemark.webp',
   cierraEn: '2 d 14 h',
   proximo: 'jue 8:00 a. m.',
   proximoLargo: 'el jue a las 8:00 a. m.',
@@ -301,41 +303,50 @@ export const cofreSemana = {
   totalPremios: 40,
   auspicia: 'LOGO',
   opciones: [
-    { id: 'premio', etiqueta: 'PREMIO', titulo: 'Cena para dos', lugar: 'Franklin · Miraflores', quedan: 12, total: 40 },
-    { id: 'lanas', etiqueta: 'LANAS', titulo: '+50 Lanas', lugar: 'Se suman a tu billetera al instante', quedan: 85, total: 200, lanas: 50 },
+    { id: 'premio', etiqueta: 'PREMIO', titulo: 'Entradas para Cinemark', lugar: 'Cinemark · todo el Perú', quedan: 21, total: 60 },
+    { id: 'lanas', etiqueta: 'LANAS', titulo: '+30 Lanas', lugar: 'Se suman a tu billetera al instante', quedan: 12, total: 40, lanas: 30 },
   ] as OpcionRecompensa[],
   detalles: [
-    ['Dónde', 'Franklin · Av. La Mar 123, Miraflores. Solo en local.'],
-    ['Condiciones', 'Lun a jue, previa reserva. No acumulable.'],
-    ['Úsalo hasta', '15 nov · 11:59 p. m.'],
+    ['Dónde', 'Salas Cinemark de todo el Perú.'],
+    ['Canjéalo hasta', PLAZO_COFRE],
   ] as [string, string][],
-  usoCorto: 'Úsalo hasta el 15 nov · 11:59 p. m. en Franklin · Miraflores.',
-  codigo: 'AKT-7Q4M',
-  instrucciones: 'Escríbenos por WhatsApp al 934 123 456 con este código y tu DNI, y te confirmamos tu reserva. Tienes hasta el miércoles 11 nov para canjearlo.',
+  usoCorto: `Canjéalo hasta el ${PLAZO_COFRE}: envía el código por WhatsApp.`,
+  codigo: 'CINE-7K2M',
+  instrucciones: 'Envíanos por WhatsApp al 934 123 456 este código junto con tu ID de usuario hasta el miércoles 11 nov y te enviamos tus entradas. Si no lo envías a tiempo, pierdes el premio.',
+  terminos: [
+    'Válido a nivel nacional, de lunes a domingo, incluidos feriados.',
+    'No aplica la primera semana de estreno o el tiempo que indique el distribuidor.',
+    'No válido para salas 3D, XD, Mega Pantalla, butacas D-BOX ni salas Confort.',
+    'No válido para contenido alternativo.',
+    'Válido para canje presencial o virtual (incluye la comisión de canje virtual).',
+    'Vigencia de 3 a 4 meses. Las entradas no son renovables.',
+    'Hasta agotar stock.',
+    'Tienes hasta el miércoles siguiente a la apertura del cofre para enviarnos por WhatsApp el código junto con tu ID de usuario. Si no lo envías a tiempo, pierdes el premio.',
+  ],
 };
 
 export const flashSemana = {
-  descuento: '90%',
-  oferta: 'OFF en lentes y monturas',
-  marca: 'Arthur & Sons',
-  logo: 'assets/marcas/arthur-sons.webp',
-  imagen: 'assets/3d/flash-lentes-3d.webp',
+  descuento: '40%',
+  oferta: 'OFF en tu farmacia',
+  marca: 'Botica Bienestar',
+  logo: undefined as string | undefined,
+  imagen: 'assets/3d/flash-farmacia-3d.webp',
   eligeHasta: '06:12:16',
   proximo: 'vie 6 nov · 8:00 a. m.',
   usoNota: 'El beneficio se usa hasta el 30 nov · 11:59 p. m., aunque el Flash cierre antes.',
   opciones: [
-    { id: 'premio', etiqueta: 'BENEFICIO', titulo: '90% OFF en lentes', lugar: 'Arthur & Sons · lentes y monturas', quedan: 188, total: 500 },
+    { id: 'premio', etiqueta: 'BENEFICIO', titulo: '40% OFF en farmacia', lugar: 'Botica Bienestar · locales de Lima', quedan: 188, total: 500 },
     { id: 'lanas', etiqueta: 'LANAS', titulo: '+40 Lanas', lugar: 'Se suman a tu billetera al instante', quedan: 64, total: 100, lanas: 40 },
   ] as OpcionRecompensa[],
   detalles: [
     ['Elige hasta', 'Hoy · 11:59 p. m. (06:12:16)'],
     ['Úsalo hasta', '30 nov · 11:59 p. m.'],
-    ['Dónde', 'Arthur & Sons · todos sus locales en Lima y provincias, y en su web.'],
-    ['Condiciones', 'Una montura por persona. No acumulable con otras promociones.'],
+    ['Dónde', 'Botica Bienestar · locales de Lima.'],
+    ['Condiciones', 'No aplica a productos con receta médica. Un uso por persona.'],
   ] as [string, string][],
   usoCorto: 'Úsalo hasta el 30 nov · 11:59 p. m.',
-  codigo: 'AKT-F7K2',
-  terminos: 'Válido en tiendas Arthur & Sons y en su web. Una montura por persona. No acumulable con otras promociones.',
+  codigo: 'AKT-FARMA40',
+  terminos: 'Válido en medicamentos de venta libre, vitaminas y cuidado personal en locales de Lima. No aplica a productos con receta médica ni a leches infantiles. Un uso por persona. No acumulable con otras promociones.',
 };
 
 export const flashSemana2: typeof flashSemana = {

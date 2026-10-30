@@ -27,7 +27,7 @@ function formatoRestante(ms: number) {
 }
 const finFlash = () => { const d = new Date(); d.setHours(23, 59, 0, 0); return d; };
 
-function Opcion({ icono, titulo, lineas, stock, agotada, terminos }: { icono: ReactNode; titulo: string; lineas: string[]; stock: string; agotada: boolean; terminos?: string }) {
+function Opcion({ icono, titulo, lineas, stock, agotada, terminos }: { icono: ReactNode; titulo: string; lineas: string[]; stock: string; agotada: boolean; terminos?: string | string[] }) {
   return (
     <div className={cx('flex gap-3 rounded-2xl bg-n0 p-3.5', agotada && 'opacity-70')}>
       <span className="flex w-[72px] shrink-0 items-start justify-center pt-0.5">{icono}</span>
@@ -141,7 +141,7 @@ export function CardFlashVisitante() {
           <p className="text-[15px] font-extrabold leading-5 text-cafe lg:text-lg">{flash.detalle}</p>
         </div>
         <div className="relative h-[96px] w-[36%] max-w-[150px] shrink-0 lg:h-auto lg:max-w-[230px] lg:self-stretch">
-          <img src={IMG3D('flash-lentes-3d.webp')} alt="Lentes y monturas" className="absolute inset-0 m-auto max-h-full max-w-full object-contain" />
+          <img src={IMG3D('flash-farmacia-3d.webp')} alt="Productos de farmacia" className="absolute inset-0 m-auto max-h-full max-w-full object-contain" />
         </div>
       </div>
       <div className="flex flex-col gap-0.5 text-cafe">
@@ -185,7 +185,7 @@ function HojaFlashVistaPrevia({ abierto, onCerrar }: { abierto: boolean; onCerra
           </p>}
       <div className="flex flex-col gap-2.5">
         <Opcion icono={<LogoMarca marca={flash.marca} tamano="sm" />} titulo={`${flash.descuento} OFF ${flash.detalle}`}
-          lineas={['Tiendas Arthur & Sons de Lima', 'Se usa con código en caja. Un uso por persona. No acumulable con otras promociones.']}
+          lineas={['Locales de Botica Bienestar en Lima', 'Se usa con código en caja. No aplica a productos con receta médica. Un uso por persona.']}
           stock="Hasta agotar stock" agotada={st.sinBeneficio || st.finalizado} terminos={flash.terminos} />
         <Opcion icono={<MonedaLana size={34} />} titulo={`${flash.lanas} Lanas`}
           lineas={['Van a tu billetera al elegirlas', 'Canjéalas por chances o beneficios']}

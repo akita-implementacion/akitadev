@@ -39,6 +39,7 @@ export function aUsuario(me: T.AuthMe | null, u: T.Usuario | null) {
     plan: u?.subscription?.planName ?? '',
     chancesPorPlan: u?.subscription?.oportunitiesPerRaffle?.number ?? 0,
     codigoReferido: u?.publicId ?? '',
+    idUsuario: u?.publicId ?? '',
     perfilPct: Math.round(u?.profileCompletion?.percentage ?? 0),
     tieneSuscripcion: !!me?.hasSubscription,
     tarjetas: u?.savedCards ?? [],
