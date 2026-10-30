@@ -98,10 +98,14 @@ export function useBeneficios() {
     descripcion: b.descripcion ?? `${b.etiqueta} en ${b.comercio}. Se usa con ${b.uso === 'DNI' ? 'tu DNI' : b.uso === 'QR' ? 'QR' : 'código'}.`,
     desde: '01/10/2026', hasta: '31/12/2026', metodo: b.uso === 'DNI' ? 'IN_PERSON' : b.uso === 'QR' ? 'EXTERNAL' : 'PROMO_CODE' }));
   if (r.ejemplo) return { beneficios: prototipo, categorias: M.categoriasBeneficios };
-  return {
-    beneficios: r.data ? A.aBeneficios(r.data, cats.data) : mockOVacio(prototipo),
-    categorias: cats.data.length && !cats.ejemplo ? A.aCategorias(cats.data) : config.datosEjemplo ? M.categoriasBeneficios : mockOVacio(M.categoriasBeneficios),
-  };
+  const deApi = r.data ? A.aBeneficios(r.data, cats.data) : mockOVacio(prototipo);
+  const categoriasApi = cats.data.length && !cats.ejemplo ? A.aCategorias(cats.data) : config.datosEjemplo ? M.categoriasBeneficios : mockOVacio(M.categoriasBeneficios);
+  if (config.datosEjemplo && !config.usarMock && r.data) {
+    const nombres = new Set(deApi.map((b) => `${b.comercio}·${b.titulo}`.toLowerCase()));
+    const extra = prototipo.filter((b) => !nombres.has(`${b.comercio}·${b.titulo}`.toLowerCase())).map((b) => ({ ...b, id: undefined }));
+    return { beneficios: [...deApi, ...extra], categorias: [...new Set([...categoriasApi, ...M.categoriasBeneficios.slice(1)])] };
+  }
+  return { beneficios: deApi, categorias: categoriasApi };
 }
 
 export function useFlash() {
