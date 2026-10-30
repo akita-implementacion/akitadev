@@ -69,8 +69,8 @@ export function HeroCarrusel({ color, titulo, bajada, pose, promos: ejemplos, ba
           </div>
           <Nube className="-bottom-[88px] -left-[50px] w-[150px] text-fondo lg:hidden" />
           <Nube className="-bottom-[112px] -right-[50px] w-[200px] text-fondo lg:hidden" />
-          <Nube className="-bottom-[158px] -left-20 hidden w-[260px] text-fondo lg:block" />
-          <Nube className="-bottom-[161px] left-[42%] hidden w-[220px] text-fondo lg:block" />
+          <Nube className="-left-20 top-[220px] hidden w-[260px] text-fondo lg:block" />
+          <Nube className="left-[42%] top-[255px] hidden w-[220px] text-fondo lg:block" />
         </section>
       ))}
       {deApi.map((b, k) => {
