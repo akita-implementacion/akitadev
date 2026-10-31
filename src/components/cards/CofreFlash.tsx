@@ -84,13 +84,15 @@ function Volver({ texto }: { texto: string }) {
   );
 }
 
-function Entregados({ lista }: { lista: { titulo: string; logo?: string; cantidad: number }[] }) {
+function Entregados({ lista }: { lista: { titulo: string; logo?: string; comercio?: string; lanas?: boolean; cantidad: number }[] }) {
   if (!lista.length) return null;
   return (
     <ul className="flex flex-col gap-2">
       {lista.map((e) => (
         <li key={e.titulo} className="flex items-center gap-3 rounded-xl bg-n0 px-3 py-2.5">
-          {e.logo ? <LogoMarca src={e.logo} nombre={e.titulo} tamano="sm" /> : <span className="flex h-8 w-[72px] items-center justify-center"><MonedaLana size={24} /></span>}
+          {e.lanas ?? /lanas/i.test(e.titulo)
+            ? <span className="flex h-8 w-[72px] items-center justify-center"><MonedaLana size={24} /></span>
+            : <LogoMarca src={e.logo} nombre={e.comercio || e.titulo} tamano="sm" />}
           <span className="flex-1 text-sm font-semibold">{e.titulo}</span>
           <span className="text-xs font-bold text-n60">{e.cantidad} entregados</span>
         </li>

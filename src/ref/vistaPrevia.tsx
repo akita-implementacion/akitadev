@@ -91,7 +91,7 @@ function HojaCofreVistaPrevia({ abierto, onCerrar }: { abierto: boolean; onCerra
         : <p className="text-[15px] leading-[22px]">El próximo abre en <b className="whitespace-nowrap">{formatoRestante(proximoMiercoles8().getTime() - ahora)}</b>. Suscríbete y prepárate para elegir tu próxima recompensa.</p>}
       <div className="flex flex-col gap-2.5">
         <Opcion icono={<LogoMarca marca={cofre.premio.marca} tamano="sm" />} titulo={premio}
-          lineas={['Salas Cinemark de todo el Perú', 'Recibes un código y lo canjeas por WhatsApp. De lunes a jueves, salas tradicionales. Un uso por persona.']}
+          lineas={['Salas Cinemark de todo el Perú', 'Recibes un código y lo canjeas por WhatsApp con tu ID de usuario. Un uso por persona.']}
           stock="Hasta agotar stock" agotada={sinPremio} terminos={cofre.premio.terminos} />
         <Opcion icono={<MonedaLana size={34} />} titulo={`${lanas} Lanas`}
           lineas={['Van a tu billetera al elegirlas', 'Canjéalas por chances o beneficios']}

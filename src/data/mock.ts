@@ -292,8 +292,8 @@ const PLAZO_COFRE = 'mié 11 nov · 11:59 p. m.';
 export const cofreSemana = {
   entregadosLista: [
     { titulo: 'Entradas para Cinemark', logo: 'assets/marcas/cinemark.webp', cantidad: 60 },
-    { titulo: '+30 Lanas', cantidad: 40 },
-    { titulo: 'Almuerzo hasta S/ 70 · La Bodega de la Trattoria', cantidad: 20 },
+    { titulo: '30 Lanas', cantidad: 40 },
+    { titulo: 'Almuerzo hasta S/ 70', comercio: 'La Bodega de la Trattoria', cantidad: 20 },
   ],
   logo: 'assets/marcas/cinemark.webp',
   cierraEn: '2 d 14 h',
