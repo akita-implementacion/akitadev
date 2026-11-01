@@ -141,9 +141,9 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-cafe/60 lg:items-center" role="dialog" aria-modal="true" aria-label={titulo} onClick={onCerrar}>
-      <div className="flex max-h-[94vh] w-full flex-col overflow-hidden rounded-t-[28px] bg-fondo text-cafe lg:w-[480px] lg:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
+      <div className="flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-fondo text-cafe lg:max-h-[94vh] lg:w-[480px] lg:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
         <FranjaCreadoPor />
-        <div className="flex flex-col gap-4 overflow-y-auto p-5 pb-6">
+        <div className="flex flex-col gap-4 overflow-y-auto overscroll-contain p-5 pb-[max(24px,env(safe-area-inset-bottom))]">
           <div className="flex items-start gap-3">
             {paso === 'pago' && (
               <button aria-label="Volver" onClick={() => setPaso('elegir')} className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-n0">
@@ -305,7 +305,7 @@ function CodigoPromo({ codigo, onCambio, validar }: { codigo: Codigo | null; onC
       <p className="text-sm font-bold">Código promocional (opcional)</p>
       <div className="flex items-stretch gap-2">
         <input value={texto} onChange={(e) => { setTexto(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20)); if (codigo) onCambio(null); }} placeholder="Ingresa tu código" autoCapitalize="characters" aria-label="Código promocional"
-          className="h-12 w-full min-w-0 flex-1 rounded-xl border border-n10 bg-n0 px-4 text-[15px] uppercase outline-none placeholder:normal-case focus:border-cafe" />
+          className="h-12 w-full min-w-0 flex-1 rounded-xl border border-n10 bg-n0 px-4 text-base uppercase outline-none placeholder:normal-case focus:border-cafe" />
         {codigo
           ? <button onClick={() => { onCambio(null); setTexto(''); }} className="h-12 shrink-0 rounded-xl border border-n10 bg-n0 px-4 text-sm font-bold text-cafe">Cambiar</button>
           : <button onClick={aplicar} disabled={revisando} className="h-12 shrink-0 rounded-xl bg-cafe px-4 text-sm font-bold text-fondo disabled:opacity-60">{revisando ? '…' : 'Aplicar'}</button>}
@@ -384,7 +384,7 @@ function Campo({ label, ayuda, error, ...rest }: { label: string; ayuda?: string
   return (
     <label className="flex min-w-0 flex-1 flex-col gap-1.5">
       <span className="text-[13px] font-bold">{label}</span>
-      <input {...rest} aria-invalid={!!error} className={cx('h-12 w-full min-w-0 rounded-xl border bg-n0 px-4 text-[15px] tabular-nums outline-none focus:border-cafe', error ? 'border-error' : 'border-n10')} />
+      <input {...rest} aria-invalid={!!error} className={cx('h-12 w-full min-w-0 rounded-xl border bg-n0 px-4 text-base tabular-nums outline-none focus:border-cafe', error ? 'border-error' : 'border-n10')} />
       {error ? <span role="alert" className="text-xs font-semibold text-error">{error}</span> : ayuda && <span className="text-xs text-n60">{ayuda}</span>}
     </label>
   );

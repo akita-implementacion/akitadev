@@ -37,7 +37,7 @@ export default function Beneficios() {
   const visibles = lista.slice(0, mostrar);
   const restantes = lista.length - visibles.length;
   const cambiar = (f: () => void) => { f(); setMostrar(POR_PAGINA); };
-  const selectCls = 'h-10 rounded-pill border border-n10 bg-n0 px-3 text-sm font-semibold text-cafe';
+  const selectCls = 'h-10 rounded-pill border border-n10 bg-n0 px-3 text-base font-semibold text-cafe';
 
   return (
     <>

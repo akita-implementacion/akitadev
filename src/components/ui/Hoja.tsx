@@ -18,7 +18,7 @@ export function Hoja({ abierto, onCerrar, titulo, subtitulo, onVolver, children,
   if (!abierto) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-cafe/60 lg:items-center" role="dialog" aria-modal="true" onClick={onCerrar}>
-      <div className={cx('flex max-h-[88dvh] w-full flex-col gap-5 overflow-y-auto rounded-t-[28px] bg-fondo p-6 text-cafe [&>*]:shrink-0 lg:max-h-[92vh] lg:rounded-[28px]',
+      <div className={cx('flex max-h-[88dvh] w-full flex-col gap-5 overflow-y-auto overscroll-contain rounded-t-[28px] bg-fondo p-6 text-cafe [&>*]:shrink-0 lg:max-h-[92vh] lg:rounded-[28px]',
         pie ? 'pb-0' : 'pb-[max(2rem,env(safe-area-inset-bottom))] lg:pb-6', amplia ? 'lg:w-[min(920px,92vw)]' : 'lg:w-[480px]')} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start gap-3">
           {onVolver && (
@@ -33,7 +33,7 @@ export function Hoja({ abierto, onCerrar, titulo, subtitulo, onVolver, children,
           <button aria-label="Cerrar" onClick={onCerrar} className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-n0"><Icon name="cerrar" size={18} /></button>
         </div>
         {children}
-        {pie && <div className="sticky bottom-0 -mx-6 mt-auto flex flex-col gap-1.5 bg-fondo px-6 pb-6 pt-3 shadow-[0_-8px_16px_-12px_rgba(33,20,2,0.35)]">{pie}</div>}
+        {pie && <div className="sticky bottom-0 -mx-6 mt-auto flex flex-col gap-1.5 bg-fondo px-6 pb-[max(24px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_16px_-12px_rgba(33,20,2,0.35)]">{pie}</div>}
       </div>
     </div>
   );

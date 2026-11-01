@@ -395,7 +395,7 @@ function MisParticipaciones() {
   );
 }
 
-const campo = 'h-12 w-full rounded-xl border border-n10 bg-n0 px-4 text-[15px] font-semibold text-cafe outline-none focus:border-cafe disabled:bg-n5 disabled:text-n40';
+const campo = 'h-12 w-full rounded-xl border border-n10 bg-n0 px-4 text-base font-semibold text-cafe outline-none focus:border-cafe disabled:bg-n5 disabled:text-n40';
 
 function Etiqueta({ texto, children }: { texto: string; children: ReactNode }) {
   return (

@@ -63,7 +63,7 @@ function HeaderPublicoMobile() {
         </div>
       </div>
       {abierto && (
-        <nav className="fixed inset-x-0 bottom-0 top-[92px] z-50 flex flex-col overflow-y-auto overflow-x-hidden bg-fondo px-6 pt-4" aria-label="Menú">
+        <nav className="fixed inset-x-0 bottom-0 top-[92px] z-50 flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain bg-fondo px-6 pb-[max(24px,env(safe-area-inset-bottom))] pt-4" aria-label="Menú">
           {NAV_PUBLICA.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.to === '/'}
               className={({ isActive }) => cx('flex h-14 shrink-0 items-center gap-3 border-b border-cafe/10 text-lg', isActive ? 'font-extrabold text-cafe' : 'font-semibold text-cafe/80')}>
@@ -197,7 +197,7 @@ const TABS_PUBLICAS: { to: string; label: string; icon: IconName }[] = [
 function TabBar({ tabs = TABS }: { tabs?: typeof TABS }) {
   const oculto = useContext(OcultoCtx);
   return (
-    <nav className={cx('fixed inset-x-0 bottom-0 z-30 flex h-20 items-center justify-between border-t border-n10 bg-n0 px-3 pb-[18px] pt-3.5 transition-transform duration-300 lg:hidden', oculto && 'translate-y-full')} aria-label="Navegación principal">
+    <nav className={cx('fixed inset-x-0 bottom-0 z-30 flex min-h-20 items-center justify-between border-t border-n10 bg-n0 px-3 pb-[max(18px,env(safe-area-inset-bottom))] pt-3.5 transition-transform duration-300 lg:hidden', oculto && 'translate-y-full')} aria-label="Navegación principal">
       {tabs.map((t) => (
         <NavLink key={t.to} to={t.to} end={t.to === '/'} className="flex min-w-0 max-w-[72px] flex-1 flex-col items-center gap-1">
           {({ isActive }) => (
@@ -290,13 +290,16 @@ export function AppShell() {
   useEffect(() => { window.scrollTo(0, 0); }, [pathname, logueado]);
   return (
     <OcultoCtx.Provider value={oculto}>
-    <div className="min-h-screen bg-fondo">
+    <div className="min-h-[100svh] bg-fondo">
       {conPlan ? <><HeaderMobile /><HeaderDesktop /></> : <><HeaderPublicoMobile /><HeaderPublicoDesktop /></>}
       <main className="pb-0 pt-[92px] lg:pt-[113px]">
         <Outlet />
       </main>
       <Footer />
-      {!pathname.startsWith('/suscribirse') && <TabBar tabs={conPlan ? TABS : TABS_PUBLICAS} />}
+      {!pathname.startsWith('/suscribirse') && <>
+        <div aria-hidden className="h-[calc(80px+env(safe-area-inset-bottom))] bg-cafe-pre lg:hidden" />
+        <TabBar tabs={conPlan ? TABS : TABS_PUBLICAS} />
+      </>}
       {initRevision && <PuenteRevision />}
     </div>
     </OcultoCtx.Provider>

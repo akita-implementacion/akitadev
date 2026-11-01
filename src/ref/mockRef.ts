@@ -30,6 +30,7 @@ const WHATSAPP_COFRE = '934 123 456';
 
 export const premiosCofre = {
   cinemark: {
+    lineas: ['Salas Cinemark de todo el Perú', 'Recibes un código y lo canjeas por WhatsApp con tu ID de usuario. Un uso por persona.'],
     titulo: 'Entradas para Cinemark', comercio: 'Cinemark', marca: 'cinemark' as MarcaId, vence: PLAZO_COFRE, codigo: 'CINE-7K2M', quedan: 21,
     instrucciones: `Envíanos por WhatsApp al ${WHATSAPP_COFRE} este código junto con tu ID de usuario hasta el miércoles 11 nov y te enviamos tus entradas. Si no lo envías a tiempo, pierdes el premio.`,
     terminos: [
@@ -44,6 +45,7 @@ export const premiosCofre = {
     ],
   },
   trattoria: {
+    lineas: ['La Bodega de la Trattoria · Jockey Plaza', 'Recibes un código y lo canjeas por WhatsApp. Luego recoges tu vale en el Jockey Plaza.'],
     titulo: 'Almuerzo hasta S/ 70', comercio: 'La Bodega de la Trattoria', marca: 'trattoria' as MarcaId, vence: PLAZO_COFRE, codigo: 'TRAT-4P9X', quedan: 9,
     instrucciones: `Envíanos por WhatsApp al ${WHATSAPP_COFRE} este código junto con tu ID de usuario hasta el miércoles 11 nov. Luego recoge tu vale en el Jockey Plaza y preséntalo en físico con tu DNI en el local. Si no lo envías a tiempo, pierdes el premio.`,
     terminos: [

@@ -24,7 +24,7 @@ export function Modal({ abierto, onCerrar, children, blanco }: { abierto: boolea
   if (!abierto) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-cafe/60 lg:items-center" onClick={onCerrar}>
-      <div role="dialog" aria-modal className={cx('relative max-h-[92vh] w-full overflow-y-auto rounded-t-[28px] p-6 lg:max-w-[480px] lg:rounded-[28px]', blanco ? 'bg-n0' : 'bg-fondo')} onClick={(e) => e.stopPropagation()}>
+      <div role="dialog" aria-modal className={cx('relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] p-6 pb-[max(24px,env(safe-area-inset-bottom))] lg:max-h-[92vh] lg:max-w-[480px] lg:rounded-[28px]', blanco ? 'bg-n0' : 'bg-fondo')} onClick={(e) => e.stopPropagation()}>
         <span className="mx-auto -mt-2 mb-3 block h-1 w-10 rounded-pill bg-n10 lg:hidden" aria-hidden />
         <button onClick={onCerrar} aria-label="Cerrar" className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-pill text-2xl font-bold text-cafe hover:bg-n5">×</button>
         {children}
@@ -511,8 +511,9 @@ export function CardFlash({ className, variante = 'normal', ejemplo2 }: { classN
         <Volver texto={f.proximo ? `El nuevo Beneficio Flash llega el ${f.proximo}` : 'El nuevo Beneficio Flash llega el viernes'} />
       </div>
     ) : (
-      <div className="flex flex-1 flex-col justify-center gap-1.5">
-        <p className="text-[22px] font-black leading-none text-cafe">Próximamente</p>
+      <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 text-center">
+        <span className="flex size-12 items-center justify-center rounded-pill bg-n0/70"><Icon name="reloj" size={24} /></span>
+        <p className="max-w-full text-[clamp(17px,4.8vw,22px)] font-black leading-none text-cafe">Próximamente</p>
         <p className="text-[12px] font-semibold leading-4 text-cafe">{f.proximo ? `Nuevo Flash el ${f.proximo}` : 'Nuevo Flash el viernes'}</p>
       </div>
     )

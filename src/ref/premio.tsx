@@ -65,7 +65,7 @@ export function DetallePremioPublico({ p, abierto, onCerrar, cerrado }: { p: Pre
   const ir = () => { onCerrar(); navigate(cerrado ? '/planes' : rutaPlanesConPremio(p)); };
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-cafe/60 lg:items-center" role="dialog" aria-modal="true" aria-label={p.nombre} onClick={onCerrar}>
-      <div className="flex max-h-[94svh] w-full flex-col overflow-hidden rounded-t-[28px] bg-fondo text-cafe lg:max-h-[90vh] lg:w-[520px] lg:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
+      <div className="flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-fondo text-cafe lg:max-h-[90vh] lg:w-[520px] lg:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
         <div className="flex shrink-0 items-start gap-3 bg-cafe px-5 pb-4 pt-5">
           <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
             {p.etiqueta && <span className="rounded-pill bg-amarillo px-3 py-1 text-[11px] font-bold tracking-[0.6px] text-cafe">{p.etiqueta}</span>}

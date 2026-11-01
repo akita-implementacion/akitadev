@@ -158,7 +158,7 @@ export function BeneficiosPublico() {
           <FiltroCategorias categorias={categoriasBeneficios} activa={cat} onChange={setCat} />
           <label className="flex w-fit items-center gap-2 text-sm font-semibold text-cafe">
             Ubicación
-            <select value={ubicacion} onChange={(e) => setUbicacion(e.target.value as typeof ubicacion)} className="h-10 rounded-pill border border-n10 bg-n0 px-3 text-sm font-semibold">
+            <select value={ubicacion} onChange={(e) => setUbicacion(e.target.value as typeof ubicacion)} className="h-10 rounded-pill border border-n10 bg-n0 px-3 text-base font-semibold">
               {['Todas', 'Lima', 'Provincias'].map((u) => <option key={u}>{u}</option>)}
             </select>
           </label>
