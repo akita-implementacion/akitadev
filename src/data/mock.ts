@@ -106,13 +106,13 @@ export const categoriasBeneficios = ['Todos', 'Restaurantes', 'Salud', 'Belleza'
 export const ubicaciones = ['Todas', 'Lima', 'Provincias'];
 
 export type PromoMarca = { id: string; logo: string; marca: string; etiqueta: string; titulo: string; bajada: string; color: string; oscuro?: boolean; imagen?: string; fondo?: string; destacado?: string; enlace?: string };
-export const promosBeneficios: PromoMarca[] = [
-  { id: 'pb1', logo: logoDe('cinemark'), marca: 'Cinemark', etiqueta: 'MARCA ALIADA', titulo: '2x1 en Cinemark', bajada: 'De lunes a jueves en salas tradicionales. Úsalo con tu código AKITÁ.', color: 'linear-gradient(110deg, #FF86E8 0%, #FF6FE0 55%, #E04FC7 100%)', imagen: 'assets/banners/cinemark-prod.webp', fondo: 'assets/banners/cinemark-fondo.webp', destacado: 'Cinemark' },
-  { id: 'pb2', logo: logoDe('franklin'), marca: 'Franklin', etiqueta: 'NUEVO BENEFICIO', titulo: '30% en tu menú', bajada: 'Almuerzos de lunes a viernes en Franklin Kitchen & Bar.', color: 'linear-gradient(110deg, #211402 0%, #2C1607 60%, #3D2A08 100%)', oscuro: true, imagen: 'assets/banners/franklin-prod.webp', fondo: 'assets/banners/franklin-fondo.webp', destacado: 'tu menú' },
-];
-export const promosSorteos: PromoMarca[] = [
-  { id: 'ps1', logo: logoDe('repsol'), marca: 'Repsol', etiqueta: 'PREMIO AUSPICIADO', titulo: 'Gana un año de combustible', bajada: 'Repsol se suma a los sorteos de noviembre. Suma chances y participa.', color: 'linear-gradient(110deg, #FFE45A 0%, #FDDF45 55%, #FFC233 100%)', imagen: 'assets/banners/repsol-prod.webp', fondo: 'assets/banners/repsol-fondo.webp' },
-  { id: 'ps2', logo: logoDe('arthur-sons'), marca: 'Arthur & Sons', etiqueta: 'MARCA ALIADA', titulo: 'Lentes de sol de regalo', bajada: 'Arthur & Sons premia a 10 ganadores en el sorteo del miércoles.', color: 'linear-gradient(110deg, #4FE592 0%, #45E586 55%, #2ECF73 100%)', imagen: 'assets/banners/arthur-prod.webp', fondo: 'assets/banners/arthur-fondo.webp' },
+export const promosBeneficios: PromoMarca[] = [];
+export const promosSorteos: PromoMarca[] = [];
+
+export const bannersBeneficios = [
+  { id: 'pb-cinemark', desktop: 'img/banners/cinemark-web.webp', movil: 'img/banners/cinemark-movil.webp', marca: 'Cinemark', alt: 'AKITÁ y Cinemark: entradas 2D al cine a solo S/ 14.90. Válido solo para sede Jockey Plaza.' },
+  { id: 'pb-repsol', desktop: 'img/banners/repsol-web.webp', movil: 'img/banners/repsol-movil.webp', marca: 'Repsol', alt: 'S/ 2.50 de descuento por galón en Repsol.' },
+  { id: 'pb-ncl', desktop: 'img/banners/ncl-web.webp', movil: 'img/banners/ncl-movil.webp', marca: 'NCL', alt: 'US$ 150 de descuento en tu próximo viaje en crucero NCL, con MP Global Cruises.' },
 ];
 
 export const canjes = [

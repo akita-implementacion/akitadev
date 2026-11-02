@@ -18,6 +18,8 @@ import { MonedaLana, cx } from '../ui/primitives';
 type Metodo = 'soles' | 'lanas';
 type MedioSoles = 'tarjeta' | 'yape';
 type Paso = 'elegir' | 'pago' | 'listo';
+type MisionCumplida = { titulo: string; lanas: number };
+let misionCanjeDemo = false;
 type Codigo = { texto: string; regalo: number };
 
 export type SorteoParaChances = { id: string; premio: string; fecha: string; corte: string; chancesActuales: number; puedeComprar?: boolean };
@@ -54,6 +56,7 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
   const demo = useDemoOpcional();
   const [actuales, setActuales] = useState(sorteo.chancesActuales);
   const [saldoTras, setSaldoTras] = useState(0);
+  const [mision, setMision] = useState<MisionCumplida | null>(null);
   const et = erroresTarjeta(tarjeta); const ey = erroresYape(yape);
   const err = (k: string, m?: string) => (tocado[k] ? m : undefined);
   const campoT = (k: keyof DatosTarjeta, fmt: (v: string) => string) => ({
@@ -88,13 +91,19 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
 
   const usarLanas = async () => {
     setError('');
-    setSaldoTras(Math.max(0, billetera.saldo - costoLanas));
-    if (modoMock) { demo?.sumarChances(sorteo.premio, cantidad + regalo); setPaso('listo'); return; }
+    setSaldoTras(Math.max(0, billetera.saldo - costoLanas)); setMision(null);
+    if (modoMock) {
+      demo?.sumarChances(sorteo.premio, cantidad + regalo);
+      if (!misionCanjeDemo) { misionCanjeDemo = true; setMision({ titulo: 'Canjea Lanas por chances', lanas: 10 }); setSaldoTras(Math.max(0, billetera.saldo - costoLanas) + 10); }
+      setPaso('listo'); return;
+    }
     setEnviando(true);
     try {
       const r = await sorteosApi.comprarChancesConLanas(sorteo.id, cantidad);
       if (r?.userChances != null) setTotalApi(r.userChances);
       if (r?.lanasBalance != null) setSaldoTras(r.lanasBalance);
+      const m = r?.completedMissions?.find((x) => (x.rewardLanas ?? 0) > 0);
+      if (m) setMision({ titulo: m.title ?? 'Misión', lanas: m.rewardLanas ?? 0 });
       invalidar('lanas'); invalidar('sorteos'); invalidar('misiones');
       setPaso('listo');
     } catch (e) { setError(mensajeError(e)); } finally { setEnviando(false); }
@@ -272,11 +281,20 @@ export function SumarChances({ sorteo, abierto, onCerrar }: { sorteo: SorteoPara
                 {codigo && codigo.regalo > 0 && <Fila k={`Tu código ${codigo.texto} te dio`} v={`${codigo.regalo} chances de regalo`} verde />}
                 <div className="flex items-center justify-between border-t border-n10 pt-2 text-[15px] font-extrabold"><span>Total ahora</span><span>{total} chances</span></div>
               </Bloque>
+              {mision && (
+                <div role="status" className="flex items-center gap-3 rounded-2xl border-2 border-verde bg-verde/25 px-4 py-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-verde"><Icon name="trofeo" size={20} /></span>
+                  <div className="flex flex-col">
+                    <p className="text-[15px] font-extrabold">¡Misión cumplida! +{formatoLanas(mision.lanas)} Lanas</p>
+                    <p className="text-xs text-cafe/80">Por «{mision.titulo}». Ya están en tu billetera.</p>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center gap-3 rounded-2xl bg-n0 px-4 py-3">
                 {metodo === 'lanas' ? <MonedaLana size={26} /> : <Icon name="tarjeta" size={24} />}
                 <div className="flex flex-col">
                   <p className="text-[15px] font-extrabold">{metodo === 'lanas' ? `Usaste ${formatoLanas(costoLanas)} Lanas` : `Pagaste ${soles(costoSoles)}`}</p>
-                  <p className="text-xs text-n60">{metodo === 'lanas' ? `Te quedan ${formatoLanas(saldoTras)} Lanas.` : 'Te enviamos la boleta a tu correo.'}</p>
+                  <p className="text-xs text-n60">{metodo === 'lanas' ? `Te quedan ${formatoLanas(saldoTras)} Lanas${mision ? ', con la recompensa incluida' : ''}.` : 'Te enviamos la boleta a tu correo.'}</p>
                 </div>
               </div>
               <BotonPrincipal onClick={onCerrar}>Listo</BotonPrincipal>

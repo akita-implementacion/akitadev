@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { cx } from '../ui/primitives';
 import { useBanners, type SeccionBanner } from '../../data/datos';
 
-export function BannerApi({ secciones, className }: { secciones: SeccionBanner[]; className?: string }) {
-  const todas = useBanners(secciones);
+export function BannerApi({ secciones, className, ejemplos = [] }: { secciones: SeccionBanner[]; className?: string; ejemplos?: { id: string; desktop: string; movil: string; link?: string; externo?: boolean; alt?: string }[] }) {
+  const deApi = useBanners(secciones);
+  const usaEjemplos = !deApi.imagenes.length && ejemplos.length > 0;
+  const todas = usaEjemplos ? { imagenes: ejemplos, autoAvance: true, intervalo: 5000 } : deApi;
   const [fallidas, setFallidas] = useState<string[]>([]);
   const imagenes = todas.imagenes.filter((im) => !fallidas.includes(im.id));
   const { autoAvance, intervalo } = todas;
@@ -21,12 +23,12 @@ export function BannerApi({ secciones, className }: { secciones: SeccionBanner[]
   return (
     <section aria-roledescription="carrusel" aria-label="Novedades" className={cx('flex flex-col gap-3', className)}
       onMouseEnter={() => setPausa(true)} onMouseLeave={() => setPausa(false)}>
-      <div className="relative aspect-[4/3] overflow-hidden rounded-[24px] bg-n5 sm:aspect-[3/1]">
+      <div className={cx('relative overflow-hidden rounded-[24px] bg-n5', usaEjemplos ? 'aspect-[786/600] lg:aspect-[2400/350]' : 'aspect-[4/3] sm:aspect-[3/1]')}>
         {imagenes.map((im, k) => {
           const imagen = (
             <picture>
-              <source media="(min-width: 640px)" srcSet={im.desktop} />
-              <img src={im.movil || im.desktop} alt="" data-prueba="no" className="size-full object-cover" loading={k === 0 ? 'eager' : 'lazy'}
+              <source media={usaEjemplos ? '(min-width: 1024px)' : '(min-width: 640px)'} srcSet={im.desktop} />
+              <img src={im.movil || im.desktop} alt={'alt' in im ? (im as { alt?: string }).alt ?? '' : ''} data-prueba="no" className="size-full object-cover" loading={k === 0 ? 'eager' : 'lazy'}
                 onError={() => setFallidas((f) => (f.includes(im.id) ? f : [...f, im.id]))} />
             </picture>
           );

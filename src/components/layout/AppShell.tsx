@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { DOCUMENTOS_LEGALES } from '../../pages/publico/Legal';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useOcultarAlBajar } from '../../hooks/vistas';
 import { IconoCorreo, IconoRed } from '../../ref/MarcaIconos';
@@ -267,8 +268,8 @@ function Footer() {
         <div className="flex flex-col gap-6 lg:contents">
           <nav className={col} aria-label="Legales">
             <p className="font-bold text-amarillo">Legales</p>
-            {['Términos y condiciones', 'Política de privacidad', 'Políticas de cookies', 'Bases de cada sorteo', 'Política de cancelación', 'Método de selección de ganadores'].map((t) => (
-              <a key={t} href="#" className="font-light leading-[18px] text-n0">{t}</a>
+            {DOCUMENTOS_LEGALES.map((d) => (
+              <Link key={d.slug} to={`/legal/${d.slug}`} className="font-light leading-[18px] text-n0">{d.titulo}</Link>
             ))}
           </nav>
           <LibroReclamaciones className="h-[58px] w-[100px] lg:hidden" />

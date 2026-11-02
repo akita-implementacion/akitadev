@@ -17,6 +17,7 @@ import { SegunSesion, SesionProvider } from './data/sesion';
 import { MemoryRouter, Navigate } from 'react-router-dom';
 import { initRevision } from './data/assets';
 import LibroReclamaciones from './pages/publico/LibroReclamaciones';
+import Legal from './pages/publico/Legal';
 import { DemoProvider } from './data/revision';
 import { instalarRespaldoImagenes } from './data/imagenesPrueba';
 
@@ -33,6 +34,7 @@ const rutas = (
           <Route path="ganadores" element={<Ganadores />} />
           <Route path="como-funciona" element={<ComoFunciona />} />
           <Route path="libro-reclamaciones" element={<LibroReclamaciones />} />
+          <Route path="legal/:doc" element={<Legal />} />
           <Route path="ingresar" element={<SegunSesion basta="sesion" publico={<Ingresar />} usuario={<Navigate to="/" replace />} />} />
           <Route path="suscribirse/cuenta" element={<Cuenta />} />
           <Route path="suscribirse/pago" element={<Pago />} />

@@ -246,9 +246,34 @@ export function HojaDetalleBeneficio({ b, abierto, onCerrar }: { b: BeneficioVis
   );
 }
 
-export function SinBeneficios({ categoria, ubicacion, onLimpiar }: { categoria: string; ubicacion: string; onLimpiar: () => void }) {
+export const normalizar = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+export function coincide(b: { titulo: string; comercio: string; categoria?: string }, q: string) {
+  const n = normalizar(q); if (!n) return true;
+  return [b.titulo, b.comercio, b.categoria ?? ''].some((x) => normalizar(x).includes(n));
+}
+
+export function BuscadorBeneficios({ valor, onCambio }: { valor: string; onCambio: (v: string) => void }) {
+  return (
+    <label className="flex h-12 w-full items-center gap-2 rounded-pill border border-n10 bg-n0 px-4 focus-within:border-cafe lg:max-w-[420px]">
+      <Icon name="lupa" size={18} className="shrink-0 text-n60" />
+      <input type="search" inputMode="search" enterKeyHint="search" value={valor} onChange={(e) => onCambio(e.target.value)} placeholder="Buscar por nombre o comercio" aria-label="Buscar beneficios"
+        className="min-w-0 flex-1 bg-transparent text-base text-cafe outline-none placeholder:text-n60 [&::-webkit-search-cancel-button]:hidden" />
+      {valor && <button type="button" onClick={() => onCambio('')} aria-label="Borrar búsqueda" className="text-n60"><Icon name="cerrar" size={18} /></button>}
+    </label>
+  );
+}
+
+export function SinBeneficios({ categoria, ubicacion, busqueda = '', onLimpiar }: { categoria: string; ubicacion: string; busqueda?: string; onLimpiar: () => void }) {
   const que = categoria !== 'Todos' ? categoria.toLowerCase() : '';
   const donde = ubicacion !== 'Todas' ? ` en ${ubicacion}` : '';
+  if (busqueda.trim()) return (
+    <div className="flex flex-col items-center gap-2 rounded-2xl bg-n0 px-6 py-8 text-center">
+      <img src={asset('img/oveja-preguntas.webp')} alt="" className="h-24 w-auto object-contain" />
+      <p className="text-[17px] font-extrabold">No encontramos «{busqueda.trim()}»{que ? ` en ${que}` : ''}{donde}</p>
+      <p className="max-w-[360px] text-sm text-n60">Puede que ese beneficio ya no esté vigente o que esté escrito de otra forma. Prueba con otra palabra o mira todos los beneficios.</p>
+      <button onClick={onLimpiar} className="mt-1 inline-flex h-11 items-center rounded-pill bg-cafe px-5 text-sm font-bold text-n0">Ver todos los beneficios</button>
+    </div>
+  );
   return (
     <div className="flex flex-col items-center gap-2 rounded-2xl bg-n0 px-6 py-8 text-center">
       <img src={asset('img/oveja-preguntas.webp')} alt="" className="h-24 w-auto object-contain" />

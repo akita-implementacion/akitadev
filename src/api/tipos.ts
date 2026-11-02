@@ -144,7 +144,8 @@ export type ReferidosMe = {
 export type Elegibilidad = { valid?: boolean; reason?: string };
 
 export type PromoValidacion = { isValid?: boolean; valid?: boolean; message?: string; bonusChances?: number; potentialBonus?: number; capWarning?: string;
-  promoCode?: { id?: string; code?: string; type?: string; benefitValue?: number | string } | null };
+  promoCode?: { id?: string; code?: string; type?: string; benefitValue?: number | string; description?: string | null } | null;
+  raffle?: { name?: string; drawDate?: string } | null };
 export type HistorialGanadores = {
   data?: { raffleId?: string; prizeId?: string; prizeName?: string; prizeImageUrl?: string | null; drawDate?: string; hour?: string; name?: string;
     userPublicId?: string; isLive?: boolean; hasParticipationList?: boolean; photoUrl?: string | null }[];

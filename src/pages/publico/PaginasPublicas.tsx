@@ -8,7 +8,7 @@ import { CardCta, EstadoVacio, Faq, GanadoresUltimoSorteo, MarcasAliadas, PasosC
 import { Nube } from '../../components/ui/Brand';
 import { Icon, type IconName } from '../../components/ui/Icon';
 import { Badge, Button, ButtonCompacto, ChipFiltro, Foto, ImagenOpcional, MonedaLana, cx } from '../../components/ui/primitives';
-import { consultaCodigo } from '../../data/mock';
+import { bannersBeneficios, consultaCodigo } from '../../data/mock';
 import { sorteosApi } from '../../api/servicios';
 import { mensajeError } from '../../api/client';
 import { useBeneficios, useFechasSorteo, useMarcasAliadas, useProximosSorteos, useHistorialGanadores, useSorteoDestacado, useUltimosGanadores } from '../../data/datos';
@@ -25,7 +25,7 @@ import {
 import { CERRADO, NOTA_CERRADO, rutaPlanesConPremio, textoCierre, useDetallePremio, usePremioMes } from '../../ref/premio';
 import { usePerfil } from '../../ref/demo';
 import { FuenteSorteosApi, useFuenteSorteos } from '../../ref/sitio';
-import { DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, SinBeneficios, vistaDe, type BeneficioVista } from '../../components/beneficios/catalogo';
+import { BuscadorBeneficios, coincide, DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, SinBeneficios, vistaDe, type BeneficioVista } from '../../components/beneficios/catalogo';
 import { canjesEjemplo, pasos as pasosRef, type Beneficio as BeneficioRef } from '../../ref/publico';
 import { preguntas as preguntasRef } from '../../ref/publico';
 
@@ -136,16 +136,17 @@ export function BeneficiosPublico() {
   const marcasAliadas = useMarcasAliadas();
   const [cat, setCat] = useState('Todos');
   const [ubicacion, setUbicacion] = useState<'Todas' | 'Lima' | 'Provincias'>('Todas');
+  const [busqueda, setBusqueda] = useState('');
   const [abierto, setAbierto] = useState<BeneficioVista | null>(null);
   const cerrarDetalle = useCallback(() => setAbierto(null), []);
-  const lista = beneficios.filter((b) => cat === 'Todos' || b.categoria === cat).map(vistaDe)
+  const lista = beneficios.filter((b) => coincide(b, busqueda)).filter((b) => cat === 'Todos' || b.categoria === cat).map(vistaDe)
     .filter((b) => ubicacion === 'Todas' || (ubicacion === 'Lima' ? /lima/i.test(b.ubicacion) : /provincia|perú/i.test(b.ubicacion)));
   const destacados = beneficios.filter((b) => b.destacado).map(vistaDe);
   return (
     <>
       <Hero publico color="#3EB1FF" titulo="Beneficios a diario" bajada="Descuentos en restaurantes, salud, belleza y más. Úsalos desde tu primer mes." imagen="img/beneficios-hero.webp" />
       <div className="mx-auto flex max-w-[1366px] flex-col gap-6 px-6 pb-3 pt-8 lg:px-16 lg:pb-5 lg:pt-10">
-        {!config.usarMock && <BannerApi secciones={['BENEFITS_MAIN']} />}
+        <BannerApi secciones={['BENEFITS_MAIN']} ejemplos={config.usarMock || config.datosEjemplo ? bannersBeneficios.map((b) => ({ ...b, desktop: asset(b.desktop), movil: asset(b.movil), link: '/planes' })) : []} />
         <DestacadosParaTi items={destacados} onAbrir={(i) => setAbierto(destacados[i])} />
       </div>
 
@@ -155,6 +156,7 @@ export function BeneficiosPublico() {
             <h2 className="text-[22px] font-black uppercase leading-none text-cafe lg:text-[28px]">Todos los <span className="text-rosa-fuerte">beneficios</span></h2>
             <p className="text-sm text-n60">{beneficios.length} beneficios · se activan al suscribirte.</p>
           </div>
+          <BuscadorBeneficios valor={busqueda} onCambio={setBusqueda} />
           <FiltroCategorias categorias={categoriasBeneficios} activa={cat} onChange={setCat} />
           <label className="flex w-fit items-center gap-2 text-sm font-semibold text-cafe">
             Ubicación
@@ -165,7 +167,7 @@ export function BeneficiosPublico() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:gap-4 xl:grid-cols-3">
             {lista.map((b, i) => <FilaBeneficio key={`${b.id}-${i}`} b={b} onAbrir={() => setAbierto(b)} />)}
           </div>
-          {lista.length === 0 && <SinBeneficios categoria={cat} ubicacion={ubicacion} onLimpiar={() => { setCat('Todos'); setUbicacion('Todas'); }} />}
+          {lista.length === 0 && <SinBeneficios categoria={cat} ubicacion={ubicacion} busqueda={busqueda} onLimpiar={() => { setCat('Todos'); setUbicacion('Todas'); setBusqueda(''); }} />}
         </section>
         {abierto && <HojaDetalleBeneficio b={abierto} abierto onCerrar={cerrarDetalle} />}
 
@@ -357,7 +359,7 @@ export function ComoFunciona() {
           <h2 className="text-[26px] font-black uppercase leading-[1.05] text-cafe lg:text-[36px]">Lo que encuentras al suscribirte</h2>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4">
             {LO_QUE_ENCUENTRAS.map((x) => (
-              <div key={x.id} id={x.id} className="flex scroll-mt-[110px] flex-col gap-1.5 rounded-[20px] bg-n0 p-4 lg:gap-2 lg:rounded-[24px] lg:p-6">
+              <div key={x.id} id={x.id} className={cx('flex scroll-mt-[110px] flex-col gap-1.5 rounded-[20px] p-4 transition-colors lg:gap-2 lg:rounded-[24px] lg:p-6', ancla === x.id ? 'bg-amarillo/40 ring-2 ring-amarillo' : 'bg-n0')}>
                 <p className="text-[15px] font-extrabold leading-5 text-cafe lg:text-lg">{x.t}</p>
                 <p className="text-[13px] leading-[18px] text-n60 lg:text-[15px] lg:leading-[22px]">{x.d}</p>
               </div>

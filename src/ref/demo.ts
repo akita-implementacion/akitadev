@@ -1,11 +1,14 @@
 import { usuarioApi } from '../api/servicios';
+import { config } from '../api/config';
+
+const conEjemplo = config.usarMock || config.datosEjemplo;
 import { useRecurso } from '../data/recurso';
 import { useSesion } from '../data/sesion';
 
 export type EstadoCofreDemo = 'disponible' | 'agotado';
 export type EstadoFlashDemo = 'disponible' | 'agotado' | 'proximamente';
 export type PerfilDemo = 'visitante' | 'registrado' | 'vencido';
-export type StockDemo = 'ambas' | 'sinPremio' | 'sinLanas' | 'agotado' | 'finalizado';
+export type StockDemo = 'ambas' | 'sinPremio' | 'sinLanas' | 'agotado' | 'finalizado' | 'proximamente';
 export type ResultadoPagoDemo = 'aprobado' | 'rechazado' | 'pendiente' | 'codigoVencido';
 
 type Demo = {
@@ -25,7 +28,7 @@ function usePerfilActual(): PerfilDemo {
 export function useDemo(): Demo {
   return {
     cofre: 'disponible', flash: 'disponible', clienteAntiguo: false, sorteoMes: 'abierto',
-    stockCofre: 'ambas', stockFlash: 'ambas', pago: 'aprobado', heroMovil: 'a', perfil: usePerfilActual(),
+    stockCofre: conEjemplo ? 'ambas' : 'proximamente', stockFlash: conEjemplo ? 'ambas' : 'proximamente', pago: 'aprobado', heroMovil: 'a', perfil: usePerfilActual(),
   };
 }
 

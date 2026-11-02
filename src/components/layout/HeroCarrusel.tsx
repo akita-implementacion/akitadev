@@ -12,7 +12,7 @@ function destacar(titulo: string, d?: string) {
   return i < 0 ? titulo : <>{T.slice(0, i)}<span className="text-n0">{T.slice(i, i + D.length)}</span>{T.slice(i + D.length)}</>;
 }
 
-export type BannerHero = { id: string; desktop: string; movil: string; link?: string; externo?: boolean };
+export type BannerHero = { id: string; desktop: string; movil: string; link?: string; externo?: boolean; alt?: string; marca?: string };
 
 export function useBannersQueCargan(banners: BannerHero[]) {
   const [listos, setListos] = useState<string[]>([]);
@@ -22,7 +22,7 @@ export function useBannersQueCargan(banners: BannerHero[]) {
     banners.forEach((b) => {
       const img = new Image();
       img.onload = () => { if (vivo) setListos((l) => (l.includes(b.id) ? l : [...l, b.id])); };
-      img.src = window.matchMedia('(min-width: 640px)').matches || !b.movil ? b.desktop : b.movil;
+      img.src = window.matchMedia('(min-width: 1024px)').matches || !b.movil ? b.desktop : b.movil;
     });
     return () => { vivo = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -30,7 +30,7 @@ export function useBannersQueCargan(banners: BannerHero[]) {
   return banners.filter((b) => listos.includes(b.id));
 }
 
-export function HeroCarrusel({ color, titulo, bajada, pose, promos: ejemplos, banners = [] }: { color: string; titulo: ReactNode; bajada: ReactNode; pose: Pose; promos: PromoMarca[]; banners?: BannerHero[] }) {
+export function HeroCarrusel({ color, titulo, bajada, pose, promos: ejemplos, banners = [], onAbrir }: { color: string; titulo: ReactNode; bajada: ReactNode; pose: Pose; promos: PromoMarca[]; banners?: BannerHero[]; onAbrir?: (b: BannerHero) => void }) {
   const deApi = useBannersQueCargan(banners);
   const promos = deApi.length ? [] : ejemplos;
   const total = promos.length + deApi.length + 1;
@@ -43,7 +43,7 @@ export function HeroCarrusel({ color, titulo, bajada, pose, promos: ejemplos, ba
   }, [pausa, total]);
 
   return (
-    <div className={cx('relative', promos.some((p) => p.imagen) && 'max-lg:[&_section]:min-h-[300px]')} onMouseEnter={() => setPausa(true)} onMouseLeave={() => setPausa(false)}>
+    <div className={cx('relative', promos.some((p) => p.imagen) && 'max-lg:[&_section]:min-h-[300px]', deApi.length > 0 && 'max-lg:[&_section]:min-h-[calc(100vw*600/786)] lg:[&_section]:!h-[min(280px,calc(100vw/4.5))]')} onMouseEnter={() => setPausa(true)} onMouseLeave={() => setPausa(false)}>
       <div className={cx('transition-opacity duration-500', i === 0 ? 'opacity-100' : 'pointer-events-none opacity-0')} aria-hidden={i !== 0}>
         <Hero color={color} titulo={titulo} bajada={bajada} pose={pose} />
       </div>
@@ -78,9 +78,14 @@ export function HeroCarrusel({ color, titulo, bajada, pose, promos: ejemplos, ba
         const clase = cx('absolute inset-0 overflow-hidden transition-opacity duration-500', activo ? 'opacity-100' : 'pointer-events-none opacity-0');
         const imagen = (
           <picture>
-            <source media="(min-width: 640px)" srcSet={b.desktop} />
-            <img src={b.movil || b.desktop} alt="" data-prueba="no" className="size-full object-cover" />
+            <source media="(min-width: 1024px)" srcSet={b.desktop} />
+            <img src={b.movil || b.desktop} alt={b.alt ?? ''} data-prueba="no" className="size-full object-cover object-center lg:object-[67%_50%]" />
           </picture>
+        );
+        if (!b.link && onAbrir && b.marca) return (
+          <section key={b.id} aria-hidden={!activo} className={clase}>
+            <button type="button" onClick={() => onAbrir(b)} aria-label={b.alt} tabIndex={activo ? 0 : -1} className="block size-full">{imagen}</button>
+          </section>
         );
         if (!b.link) return <section key={b.id} aria-hidden={!activo} className={clase}>{imagen}</section>;
         return b.externo || /^https?:/.test(b.link)

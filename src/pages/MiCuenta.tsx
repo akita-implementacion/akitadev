@@ -641,7 +641,7 @@ export default function MiCuenta() {
             <p className="text-[17px] font-extrabold leading-tight">¿Necesitas ayuda?</p>
             <p className="text-[13px] leading-[18px] text-cafe/85">Escríbenos y te respondemos lo antes posible.</p>
             <a href="mailto:contacto@akita.pe" className="w-fit text-[14px] font-bold underline underline-offset-2">contacto@akita.pe</a>
-            <ImagenOpcional src="assets/oveja-faq.webp" className="absolute bottom-2 right-3 h-[130px] w-auto object-contain" />
+            <ImagenOpcional src="img/oveja-preguntas.webp" className="absolute bottom-2 right-3 h-[130px] w-auto object-contain" />
           </div>
         </aside>
         <div className="flex min-w-0 flex-1 flex-col gap-6">

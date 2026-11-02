@@ -4,11 +4,12 @@ import { Link } from 'react-router-dom';
 import { Contenido } from '../components/layout/Hero';
 import { HeroCarrusel } from '../components/layout/HeroCarrusel';
 import { CardBilletera, CardCanje, CardFlash } from '../components/cards/cards';
-import { DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, SinBeneficios, vistaDe, type BeneficioVista } from '../components/beneficios/catalogo';
+import { BuscadorBeneficios, coincide, DestacadosParaTi, FilaBeneficio, HojaDetalleBeneficio, SinBeneficios, vistaDe, type BeneficioVista } from '../components/beneficios/catalogo';
+import { asset } from '../data/assets';
 import { ChipFiltro } from '../components/ui/primitives';
 import { FilaAuto } from '../components/ui/Carrusel';
 import { Icon } from '../components/ui/Icon';
-import { misCupones, promosBeneficios, ubicaciones } from '../data/mock';
+import { bannersBeneficios, misCupones, ubicaciones } from '../data/mock';
 import { Tx } from '../data/revision';
 import { useBanners, useBeneficios, useCanjes } from '../data/datos';
 import { useSesion } from '../data/sesion';
@@ -26,11 +27,22 @@ export default function Beneficios() {
   const [orden, setOrden] = useState<'relevancia' | 'descuento'>('relevancia');
   const [mostrar, setMostrar] = useState(POR_PAGINA);
   const [abierto, setAbierto] = useState<BeneficioVista | null>(null);
+  const [busqueda, setBusqueda] = useState('');
   const cerrar = useCallback(() => setAbierto(null), []);
+  const conEjemplos = config.usarMock || config.datosEjemplo;
+  const bannersHero = banners.imagenes.length ? banners.imagenes
+    : conEjemplos ? bannersBeneficios.map((b) => ({ ...b, desktop: asset(b.desktop), movil: asset(b.movil) })) : [];
+  const abrirDeBanner = (b: { marca?: string }) => {
+    const m = (b.marca ?? '').toLowerCase();
+    const x = beneficios.find((y) => y.comercio.toLowerCase().includes(m) && y.destacado) ?? beneficios.find((y) => y.comercio.toLowerCase().includes(m));
+    if (x) setAbierto(vistaDe(x));
+    else document.getElementById('todos-los-beneficios')?.scrollIntoView({ behavior: 'smooth' });
+  };
   const destacados = beneficios.filter((b) => b.destacado).map(vistaDe);
 
   const conUbicacion = beneficios.some((b) => 'ubicacion' in b && b.ubicacion);
   let lista = beneficios
+    .filter((b) => coincide(b, busqueda))
     .filter((b) => cat === 'Todos' || b.categoria === cat)
     .filter((b) => ubicacion === 'Todas' || !('ubicacion' in b) || b.ubicacion === ubicacion || b.ubicacion === 'En todo el Perú');
   if (orden === 'descuento') lista = [...lista].sort((a, b) => descuentoDe(b.etiqueta) - descuentoDe(a.etiqueta));
@@ -42,7 +54,7 @@ export default function Beneficios() {
   return (
     <>
       <HeroCarrusel color="#3EB1FF" titulo={<Tx k="beneficios.hero.titulo" />} bajada={<Tx k="beneficios.hero.bajada" />} pose="beneficios"
-        promos={config.usarMock ? promosBeneficios : []} banners={config.usarMock ? [] : banners.imagenes} />
+        promos={[]} banners={bannersHero} onAbrir={abrirDeBanner} />
       <Contenido>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <CardFlash />
@@ -51,11 +63,12 @@ export default function Beneficios() {
 
         <DestacadosParaTi items={destacados} onAbrir={(i) => setAbierto(destacados[i])} />
 
-        <section className="flex flex-col gap-4">
+        <section id="todos-los-beneficios" className="flex scroll-mt-[110px] flex-col gap-4">
           <div className="flex flex-col gap-1">
             <h2 className="text-[22px] font-black uppercase leading-none lg:text-[28px]">Todos los <span className="text-rosa-fuerte">beneficios</span></h2>
             <p className="text-sm text-n60">{beneficios.length} beneficios para ti, ganes o no el sorteo.</p>
           </div>
+          <BuscadorBeneficios valor={busqueda} onCambio={(v) => cambiar(() => setBusqueda(v))} />
           <div className="no-scrollbar -mx-6 flex gap-2 overflow-x-auto px-6 lg:mx-0 lg:flex-wrap lg:px-0">
             {categoriasBeneficios.map((c, i) => <ChipFiltro key={`${c}-${i}`} activo={c === cat} onClick={() => cambiar(() => setCat(c))}>{c}</ChipFiltro>)}
           </div>
@@ -86,7 +99,7 @@ export default function Beneficios() {
               Ver {restantes} beneficios más<Icon name="chevron-abajo" size={20} />
             </button>
           )}
-          {lista.length === 0 && <SinBeneficios categoria={cat} ubicacion={ubicacion} onLimpiar={() => cambiar(() => { setCat('Todos'); setUbicacion('Todas'); })} />}
+          {lista.length === 0 && <SinBeneficios categoria={cat} ubicacion={ubicacion} busqueda={busqueda} onLimpiar={() => cambiar(() => { setCat('Todos'); setUbicacion('Todas'); setBusqueda(''); })} />}
         </section>
         {abierto && <HojaDetalleBeneficio b={abierto} abierto onCerrar={cerrar} />}
 

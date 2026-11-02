@@ -63,7 +63,7 @@ export const sorteosApi = {
   comprarChancesConYape: (b: { raffleId: string; opportunities: number; phoneNumber: string; otp: string; promoCode?: string }) =>
     api<T.ResultadoPago>('/v1/payments/yape', { method: 'POST', body: b, idempotencia: true }),
   comprarChancesConLanas: (raffleId: string, quantity: number) =>
-    api<{ lanasBalance?: number; userChances?: number }>(`/v1/raffles/${encodeURIComponent(raffleId)}/chances/lanas`, {
+    api<{ lanasBalance?: number; userChances?: number; completedMissions?: { title?: string; rewardLanas?: number }[] }>(`/v1/raffles/${encodeURIComponent(raffleId)}/chances/lanas`, {
       method: 'POST', body: { quantity, idempotencyKey: nuevaClaveIdempotencia() },
     }),
   vipFechas: () => api<T.FechasVip>('/v1/vip-raffles/me/dates'),

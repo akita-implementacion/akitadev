@@ -14,7 +14,7 @@ import { useRecurso, invalidar } from '../../data/recurso';
 import { config } from '../../api/config';
 import { ApiError, mensajeError } from '../../api/client';
 import { authApi, misionesApi, promoApi, suscripcionApi, usuarioApi, utmDeLaUrl } from '../../api/servicios';
-import type { ResultadoPago } from '../../api/tipos';
+import type { PromoValidacion, ResultadoPago } from '../../api/tipos';
 import { tokenizarTarjeta } from '../../api/kushki';
 import { idDePlan } from '../../data/adaptadores';
 import { asset } from '../../data/assets';
@@ -489,21 +489,31 @@ function CodigoPromo() {
     <div className="flex flex-col gap-1 rounded-2xl bg-verde/25 px-4 py-3 text-cafe">
       <p className="flex items-center justify-between gap-2 text-[14px] font-bold"><span className="flex items-center gap-2"><Icon name="check" size={18} />Código {s.promoTexto} aplicado</span>
         <button onClick={() => actualizar({ promoId: undefined, promoTexto: undefined, promoDetalle: undefined })} className="text-[13px] font-semibold underline">Quitar</button></p>
-      <p className="text-[13px] leading-[18px]">{s.promoDetalle || 'El beneficio del código se aplica cuando tu plan quede activo. El importe no cambia.'}</p>
+      <p className="text-[13px] leading-[18px]">{s.promoDetalle ? <>Ganas <b>{s.promoDetalle}</b> cuando tu plan quede activo. El importe no cambia.</> : 'El beneficio del código se aplica cuando tu plan quede activo. El importe no cambia.'}</p>
     </div>
   );
+  const describir = (r: PromoValidacion) => {
+    if (r.promoCode?.description) return r.promoCode.description;
+    const chances = r.bonusChances ?? r.potentialBonus ?? (r.promoCode?.type?.toUpperCase().includes('CHANCE') ? Number(r.promoCode.benefitValue) || 0 : 0);
+    if (chances > 0) {
+      const fecha = r.raffle?.drawDate ? new Date(r.raffle.drawDate).toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Lima' }) : '';
+      return `+${chances} chances adicionales ${r.raffle?.name ? `para el sorteo ${r.raffle.name}${fecha ? ` del ${fecha}` : ''}` : 'para los sorteos'}`;
+    }
+    return r.message && !/^c[oó]digo (promocional )?v[aá]lido\.?$/i.test(r.message.trim()) ? r.message : '';
+  };
   const aplicar = async () => {
     const k = codigo.trim().toUpperCase();
     if (!k) { setError('Escribe tu código.'); return; }
     if (modoMock) {
-      if (k === 'CHANCES50') { actualizar({ promoId: 'demo', promoTexto: k, promoDetalle: 'Ganas +50 chances adicionales para los sorteos cuando tu plan quede activo. El importe no cambia.' }); setError(''); }
+      if (k === 'CHANCES50') { actualizar({ promoId: 'demo', promoTexto: k, promoDetalle: '+50 chances adicionales para los sorteos' }); setError(''); }
+      else if (k === 'PRUEBALANZAMIENTO') { actualizar({ promoId: 'demo', promoTexto: k, promoDetalle: '+5 chances adicionales para el sorteo Gift Card Zara de S/ 1,000 del mié 25 nov' }); setError(''); }
       else setError('Este código no es válido o ya venció. Revísalo e inténtalo otra vez.');
       return;
     }
     setRevisando(true);
     try {
       const r = await promoApi.validar({ code: k, applicationContext: 'SUBSCRIPTION' });
-      if ((r.isValid ?? r.valid) !== false && r.promoCode?.id) { actualizar({ promoId: r.promoCode.id, promoTexto: k, promoDetalle: r.message }); setError(''); }
+      if ((r.isValid ?? r.valid) !== false && r.promoCode?.id) { actualizar({ promoId: r.promoCode.id, promoTexto: k, promoDetalle: describir(r) }); setError(''); }
       else setError(r.message || 'Este código no es válido o ya venció. Revísalo e inténtalo otra vez.');
     } catch (e) { setError(mensajeError(e)); } finally { setRevisando(false); }
   };

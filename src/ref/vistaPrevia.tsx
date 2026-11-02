@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { cofre, flash } from './mockRef';
 import { useDemo, usePerfil } from './demo';
 import { Icon } from '../components/ui/Icon';
@@ -83,6 +83,18 @@ function HojaCofreVistaPrevia({ abierto, onCerrar }: { abierto: boolean; onCerra
     : sinPremio ? `El premio ya se agotó. Aún puedes elegir ${lanas} Lanas. Hasta agotar stock.`
       : sinLanas ? `Las Lanas ya se agotaron. Aún puedes elegir ${premio}. Hasta agotar stock.`
         : `${premio} o ${lanas} Lanas: tú eliges. Activa tu plan y elige una opción antes de que se agote.`;
+  if (stockCofre === 'proximamente') return (
+    <Hoja abierto={abierto} onCerrar={onCerrar} titulo="El Cofre llega pronto">
+      <span className="-mt-2 w-fit rounded-pill bg-cafe px-3 py-1 text-[11px] font-bold tracking-[0.8px] text-amarillo">COFRE DE ESTA SEMANA</span>
+      <p className="text-[15px] leading-[22px]">El nuevo cofre abre en <b className="whitespace-nowrap">{formatoRestante(proximoMiercoles8().getTime() - ahora)}</b> (jueves, 8:00 a. m.).</p>
+      <div className="flex flex-col gap-2 rounded-2xl bg-n0 p-4 text-[14px] leading-5">
+        <p className="font-extrabold">¿Cómo funciona?</p>
+        <p>Cada jueves se abre un cofre nuevo. Al abrirlo eliges entre el premio que te tocó o Lanas. Ambas opciones tienen stock limitado.</p>
+      </div>
+      <p className="text-[13px] leading-[18px] text-n60">Necesitas un plan activo para abrir el cofre.</p>
+      <AccionPlan onIr={() => { onCerrar(); navigate('/planes'); }} />
+    </Hoja>
+  );
   return (
     <Hoja abierto={abierto} onCerrar={onCerrar} titulo={stockCofre === 'agotado' ? '¡El Cofre de esta semana se agotó!' : '¡Que no se te escape!'}>
       <span className="-mt-2 w-fit rounded-pill bg-cafe px-3 py-1 text-[11px] font-bold tracking-[0.8px] text-amarillo">COFRE DE ESTA SEMANA</span>
@@ -115,7 +127,7 @@ function useStockFlash() {
   const finalizado = stockFlash === 'finalizado';
   const sinBeneficio = stockFlash === 'sinPremio' || stockFlash === 'agotado';
   const sinLanas = stockFlash === 'sinLanas' || stockFlash === 'agotado';
-  return { finalizado, sinBeneficio, sinLanas, agotado: stockFlash === 'agotado', quedanB: flash.cupo - flash.usados, quedanL: flash.lanasStock };
+  return { finalizado, sinBeneficio, sinLanas, agotado: stockFlash === 'agotado', proximamente: stockFlash === 'proximamente', quedanB: flash.cupo - flash.usados, quedanL: flash.lanasStock };
 }
 
 export function CardFlashVisitante() {
@@ -123,6 +135,18 @@ export function CardFlashVisitante() {
   const cerrar = useCallback(() => setHoja(false), []);
   const st = useStockFlash();
   const ahora = useAhora();
+  if (st.proximamente) return (
+    <div className="flex h-full flex-col gap-2.5 overflow-hidden rounded-[24px] p-3.5 lg:gap-[clamp(6px,1.4dvh,14px)] lg:p-[clamp(14px,2.6dvh,24px)]" style={{ background: 'linear-gradient(140deg, #FF88F7 0%, #FF88F7 40%, #B5179E 135%)' }}>
+      <Badge className="!w-fit !px-2.5 !text-[11px]">⚡ FLASH · CADA VIERNES</Badge>
+      <div className="flex min-h-[150px] flex-1 flex-col items-center justify-center gap-2 rounded-[18px] bg-rosa-claro px-5 py-6 text-center text-cafe" style={MUESCAS}>
+        <span className="flex size-12 items-center justify-center rounded-pill bg-n0"><Icon name="reloj" size={24} /></span>
+        <p className="text-[clamp(24px,7vw,40px)] font-black leading-none lg:text-[clamp(28px,5dvh,44px)]">Próximamente</p>
+        <p className="text-[14px] font-semibold leading-5">El nuevo Beneficio Flash llega el <b className="whitespace-nowrap">{proximoMiercoles8(new Date(), 5).toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '').replace(',', '')}, 8:00 a. m.</b></p>
+      </div>
+      <p className="text-[13px] font-semibold leading-[18px] text-cafe lg:text-sm">Cada viernes, una oferta especial por pocas horas. Con tu suscripción eliges el beneficio o Lanas.</p>
+      <Link to="/como-funciona" state={{ ancla: 'flash' }} className="flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-pill bg-n0 text-[15px] font-bold text-morado lg:h-12">Cómo funciona el Flash<Icon name="chevron" size={16} /></Link>
+    </div>
+  );
   return (
     <div className="flex h-full flex-col gap-2.5 overflow-hidden rounded-[24px] p-3.5 lg:gap-[clamp(6px,1.4dvh,14px)] lg:p-[clamp(14px,2.6dvh,24px)]" style={{ background: 'linear-gradient(140deg, #FF88F7 0%, #FF88F7 40%, #B5179E 135%)' }}>
       <div className="flex flex-wrap items-center justify-between gap-2">
