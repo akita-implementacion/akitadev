@@ -1,5 +1,6 @@
 import { config } from '../../api/config';
 import { BannerApi } from '../../components/layout/BannerApi';
+import { HistoricoGanadores } from '../../components/publico/HistoricoGanadores';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Contenido, Hero } from '../../components/layout/Hero';
@@ -208,12 +209,6 @@ export function Ganadores() {
     } catch (e) { setResultado({ cargando: false, error: mensajeError(e), ganados: [] }); }
   };
   const ultimo = historicoSorteos[0];
-  const anteriores = historicoSorteos.slice(1);
-  const filtros = ['Esta semana', ...new Set(anteriores.map((h) => h.mes))];
-  const [filtro, setFiltro] = useState<string>('Esta semana');
-  const grupos = filtro === 'Todos' ? anteriores
-    : filtro === 'Esta semana' ? anteriores.filter((h) => h.mes === anteriores[0]?.mes)
-      : anteriores.filter((h) => h.mes === filtro);
   if (!ultimo) return <><Hero publico color="#45E586" titulo={<Tx k="gan.hero.titulo" />} bajada={<Tx k="gan.hero.bajada" />} imagen="img/oveja-ganadores.webp" /><Contenido><EstadoVacio titulo="Los ganadores se publican después de cada sorteo" detalle="Vuelve el miércoles por la noche." /></Contenido></>;
   const mayor = ultimo.premios.find((p) => p.mayor) ?? ultimo.premios[0];
   return (
@@ -287,45 +282,7 @@ export function Ganadores() {
           </aside>
         </div>
 
-        <section id="historico" className="flex scroll-mt-32 flex-col gap-5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h2 className="text-[24px] font-extrabold text-cafe lg:text-[28px]"><Tx k="gan.historico" /></h2>
-              <p className="text-[15px] text-n60">Todos los sorteos anteriores, con su fecha y participantes</p>
-            </div>
-            <div className="no-scrollbar -mx-6 flex gap-2 overflow-x-auto px-6 lg:mx-0 lg:px-0">
-              {filtros.map((f) => <ChipFiltro key={f} activo={f === filtro} onClick={() => setFiltro(f)}>{f}</ChipFiltro>)}
-            </div>
-          </div>
-          {grupos.length ? (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
-              {grupos.map((h) => (
-                <article key={h.fecha} className="flex flex-col gap-3 rounded-[24px] bg-n0 p-4 lg:p-5">
-                  <p className="flex items-center gap-2 text-[12px] font-bold tracking-[0.8px] text-n60"><Icon name="calendario" size={16} />{h.fecha.toUpperCase()}{h.participantes ? ` · ${h.participantes.toLocaleString('es-PE')} PARTICIPANTES` : ''}</p>
-                  {h.premios.map((f) => {
-                    const varios = 'extra' in f && f.extra ? Number(String(f.extra).match(/\d+/)?.[0] ?? 0) + 1 : 0;
-                    return (
-                      <div key={f.premio} className="flex items-center gap-3 rounded-2xl bg-n5 p-2.5">
-                        <img src={asset(('fotoGanador' in f ? String(f.fotoGanador ?? '') : '') || f.foto)} alt="" loading="lazy" className="size-14 shrink-0 rounded-xl object-cover" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[15px] font-bold leading-5 text-cafe">{f.premio}{varios ? ` · ${varios} ganadores` : ''}</p>
-                          <p className="text-[13px] text-n60">{f.ganador}{varios ? ` y ${varios - 1} más` : ''}</p>
-                        </div>
-                        <span className="hidden shrink-0 rounded-md bg-amarillo px-2 py-[3px] text-[11px] font-bold text-cafe sm:inline">★ GANADOR</span>
-                      </div>
-                    );
-                  })}
-                </article>
-              ))}
-            </div>
-          ) : <p className="text-sm text-n60">No hay sorteos registrados en este periodo.</p>}
-          {filtro !== 'Todos' && (
-            <button type="button" onClick={() => setFiltro('Todos')}
-              className="inline-flex h-11 items-center gap-2 self-center whitespace-nowrap rounded-pill border-[1.5px] border-cafe px-5 text-sm font-bold text-cafe transition hover:bg-n5">
-              Ver sorteos anteriores <Icon name="flecha" size={18} />
-            </button>
-          )}
-        </section>
+        <HistoricoGanadores sorteos={historicoSorteos} />
       </Contenido>
     </>
   );

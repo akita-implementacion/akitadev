@@ -148,8 +148,15 @@ export type PromoValidacion = { isValid?: boolean; valid?: boolean; message?: st
   raffle?: { name?: string; drawDate?: string } | null };
 export type HistorialGanadores = {
   data?: { raffleId?: string; prizeId?: string; prizeName?: string; prizeImageUrl?: string | null; drawDate?: string; hour?: string; name?: string;
-    userPublicId?: string; isLive?: boolean; hasParticipationList?: boolean; photoUrl?: string | null }[];
+    userPublicId?: string; isLive?: boolean; hasParticipationList?: boolean; photoUrl?: string | null; isFeatured?: boolean; priority?: number }[];
   pagination?: { total?: number; page?: number; lastPage?: number; take?: number };
+};
+export type ParticipacionSorteoPublica = {
+  status?: string; page?: number; limit?: number; totalPages?: number;
+  totals?: { participants?: number; chances?: number };
+  winner?: { maskedName?: string; publicId?: string } | null;
+  items?: { position?: number; publicId?: string; maskedName?: string; chancesSubscription?: number; chancesPurchased?: number; chancesPromo?: number; chancesTotal?: number }[];
+  match?: { position?: number; publicId?: string; maskedName?: string; chancesTotal?: number } | null;
 };
 export type HistorialPagos = { data?: { invoiceId?: string; orderNumber?: string; type?: string; date?: string; amountTotalCents?: number; currency?: string; invoiceStatus?: string }[]; page?: number; limit?: number; total?: number };
 export type OfertasUpgrade = {

@@ -53,3 +53,18 @@ Cada fila dice quién debe resolverlo:
 | **Backend** | `completedMissions` en el canje con Lanas. Sorteo y cantidad en la validación del código promocional. Lanas por referido en el correo de confirmación. Confirmar que la placa se acepte con y sin guion. |
 | **Backend y marketing** | Unificar las medidas de banners: el BackOffice indicó 1200×400 (web) y 800×600 (móvil); marketing entrega 2400×350 y 786×600. El front ya muestra bien las de marketing. |
 | **Negocio y Legal** | Textos o PDF de Términos, Privacidad, Cookies, Bases, Cancelación y Selección de ganadores. URL de las redes sociales. |
+
+---
+
+## 4. Histórico de ganadores con filtro por año y mes (03/11, paquete `akita-r1-front03`)
+
+- **Filtro:** dos desplegables, «Año» y «Mes». Solo ofrecen los años y meses que tienen sorteos.
+  - **Datos reales:** hoy van de setiembre de 2025 a octubre de 2026 (61 sorteos y 528 ganadores).
+  - **Esta semana:** está en el año actual. Si todavía no hubo sorteo esta semana, se abre el mes más reciente.
+  - **Al cambiar de año:** se abre su mes más reciente.
+- **Resumen:** «Setiembre 2025 · 4 sorteos», y debajo 4 fechas por vez con «Ver N sorteos más».
+- **Tarjeta de cada fecha:** «MIÉ 24 SET 2025 · 1.686 PARTICIPANTES». El año aparece solo cuando no es el actual. Muestra los ganadores con «★ GANADOR» y el premio destacado primero.
+- **«Ver participantes»:** igual que en el sitio publicado, abre la lista pública con búsqueda por código. No muestra número de orden (ID 15).
+- **API:**
+  - El histórico usa `GET /v1/raffles/winners/history`, que pagina de a 50 como máximo, así que hoy son 11 llamadas en paralelo. **Sugerido a backend:** filtro por año y mes (o un rango de fechas) para pedir solo el mes elegido.
+  - El total de participantes sale de `GET /v1/raffles/{id}/participation` y solo existe en los sorteos con lista publicada.

@@ -359,3 +359,44 @@ export const flashSemana2: typeof flashSemana = {
   codigo: 'AKT-CINE2X1',
   terminos: 'Válido de lunes a jueves en salas tradicionales de Cinemark. Un uso por persona.',
 };
+
+export function historicoGenerado() {
+  const PREMIOS = [
+    { premio: 'Camioneta KIA Niro EV', foto: 'assets/premio-kia.webp' }, { premio: 'iPhone 17 Pro Max', foto: 'assets/premio-iphone.webp' },
+    { premio: 'PlayStation 5', foto: 'assets/premio-ps5.webp' }, { premio: 'Moto Honda Navi', foto: 'assets/premio-moto.webp' },
+    { premio: 'Bicicleta todo terreno', foto: 'img/premio-bici.webp' }, { premio: 'Scooter eléctrico', foto: 'assets/premio-scooter.webp' },
+  ];
+  const NOMBRES = ['Carlos Ra*** Tu***', 'Ana Pé*** Lo***', 'Luis Qu*** Ma***', 'Paola Ch*** Ro***', 'Julio Cé*** Ti***', 'Miguel An*** Vi***',
+    'Rocío Va*** Me***', 'Gabriel Le*** La***', 'Oscar En*** Pe***', 'María Lu*** Ca***', 'Teresa Ra*** Go***', 'John Al*** Pe***'];
+  const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const DIAS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+  const MC = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
+  const hoy = new Date();
+  const out = [];
+  const d = new Date(2025, 8, 3);
+  for (let k = 0; d <= hoy; k++, d.setDate(d.getDate() + 7)) {
+    const n = 2 + (k % 2);
+    const anio = d.getFullYear(); const mes = d.getMonth(); const dia = d.getDate();
+    const pad = (x: number) => String(x).padStart(2, '0');
+    out.push({
+      fecha: `Mié ${dia} ${MC[mes].toLowerCase()}`, mes: MESES[mes], iso: `${anio}-${pad(mes + 1)}-${pad(dia)}`, anio, mesNum: mes,
+      etiqueta: `${DIAS[d.getDay()]} ${dia} ${MC[mes]}${anio !== hoy.getFullYear() ? ` ${anio}` : ''}`, participantes: 980 + ((k * 137) % 900),
+      premios: Array.from({ length: n }, (_, j) => {
+        const p = PREMIOS[(k + j * 2) % PREMIOS.length];
+        return { premio: p.premio, foto: p.foto, ganador: NOMBRES[(k * 3 + j) % NOMBRES.length], usuario: `YK-${(k * 7 + j).toString(36).padStart(4, '0')}…`, mayor: j === 0, listaParticipantes: true, raffleId: `demo-${k}-${j}` };
+      }),
+    });
+  }
+  return out.reverse();
+}
+
+export function participantesEjemplo(page: number, codigo: string) {
+  const NOMBRES = ['Aarón Ar*** Ro***', 'Ana Pé*** Lo***', 'Carlos Ra*** Tu***', 'Diana Qu*** Sa***', 'Eduardo Ca*** Me***', 'Fiorella Ch*** Ro***'];
+  const total = 1310;
+  const items = Array.from({ length: 20 }, (_, i) => {
+    const n = (page - 1) * 20 + i;
+    return { publicId: `YK-${(n * 7919).toString(36).padStart(6, '0')}`, maskedName: NOMBRES[n % NOMBRES.length], chancesTotal: 1 + (n % 5) * 2 };
+  });
+  const match = codigo ? { publicId: codigo, maskedName: 'Camila Ro*** Pa***', chancesTotal: 33 } : null;
+  return { totals: { participants: total, chances: total * 3 }, totalPages: Math.ceil(total / 20), page, items: codigo ? [] : items, match };
+}

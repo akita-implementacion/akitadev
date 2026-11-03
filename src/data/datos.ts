@@ -222,9 +222,25 @@ export function useOfertasUpgrade() {
   } as ReturnType<typeof A.aOfertasUpgrade>, { actual: null, ofertas: [] }, conSesion(), (o) => !o.ofertas.length);
 }
 
+async function historialCompleto() {
+  const primera = await sorteosApi.historialGanadores({ take: 50, page: 1 });
+  const ultima = Math.min(primera.pagination?.lastPage ?? 1, 60);
+  const resto = await Promise.all(Array.from({ length: ultima - 1 }, (_, i) => sorteosApi.historialGanadores({ take: 50, page: i + 2 }).catch(() => ({ data: [] }))));
+  return A.aHistorialGanadores({ data: [primera, ...resto].flatMap((r) => r.data ?? []) });
+}
 export function useHistorialGanadores() {
-  return useRecurso('ganadores:historial', () => sorteosApi.historialGanadores({ take: 50 }).then(A.aHistorialGanadores),
-    M.historicoSorteos as unknown as ReturnType<typeof A.aHistorialGanadores>, [], true);
+  return useRecurso('ganadores:historial', historialCompleto, M.historicoGenerado(), [], true);
+}
+
+export function useParticipantesSorteo(raffleId: string | undefined, page: number, codigo: string, activo: boolean) {
+  return useRecurso(`participantes:${raffleId}:${page}:${codigo}`,
+    () => sorteosApi.participantes(raffleId!, { page, limit: 20, ...(codigo ? { publicId: codigo } : {}) }),
+    M.participantesEjemplo(page, codigo), null, activo && !!raffleId);
+}
+export function useTotalParticipantes(raffleId: string | undefined, activo: boolean) {
+  const r = useRecurso(`participantes:total:${raffleId}`, () => sorteosApi.participantes(raffleId!, { page: 1, limit: 1 }),
+    null, null, activo && !!raffleId);
+  return r.data?.totals?.participants ?? 0;
 }
 
 export function usePlanes() {

@@ -62,18 +62,34 @@ export const aHistorialPagos = (r: T.HistorialPagos) => (r.data ?? []).map((p) =
   estado: /PAID|ISSUED|SENT|OK|SUCCESS/i.test(p.invoiceStatus ?? '') ? 'Pagado' : /PEND/i.test(p.invoiceStatus ?? '') ? 'Pendiente' : /FAIL|REJECT|ERROR/i.test(p.invoiceStatus ?? '') ? 'Rechazado' : (p.invoiceStatus ?? ''),
   invoiceId: p.invoiceId,
 }));
-export const aHistorialGanadores = (r: T.HistorialGanadores) => {
-  const grupos = new Map<string, { fecha: string; mes: string; participantes: number; premios: { premio: string; ganador: string; usuario: string; foto: string; mayor?: boolean; listaParticipantes?: boolean }[] }>();
+const DIAS_CORTOS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+const MESES_CORTOS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
+export const MESES_LARGOS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const etiquetaSorteo = (anio: number, mes: number, dia: number) => {
+  const sem = new Date(Date.UTC(anio, mes, dia)).getUTCDay();
+  return `${DIAS_CORTOS[sem]} ${dia} ${MESES_CORTOS[mes]}${anio !== new Date().getFullYear() ? ` ${anio}` : ''}`;
+};
+export type PremioHistorico = { premio: string; ganador: string; usuario: string; foto: string; mayor?: boolean; listaParticipantes?: boolean; raffleId?: string; fotoGanador?: string; extra?: string };
+export type SorteoHistorico = { fecha: string; mes: string; iso: string; anio: number; mesNum: number; etiqueta: string; participantes: number; premios: PremioHistorico[] };
+export const aHistorialGanadores = (r: T.HistorialGanadores): SorteoHistorico[] => {
+  const grupos = new Map<string, SorteoHistorico>();
   for (const g of r.data ?? []) {
     const k = g.drawDate ?? '';
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})/.exec(k);
+    const [dia, mes, anio] = m ? [Number(m[1]), Number(m[2]) - 1, Number(m[3])] : [0, 0, 0];
     const d = fechaDMY(k);
-    if (!grupos.has(k)) grupos.set(k, { fecha: d ? d.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short', timeZone: TZ }).replace('.', '').replace(/^./, (x) => x.toUpperCase()) : k,
-      mes: d ? d.toLocaleDateString('es-PE', { month: 'long', timeZone: TZ }).replace(/^./, (x) => x.toUpperCase()) : '', participantes: 0, premios: [] });
+    if (!grupos.has(k)) grupos.set(k, {
+      fecha: d ? d.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short', timeZone: TZ }).replace('.', '').replace(/^./, (x) => x.toUpperCase()) : k,
+      mes: m ? MESES_LARGOS[mes] : '', iso: m ? `${m[3]}-${m[2]}-${m[1]}` : k, anio, mesNum: mes, etiqueta: m ? etiquetaSorteo(anio, mes, dia) : k.toUpperCase(),
+      participantes: 0, premios: [] });
     const grupo = grupos.get(k)!;
-    grupo.premios.push({ premio: g.prizeName ?? 'Premio', ganador: g.name ?? '', usuario: g.userPublicId ?? '', foto: conPrueba(g.photoUrl || g.prizeImageUrl, 'ganador', g.prizeName ?? g.name) ?? '',
-      mayor: grupo.premios.length === 0, listaParticipantes: g.hasParticipationList });
+    const p: PremioHistorico = { premio: g.prizeName ?? 'Premio', ganador: g.name ?? '', usuario: g.userPublicId ?? '', foto: conPrueba(g.photoUrl || g.prizeImageUrl, 'ganador', g.prizeName ?? g.name) ?? '',
+      listaParticipantes: g.hasParticipationList, raffleId: g.raffleId };
+    if (g.isFeatured) grupo.premios.unshift(p); else grupo.premios.push(p);
   }
-  return [...grupos.values()];
+  const lista = [...grupos.values()].sort((a, b) => b.iso.localeCompare(a.iso));
+  lista.forEach((s) => s.premios.forEach((p, i) => { p.mayor = i === 0; }));
+  return lista;
 };
 const fechaDMY = (s: string) => {
   const m = /^(\d{2})\/(\d{2})\/(\d{4})/.exec(s);

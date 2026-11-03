@@ -55,7 +55,7 @@ export const sorteosApi = {
   historialGanadores: (q: { code?: string; date?: string; page?: number; take?: number } = {}) =>
     api<T.HistorialGanadores>('/v1/raffles/winners/history', { auth: false, query: q }),
   participantes: (raffleId: string, q: { publicId?: string; page?: number; limit?: number } = {}) =>
-    api(`/v1/raffles/${encodeURIComponent(raffleId)}/participation`, { auth: false, query: q }),
+    api<T.ParticipacionSorteoPublica>(`/v1/raffles/${encodeURIComponent(raffleId)}/participation`, { auth: false, query: q }),
   misParticipaciones: () => api<T.Paginado<T.GrupoParticipaciones>>('/v1/raffles/my-participations/active'),
   misParticipacionesHistoricas: () => api<T.Paginado<T.GrupoParticipaciones>>('/v1/raffles/my-participations/historical'),
   comprarChancesConTarjeta: (b: { token?: string; userPaymentMethodId?: string; raffleId: string; opportunities: number; promoCode?: string }) =>
